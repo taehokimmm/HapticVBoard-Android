@@ -1,0 +1,66 @@
+# Gradle files
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Java & Kotlin
+*.class
+*.jar
+*.war
+*.ear
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.hprof
+out/
+gen/
+tmp/
+*.orig
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Local configuration files
+local.properties
+
+# Log files
+*.log
+
+# Android
+*.apk
+*.ap_
+*.dex
+*.so
+*.png
+*.zip
+*.aar
+*.keystore
+output.json
+
+# Google Services (if using Firebase)
+google-services.json
+
+# Android Studio captures
+captures/
+
+# Others
+*.swp
+*.lock
+*.idx
+*.DS_Store
+*/.gradle/
+*/.idea/
+*/*/build/
+/build/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/misc.xml
