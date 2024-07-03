@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth(0.9f)
                         .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
                         .padding(20.dp, 16.dp)
-                        .height(30.dp),
+                        .heightIn(min = 30.dp, max = 200.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Text(
