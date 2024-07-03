@@ -1,67 +1,38 @@
 package com.taehokimmm.hapticvboard_android
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import android.view.MotionEvent
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
-fun KeyboardLayout(onKeyRelease: (String) -> Unit) {
-    val keyState = remember { mutableStateOf(false) }
+fun KeyboardLayout(touchEvents: List<MotionEvent>, onKeyRelease: (String) -> Unit) {
+    // Coordinates for each key
     val keyPositions = remember { mutableStateOf(mapOf<String, LayoutCoordinates>()) }
-    var pointerPosition by remember { mutableStateOf(Offset.Zero) }
+
+    // Active touch pointers
+    val activeTouches = remember { mutableStateMapOf<Int, String>() }
+
+    // Root coordinates for global positioning
     var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.LightGray)
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset ->
-                        rootCoordinates?.let {
-                            pointerPosition = it.localToRoot(offset)
-                            keyState.value = true
-                        }
-                    },
-                    onDrag = { change, _ ->
-                        change.consume()
-                        rootCoordinates?.let {
-                            pointerPosition = it.localToRoot(change.position)
-                        }
-                    },
-                    onDragEnd = {
-                        handleKeyRelease(
-                            keyState,
-                            keyPositions,
-                            pointerPosition,
-                            onKeyRelease
-                        )
-                    },
-                    onDragCancel = {
-                        handleKeyRelease(
-                            keyState,
-                            keyPositions,
-                            pointerPosition,
-                            onKeyRelease
-                        )
-                    }
-                )
-            }
             .onGloballyPositioned { coordinates ->
                 rootCoordinates = coordinates
             }
@@ -78,17 +49,12 @@ fun KeyboardLayout(onKeyRelease: (String) -> Unit) {
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            keys.forEachIndexed { rowIndex, rowKeys ->
-//                if (rowIndex != 0) Spacer(modifier = Modifier.height(4.dp))
+            keys.forEach { rowKeys ->
                 Row {
                     rowKeys.forEach { key ->
                         DrawKey(
                             key = key,
-                            isPressed = keyState.value && isKeyUnderPointer(
-                                key,
-                                keyPositions.value,
-                                pointerPosition
-                            ),
+                            isPressed = activeTouches.values.contains(key),
                             onPositioned = { coordinates ->
                                 handlePositioned(key, coordinates, keyPositions)
                             }
@@ -98,6 +64,11 @@ fun KeyboardLayout(onKeyRelease: (String) -> Unit) {
             }
             Spacer(modifier = Modifier.height(60.dp))
         }
+    }
+
+    if (touchEvents.isNotEmpty()) {
+        val event = touchEvents[0]
+        processTouchEvent(event, keyPositions.value, activeTouches, onKeyRelease)
     }
 }
 
@@ -158,43 +129,64 @@ fun handlePositioned(
     }
 }
 
-fun isKeyUnderPointer(
-    key: String,
+fun processTouchEvent(
+    event: MotionEvent,
     keyPositions: Map<String, LayoutCoordinates>,
-    pointerPosition: Offset,
-): Boolean {
-    val coordinates = keyPositions[key] ?: return false
+    activeTouches: MutableMap<Int, String>,
+    onKeyReleased: (String) -> Unit
+) {
+    when (event.actionMasked) {
+        MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+            for (i in 0 until event.pointerCount) {
+                val pointerId = event.getPointerId(i)
+                val pointerPosition = Offset(event.getX(i), event.getY(i))
+                val key = keyPositions.entries.find { (_, coordinates) ->
+                    isPointerOverKey(coordinates, pointerPosition)
+                }?.key
+                if (key != null) {
+                    activeTouches[pointerId] = key
+                    println("Initial key pressed: $key for pointer $pointerId")
+                }
+            }
+        }
+
+        MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+            val pointerId = event.getPointerId(event.actionIndex)
+            val key = activeTouches.remove(pointerId)
+            if (key != null) {
+                println("Key released: $key for pointer $pointerId")
+                onKeyReleased(key)
+            }
+        }
+
+        MotionEvent.ACTION_MOVE -> {
+            for (i in 0 until event.pointerCount) {
+                val pointerId = event.getPointerId(i)
+                val pointerPosition = Offset(event.getX(i), event.getY(i))
+                val key = keyPositions.entries.find { (_, coordinates) ->
+                    isPointerOverKey(coordinates, pointerPosition)
+                }?.key
+                if (key != null && activeTouches[pointerId] != key) {
+                    println("Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId")
+                    activeTouches[pointerId] = key
+                }
+            }
+        }
+    }
+}
+
+fun isPointerOverKey(coordinates: LayoutCoordinates, pointerPosition: Offset): Boolean {
     val topLeft = coordinates.positionInRoot()
     val bottomRight =
         Offset(topLeft.x + coordinates.size.width, topLeft.y + coordinates.size.height)
-    val isUnderPointer =
-        pointerPosition.x in topLeft.x..bottomRight.x && pointerPosition.y in topLeft.y..bottomRight.y
-    if (isUnderPointer) {
-        println("Pointer on key: $key at $pointerPosition")
-    }
-    return isUnderPointer
-}
-
-fun handleKeyRelease(
-    keyState: MutableState<Boolean>,
-    keyPositions: MutableState<Map<String, LayoutCoordinates>>,
-    pointerPosition: Offset,
-    onKeyReleased: (String) -> Unit
-) {
-    keyPositions.value.forEach { (key, coordinates) ->
-        val topLeft = coordinates.positionInRoot()
-        val bottomRight =
-            Offset(topLeft.x + coordinates.size.width, topLeft.y + coordinates.size.height)
-        if (pointerPosition.x in topLeft.x..bottomRight.x && pointerPosition.y in topLeft.y..bottomRight.y) {
-            println("Released on key: $key")
-            keyState.value = false
-            onKeyReleased(key)
-        }
-    }
+    return pointerPosition.x in topLeft.x..bottomRight.x && pointerPosition.y in topLeft.y..bottomRight.y
 }
 
 @Preview
 @Composable
 fun KeyboardLayoutPreview() {
-    KeyboardLayout({})
+    KeyboardLayout(
+        touchEvents = emptyList(),
+        onKeyRelease = {}
+    )
 }

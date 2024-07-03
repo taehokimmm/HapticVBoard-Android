@@ -1,6 +1,7 @@
 package com.taehokimmm.hapticvboard_android
 
 import android.os.Bundle
+import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -24,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +34,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             var inputText by remember { mutableStateOf("") }
+            val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
@@ -51,13 +56,33 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-                KeyboardLayout { key ->
-                    when (key) {
-                        "Backspace" -> if (inputText.isNotEmpty()) inputText = inputText.dropLast(1)
-                        "Space" -> inputText += " "
-                        "Shift" -> Unit
-                        else -> inputText += key
-                    }
+                Box {
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyRelease = { key ->
+                            when (key) {
+                                "Backspace" -> if (inputText.isNotEmpty()) inputText =
+                                    inputText.dropLast(1)
+
+                                "Space" -> inputText += " "
+                                "Shift" -> Unit
+                                else -> inputText += key
+                            }
+                        }
+                    )
+                    AndroidView(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp),
+                        factory = { context ->
+                            MultiTouchView(context).apply {
+                                onMultiTouchEvent = { event ->
+                                    keyboardTouchEvents.clear()
+                                    keyboardTouchEvents.add(event)
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
