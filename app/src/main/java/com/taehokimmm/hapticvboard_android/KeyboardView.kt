@@ -19,7 +19,11 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun KeyboardLayout(touchEvents: List<MotionEvent>, onKeyRelease: (String) -> Unit) {
+fun KeyboardLayout(
+    touchEvents: List<MotionEvent>,
+    onKeyRelease: (String) -> Unit,
+    soundManager: SoundManager? = null
+) {
     // Coordinates for each key
     val keyPositions = remember { mutableStateOf(mapOf<String, LayoutCoordinates>()) }
 
@@ -66,9 +70,14 @@ fun KeyboardLayout(touchEvents: List<MotionEvent>, onKeyRelease: (String) -> Uni
         }
     }
 
-    if (touchEvents.isNotEmpty()) {
-        val event = touchEvents[0]
-        processTouchEvent(event, keyPositions.value, activeTouches, onKeyRelease)
+    // Assuming touchEvents is a parameter of type List<MotionEvent>
+    // Create a mutable copy for local modification
+    val mutableTouchEvents = touchEvents.toMutableList()
+
+    if (mutableTouchEvents.isNotEmpty()) {
+        val event = mutableTouchEvents[0]
+        processTouchEvent(event, keyPositions.value, activeTouches, onKeyRelease, soundManager!!)
+        mutableTouchEvents.clear()
     }
 }
 
@@ -133,7 +142,8 @@ fun processTouchEvent(
     event: MotionEvent,
     keyPositions: Map<String, LayoutCoordinates>,
     activeTouches: MutableMap<Int, String>,
-    onKeyReleased: (String) -> Unit
+    onKeyReleased: (String) -> Unit,
+    soundManager: SoundManager
 ) {
     when (event.actionMasked) {
         MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
@@ -145,6 +155,7 @@ fun processTouchEvent(
                 }?.key
                 if (key != null) {
                     activeTouches[pointerId] = key
+                    soundManager.playSoundForKey(key)
                     println("Initial key pressed: $key for pointer $pointerId")
                 }
             }
@@ -168,6 +179,7 @@ fun processTouchEvent(
                 }?.key
                 if (key != null && activeTouches[pointerId] != key) {
                     println("Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId")
+                    soundManager.playSoundForKey(key)
                     activeTouches[pointerId] = key
                 }
             }
@@ -187,6 +199,7 @@ fun isPointerOverKey(coordinates: LayoutCoordinates, pointerPosition: Offset): B
 fun KeyboardLayoutPreview() {
     KeyboardLayout(
         touchEvents = emptyList(),
-        onKeyRelease = {}
+        onKeyRelease = {},
+        soundManager = null
     )
 }
