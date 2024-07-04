@@ -56,7 +56,7 @@ class SoundManager(context: Context) {
     fun playSoundForKey(key: String) {
         val soundId = soundMap[key]
         if (soundId == null) {
-            println("No sound found for key: $key")
+            println("No sound found for key: $key, skipping...")
             return
         }
         println("Playing sound for key: $key")
