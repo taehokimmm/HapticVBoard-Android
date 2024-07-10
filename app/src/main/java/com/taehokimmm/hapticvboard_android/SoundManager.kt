@@ -2,24 +2,33 @@ package com.taehokimmm.hapticvboard_android
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.SoundPool
+import android.os.Build
+import android.provider.MediaStore.Audio
+import androidx.annotation.RequiresApi
 
 class SoundManager(context: Context) {
     private val soundPool: SoundPool
     private val soundMap: MutableMap<String, Int> = mutableMapOf()
+    private val audioManager: AudioManager =
+        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
     init {
+        // Define audio attributes for the sound pool
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
+        // Initialize the sound pool with the defined attributes
         soundPool = SoundPool.Builder()
             .setMaxStreams(10)
             .setAudioAttributes(audioAttributes)
             .build()
 
-        val keyToResourceMap = mapOf<Char, Int>(
+        // Map keys to their respective sound resource IDs
+        val keyToResourceMap = mapOf(
             'a' to R.raw.aa,
             'b' to R.raw.b,
             'c' to R.raw.k,
@@ -43,16 +52,24 @@ class SoundManager(context: Context) {
             'u' to R.raw.uw,
             'v' to R.raw.v,
             'w' to R.raw.uw,
-            'x' to R.raw.z,
+            'x' to R.raw.ks,
             'y' to R.raw.ey,
-            'z' to R.raw.z
+            'z' to R.raw.z,
         )
 
+        // Load the sounds into the sound pool and map them by key
         for ((key, resourceId) in keyToResourceMap) {
-            soundMap[key.toString()] = soundPool.load(context, resourceId, 1)
+            val soundId = soundPool.load(context, resourceId, 1)
+            soundMap[key.toString()] = soundId
         }
     }
 
+    /**
+     * Plays the sound associated with the given key.
+     *
+     * @param key The key for which to play the sound.
+     */
+    @Synchronized
     fun playSoundForKey(key: String) {
         val soundId = soundMap[key]
         if (soundId == null) {

@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun KeyboardLayout(
     touchEvents: List<MotionEvent>,
     onKeyRelease: (String) -> Unit,
+    enterKeyVisibility: Boolean = false,
     soundManager: SoundManager? = null
 ) {
     // Coordinates for each key
@@ -49,8 +50,8 @@ fun KeyboardLayout(
                 listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
                 listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
                 listOf("Shift", "z", "x", "c", "v", "b", "n", "m", "Backspace"),
-                listOf(",", "Space", ".")
             )
+            val lastRow = listOf(",", "Space", ".")
 
             Spacer(modifier = Modifier.height(16.dp))
             keys.forEach { rowKeys ->
@@ -66,6 +67,32 @@ fun KeyboardLayout(
                     }
                 }
             }
+
+            Row {
+                if (enterKeyVisibility) {
+                    Spacer(modifier = Modifier.width(57.dp))
+                }
+                lastRow.forEach { key ->
+                    DrawKey(
+                        key = key,
+                        isPressed = activeTouches.values.contains(key),
+                        onPositioned = { coordinates ->
+                            handlePositioned(key, coordinates, keyPositions)
+                        }
+                    )
+                }
+                if (enterKeyVisibility) {
+                    DrawKey(
+                        key = "Enter",
+                        isPressed = activeTouches.values.contains("Enter"),
+                        onPositioned = { coordinates ->
+                            handlePositioned("Enter", coordinates, keyPositions)
+                        }
+                    )
+                }
+            }
+
+
             Spacer(modifier = Modifier.height(60.dp))
         }
     }
@@ -76,7 +103,13 @@ fun KeyboardLayout(
 
     if (mutableTouchEvents.isNotEmpty()) {
         val event = mutableTouchEvents[0]
-        processTouchEvent(event, keyPositions.value, activeTouches, onKeyRelease, soundManager!!)
+        processTouchEvent(
+            event,
+            keyPositions.value,
+            activeTouches,
+            onKeyRelease,
+            soundManager!!
+        )
         mutableTouchEvents.clear()
     }
 }
@@ -94,6 +127,7 @@ fun DrawKey(
 
     val backgroundColor = when {
         isPressed -> Color.Gray
+        key == "Enter" -> Color(0xFF006AFF)
         else -> Color.White
     }
 
@@ -104,7 +138,7 @@ fun DrawKey(
             .size(
                 when (key) {
                     "Space" -> width * 5 + spacing * 8
-                    "Shift", "Backspace" -> width * 1.5f
+                    "Shift", "Backspace", "Enter" -> width * 1.5f
                     else -> width
                 }, height
             )
@@ -117,13 +151,13 @@ fun DrawKey(
         Text(
             text = when (key) {
                 "Backspace" -> "⌫"
-                "Enter" -> "↵"
+                "Enter" -> "next"
                 "Shift" -> "⇧"
                 "Space" -> " "
                 else -> key
             },
-            fontSize = textSize,
-            color = Color.Black
+            fontSize = if (key == "Enter") 18.sp else textSize,
+            color = if (key == "Enter") Color.White else Color.Black
         )
     }
 }

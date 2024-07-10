@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,10 +34,14 @@ fun FreeTypeMode(
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
     Box(modifier = Modifier.fillMaxSize()) {
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.align(Alignment.BottomStart)
         ) {
+            TextButton(onClick = { inputText = "" }) {
+                Text("Clear", color = Color(0xFF006AFF), fontSize = 20.sp)
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -53,16 +58,14 @@ fun FreeTypeMode(
             Spacer(modifier = Modifier.height(20.dp))
             Box {
                 KeyboardLayout(
-                    touchEvents = keyboardTouchEvents,
-                    onKeyRelease = { key ->
+                    touchEvents = keyboardTouchEvents, onKeyRelease = { key ->
                         inputText = when (key) {
                             "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                             "Space" -> "$inputText "
                             "Shift" -> inputText
                             else -> inputText + key
                         }
-                    },
-                    soundManager = soundManager
+                    }, soundManager = soundManager
                 )
                 AndroidView(
                     modifier = Modifier
@@ -75,8 +78,7 @@ fun FreeTypeMode(
                                 keyboardTouchEvents.add(event)
                             }
                         }
-                    }
-                )
+                    })
             }
         }
     }

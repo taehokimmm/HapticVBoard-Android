@@ -119,6 +119,10 @@ fun MainScreen(soundManager: SoundManager) {
                         showTopAppBar = true
                         FreeTypeMode(soundManager = soundManager)
                     }
+                    composable("train") {
+                        showTopAppBar = true
+                        TrainMode(soundManager = soundManager)
+                    }
                     composable("testInit") {
                         showTopAppBar = true
                         TestInit(soundManager = soundManager, navController = navController)
@@ -128,7 +132,7 @@ fun MainScreen(soundManager: SoundManager) {
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
                             showTopAppBar = false
-                            TestMode(subject, questions, soundManager = soundManager)
+                            TestMode(subject, questions, navController, soundManager = soundManager)
                         }
                     }
                 }
@@ -155,6 +159,13 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                 onClick = {
                     navController.navigate("freeType")
                     selectedItem = "freeType"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Train") },
+                selected = selectedItem == "train",
+                onClick = {
+                    navController.navigate("train")
+                    selectedItem = "train"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Test") },
