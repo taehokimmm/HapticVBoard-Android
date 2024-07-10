@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -190,7 +191,7 @@ fun processTouchEvent(
                 if (key != null) {
                     activeTouches[pointerId] = key
                     soundManager.playSoundForKey(key)
-                    println("Initial key pressed: $key for pointer $pointerId")
+                    Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
                 }
             }
         }
@@ -199,7 +200,7 @@ fun processTouchEvent(
             val pointerId = event.getPointerId(event.actionIndex)
             val key = activeTouches.remove(pointerId)
             if (key != null) {
-                println("Key released: $key for pointer $pointerId")
+                Log.d("TouchEvent", "Key released: $key for pointer $pointerId")
                 onKeyReleased(key)
             }
         }
@@ -212,7 +213,10 @@ fun processTouchEvent(
                     isPointerOverKey(coordinates, pointerPosition)
                 }?.key
                 if (key != null && activeTouches[pointerId] != key) {
-                    println("Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId")
+                    Log.d(
+                        "TouchEvent",
+                        "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
+                    )
                     soundManager.playSoundForKey(key)
                     activeTouches[pointerId] = key
                 }

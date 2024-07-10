@@ -117,22 +117,26 @@ fun MainScreen(soundManager: SoundManager) {
                 ) {
                     composable("freeType") {
                         showTopAppBar = true
-                        FreeTypeMode(soundManager = soundManager)
+                        FreeTypeMode(soundManager)
                     }
                     composable("train") {
                         showTopAppBar = true
-                        TrainMode(soundManager = soundManager)
+                        TrainMode( soundManager)
+                    }
+                    composable("hapticTest") {
+                        showTopAppBar = true
+                        HapticTest(soundManager)
                     }
                     composable("testInit") {
                         showTopAppBar = true
-                        TestInit(soundManager = soundManager, navController = navController)
+                        TestInit(soundManager, navController)
                     }
                     composable("test/{subject}/{questions}") { backStackEntry ->
                         val subject = backStackEntry.arguments?.getString("subject")
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
                             showTopAppBar = false
-                            TestMode(subject, questions, navController, soundManager = soundManager)
+                            TestMode(subject, questions, navController, soundManager)
                         }
                     }
                 }
@@ -168,7 +172,14 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "train"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Test") },
+            NavigationDrawerItem(label = { Text("Study 1") },
+                selected = selectedItem == "hapticTest",
+                onClick = {
+                    navController.navigate("hapticTest")
+                    selectedItem = "hapticTest"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Study 2") },
                 selected = selectedItem == "testInit",
                 onClick = {
                     navController.navigate("testInit")
