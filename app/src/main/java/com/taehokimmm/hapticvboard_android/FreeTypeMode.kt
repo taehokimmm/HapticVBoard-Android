@@ -25,11 +25,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun FreeTypeMode(
-    soundManager: SoundManager
-) {
+fun FreeTypeMode(soundManager: SoundManager?) {
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
@@ -67,10 +66,9 @@ fun FreeTypeMode(
                         }
                     }, soundManager = soundManager
                 )
-                AndroidView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
+                AndroidView(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
                     factory = { context ->
                         MultiTouchView(context).apply {
                             onMultiTouchEvent = { event ->
@@ -82,4 +80,10 @@ fun FreeTypeMode(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun PreviewFreeTypeMode() {
+    FreeTypeMode(null)
 }

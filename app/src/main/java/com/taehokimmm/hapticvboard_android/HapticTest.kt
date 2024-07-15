@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HapticTest(soundManager: SoundManager) {
+fun HapticTest(soundManager: SoundManager?) {
 
     val defaultColor = Color.LightGray
     val pressedColor = Color.Gray
@@ -57,15 +57,13 @@ fun HapticTest(soundManager: SoundManager) {
                     .clip(RoundedCornerShape(60.dp))
                     .size(300.dp, 300.dp)
                     .background(backgroundColor)
-                    .clickable(
-                        onClick = {
-                            // Haptic feedback
-                            soundManager.playSoundForKey(key.toString())
+                    .clickable(onClick = {
+                        // Haptic feedback
+                        soundManager!!.playSoundForKey(key.toString())
 
-                            backgroundColor =
-                                if (backgroundColor == defaultColor) pressedColor else defaultColor
-                        }
-                    ),
+                        backgroundColor =
+                            if (backgroundColor == defaultColor) pressedColor else defaultColor
+                    }),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(text = "${key.uppercaseChar()}", color = Color.White, fontSize = 60.sp)

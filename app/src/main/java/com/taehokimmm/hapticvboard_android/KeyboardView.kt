@@ -35,14 +35,12 @@ fun KeyboardLayout(
     // Root coordinates for global positioning
     var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.LightGray)
-            .onGloballyPositioned { coordinates ->
-                rootCoordinates = coordinates
-            }
-    ) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .background(Color.LightGray)
+        .onGloballyPositioned { coordinates ->
+            rootCoordinates = coordinates
+        }) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -58,13 +56,11 @@ fun KeyboardLayout(
             keys.forEach { rowKeys ->
                 Row {
                     rowKeys.forEach { key ->
-                        DrawKey(
-                            key = key,
+                        DrawKey(key = key,
                             isPressed = activeTouches.values.contains(key),
                             onPositioned = { coordinates ->
                                 handlePositioned(key, coordinates, keyPositions)
-                            }
-                        )
+                            })
                     }
                 }
             }
@@ -74,22 +70,18 @@ fun KeyboardLayout(
                     Spacer(modifier = Modifier.width(57.dp))
                 }
                 lastRow.forEach { key ->
-                    DrawKey(
-                        key = key,
+                    DrawKey(key = key,
                         isPressed = activeTouches.values.contains(key),
                         onPositioned = { coordinates ->
                             handlePositioned(key, coordinates, keyPositions)
-                        }
-                    )
+                        })
                 }
                 if (enterKeyVisibility) {
-                    DrawKey(
-                        key = "Enter",
+                    DrawKey(key = "Enter",
                         isPressed = activeTouches.values.contains("Enter"),
                         onPositioned = { coordinates ->
                             handlePositioned("Enter", coordinates, keyPositions)
-                        }
-                    )
+                        })
                 }
             }
 
@@ -105,11 +97,7 @@ fun KeyboardLayout(
     if (mutableTouchEvents.isNotEmpty()) {
         val event = mutableTouchEvents[0]
         processTouchEvent(
-            event,
-            keyPositions.value,
-            activeTouches,
-            onKeyRelease,
-            soundManager!!
+            event, keyPositions.value, activeTouches, onKeyRelease, soundManager!!
         )
         mutableTouchEvents.clear()
     }
@@ -146,8 +134,7 @@ fun DrawKey(
             .background(backgroundColor)
             .onGloballyPositioned { coordinates ->
                 onPositioned(coordinates)
-            },
-        contentAlignment = Alignment.Center
+            }, contentAlignment = Alignment.Center
     ) {
         Text(
             text = when (key) {
@@ -236,8 +223,6 @@ fun isPointerOverKey(coordinates: LayoutCoordinates, pointerPosition: Offset): B
 @Composable
 fun KeyboardLayoutPreview() {
     KeyboardLayout(
-        touchEvents = emptyList(),
-        onKeyRelease = {},
-        soundManager = null
+        touchEvents = emptyList(), onKeyRelease = {}, soundManager = null
     )
 }

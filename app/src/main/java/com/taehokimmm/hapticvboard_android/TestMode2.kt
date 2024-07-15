@@ -34,6 +34,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,11 +48,11 @@ import java.io.InputStreamReader
 
 
 @Composable
-fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
+fun Test2Init(soundManager: SoundManager?, navController: NavHostController) {
 
     var testSubjectIdentifier by remember { mutableStateOf("") }
-    var testQuestions by remember { mutableIntStateOf(10) }
-    var testQuestionString by remember { mutableStateOf("10") }
+    var testQuestions by remember { mutableIntStateOf(26) }
+    var testQuestionString by remember { mutableStateOf("26") }
     var errorMessage by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()
@@ -83,10 +84,11 @@ fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
             )
 
             // Number of questions
-            TextField(value = testQuestionString,
+            TextField(
+                value = testQuestionString,
                 onValueChange = {
                     testQuestionString = it
-                    testQuestions = it.toIntOrNull() ?: 10
+                    testQuestions = it.toIntOrNull() ?: 26
                 },
                 maxLines = 1,
                 label = { Text(text = "Number of Questions", fontSize = 16.sp) },
@@ -99,7 +101,7 @@ fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
                             testQuestionString = ""
                         }
                         if (!focusState.isFocused && testQuestionString.isEmpty()) {
-                            testQuestions = 10
+                            testQuestions = 26
                             testQuestionString = testQuestions.toString()
                         }
                     },
@@ -122,9 +124,11 @@ fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
             Button(
                 onClick = {
                     if (testSubjectIdentifier.isNotEmpty() && testQuestions > 0) {
-                        navController.navigate("test/${testSubjectIdentifier}/${testQuestions}")
+                        navController.navigate("test2/${testSubjectIdentifier}/${testQuestions}")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
+                    } else if (testQuestions > 26) {
+                        errorMessage = "Number of questions must be less than 26"
                     } else {
                         errorMessage = "Number must be a positive integer"
                     }
@@ -139,61 +143,62 @@ fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
 }
 
 @Composable
-fun TestMode(
-    testName: String, testNumber: Int, navController: NavHostController?, soundManager: SoundManager?
+fun Test2Mode(
+    testName: String,
+    testNumber: Int,
+    navController: NavHostController?,
+    soundManager: SoundManager?
 ) {
-    var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
     val context = LocalContext.current
     var testIter by remember { mutableIntStateOf(0) }
-    val testList = readTxtFile(context, R.raw.phrases)
+
+    var correct by remember { mutableIntStateOf(0) }
+
+    // Record the wrong answers and the respective correct answers
+    val wrongAnswers = remember { mutableStateListOf<Char>() }
+    val correctAnswers = remember { mutableStateListOf<Char>() }
+
+    // Create a list of a-z characters, shuffled
+    val testList = remember { ('a'..'z').shuffled() }
 
     if (testIter >= testNumber) {
         // Navigate to the Test End Screen
-        TestEnd(navController = navController!!)
+        Test2End(
+            subject = testName,
+            correct = correct,
+            testNumber = testNumber,
+            wrongAnswers = wrongAnswers,
+            correctAnswers = correctAnswers,
+            navController = navController!!
+        )
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
 
-            TestTextDisplay(testIter, testNumber, testList[testIter])
+            TestLetterDisplay(testIter, testNumber, testList[testIter])
 
             Column(
                 modifier = Modifier.align(Alignment.BottomStart),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
-                        .padding(20.dp, 16.dp)
-                        .heightIn(min = 30.dp, max = 200.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Text(
-                        text = inputText,
-                        fontSize = 20.sp,
-                    )
-                }
                 Spacer(modifier = Modifier.height(20.dp))
                 Box {
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents, onKeyRelease = { key ->
-                            inputText = when (key) {
-                                "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
-                                "Space" -> "$inputText "
-                                "Shift" -> inputText
-                                "Enter" -> {
-                                    testIter++
-                                    ""
-                                }
-
-                                else -> inputText + key
+                            if (key == testList[testIter].toString()) {
+                                correct++
+                            } else {
+                                wrongAnswers.add(key[0])
+                                correctAnswers.add(testList[testIter])
                             }
-                        }, enterKeyVisibility = true, soundManager = soundManager
+                            testIter++
+                        }, soundManager = soundManager
                     )
-                    AndroidView(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
+                    AndroidView(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp),
                         factory = { context ->
                             MultiTouchView(context).apply {
                                 onMultiTouchEvent = { event ->
@@ -209,7 +214,7 @@ fun TestMode(
 }
 
 @Composable
-fun TestTextDisplay(testIter: Int, testNumber: Int, testString: String) {
+fun TestLetterDisplay(testIter: Int, testNumber: Int, testLetter: Char) {
     Column(
         modifier = Modifier.padding(top = 72.dp)
     ) {
@@ -228,59 +233,49 @@ fun TestTextDisplay(testIter: Int, testNumber: Int, testString: String) {
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = testString, fontSize = 20.sp
+                text = testLetter.uppercase(), fontSize = 60.sp, fontWeight = FontWeight.Bold
             )
         }
     }
 }
 
 @Composable
-fun TestEnd(navController: NavHostController) {
-    var countDown by remember { mutableIntStateOf(5) }
-    LaunchedEffect(Unit) {
-        while (countDown > 0) {
-            delay(1000L) // 1 second delay
-            countDown--
-        }
-        navController.navigate("testInit") // Navigate back to the initial screen
-    }
+fun Test2End(
+    subject: String, correct: Int, testNumber: Int,
+    wrongAnswers: List<Char>, correctAnswers: List<Char>,
+    navController: NavHostController
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Test Completed!", fontSize = 20.sp
+            text = "Test Completed for $subject!", fontSize = 20.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = "Returning to the main screen in $countDown seconds...", fontSize = 16.sp
+            text = "Correct: $correct / $testNumber, Accuracy: ${correct * 100 / testNumber}%",
+            fontSize = 20.sp
         )
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(
+            onClick = {
+                navController.navigate("test2Init")
+            }
+        ) {
+            Text("Return to Test Selection")
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Display the wrong answers and the correct answers
+        Column {
+            Text("Wrong Answers: ", fontSize = 20.sp)
+            for (i in wrongAnswers.indices) {
+                Text(
+                    text = "Q: ${wrongAnswers[i]}          A: ${correctAnswers[i]}", fontSize = 20.sp
+                )
+            }
+        }
     }
-}
-
-fun readTxtFile(context: Context, resId: Int): List<String> {
-    val inputStream = context.resources.openRawResource(resId)
-    val reader = BufferedReader(InputStreamReader(inputStream))
-    val lines = reader.readLines()
-    reader.close()
-    return lines
-}
-
-@Preview
-@Composable
-fun TestInitPreview() {
-    TestInit(null, NavHostController(LocalContext.current))
-}
-
-@Preview
-@Composable
-fun TestModePreview() {
-    TestMode("Test", 10, NavHostController(LocalContext.current), null)
-}
-
-@Preview
-@Composable
-fun TestEndPreview() {
-    TestEnd(NavHostController(LocalContext.current))
 }

@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TrainMode(soundManager: SoundManager) {
+fun TrainMode(soundManager: SoundManager?) {
 
     val keys = listOf(
         listOf("a", "b", "c", "d"),
@@ -61,7 +61,7 @@ fun TrainMode(soundManager: SoundManager) {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {
-                                        soundManager.playSoundForKey(key)
+                                        soundManager!!.playSoundForKey(key)
                                         backgroundColor.value =
                                             if (backgroundColor.value == Color.White) Color.Gray else Color.White
                                     }

@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
         val soundManager = SoundManager(this)
         setContent {
             HapticVBoardAndroidTheme {
-                MainScreen(soundManager = soundManager)
+                MainScreen(soundManager)
             }
         }
     }
@@ -61,7 +62,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(soundManager: SoundManager) {
+fun MainScreen(soundManager: SoundManager?) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -96,8 +97,7 @@ fun MainScreen(soundManager: SoundManager) {
                             Button(
                                 onClick = { navController.navigate("testInit") },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFF3B30),
-                                    contentColor = Color.White
+                                    containerColor = Color(0xFFFF3B30), contentColor = Color.White
                                 )
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -121,7 +121,7 @@ fun MainScreen(soundManager: SoundManager) {
                     }
                     composable("train") {
                         showTopAppBar = true
-                        TrainMode( soundManager)
+                        TrainMode(soundManager)
                     }
                     composable("hapticTest") {
                         showTopAppBar = true
@@ -131,12 +131,24 @@ fun MainScreen(soundManager: SoundManager) {
                         showTopAppBar = true
                         TestInit(soundManager, navController)
                     }
+                    composable("test2Init") {
+                        showTopAppBar = true
+                        Test2Init(soundManager, navController)
+                    }
                     composable("test/{subject}/{questions}") { backStackEntry ->
                         val subject = backStackEntry.arguments?.getString("subject")
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
                             showTopAppBar = false
                             TestMode(subject, questions, navController, soundManager)
+                        }
+                    }
+                    composable("test2/{subject}/{questions}") { backStackEntry ->
+                        val subject = backStackEntry.arguments?.getString("subject")
+                        val questions = backStackEntry.arguments?.getString("questions")?.toInt()
+                        if (subject != null && questions != null) {
+                            showTopAppBar = false
+                            Test2Mode(subject, questions, navController, soundManager)
                         }
                     }
                 }
@@ -180,6 +192,13 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Study 2") },
+                selected = selectedItem == "test2Init",
+                onClick = {
+                    navController.navigate("test2Init")
+                    selectedItem = "test2Init"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Study 3") },
                 selected = selectedItem == "testInit",
                 onClick = {
                     navController.navigate("testInit")
@@ -187,5 +206,13 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     onItemClicked()
                 })
         }
+    }
+}
+
+@Preview
+@Composable
+fun DefaultPreview() {
+    HapticVBoardAndroidTheme {
+        MainScreen(null)
     }
 }

@@ -14,16 +14,13 @@ class SoundManager(context: Context) {
 
     init {
         // Define audio attributes for the sound pool
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
+        val audioAttributes =
+            AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
 
         // Initialize the sound pool with the defined attributes
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(10)
-            .setAudioAttributes(audioAttributes)
-            .build()
+        soundPool =
+            SoundPool.Builder().setMaxStreams(10).setAudioAttributes(audioAttributes).build()
 
         // Map keys to their respective sound resource IDs
         val keyToResourceMap = mapOf(
