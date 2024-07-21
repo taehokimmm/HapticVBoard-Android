@@ -2,15 +2,12 @@ package com.taehokimmm.hapticvboard_android
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.AudioManager
 import android.media.SoundPool
 import android.util.Log
 
 class SoundManager(context: Context) {
     private val soundPool: SoundPool
     private val soundMap: MutableMap<String, Int> = mutableMapOf()
-    private val audioManager: AudioManager =
-        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
     init {
         // Define audio attributes for the sound pool

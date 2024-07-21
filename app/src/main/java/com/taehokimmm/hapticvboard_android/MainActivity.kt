@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,6 +28,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -39,11 +42,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.taehokimmm.hapticvboard_android.ui.theme.HapticVBoardAndroidTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -51,22 +56,48 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val soundManager = SoundManager(this)
+        val serialManager = SerialManager(this)
         setContent {
             HapticVBoardAndroidTheme {
-                MainScreen(soundManager)
+                MainScreen(soundManager, serialManager)
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+enum class HapticMode {
+    VOICE, SERIAL, NONE
+}
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(soundManager: SoundManager?) {
+fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
-    var showTopAppBar by rememberSaveable { mutableStateOf(true) }
+    var currentScreen by rememberSaveable { mutableStateOf("freeType") }
+    var hapticMode by rememberSaveable { mutableStateOf(HapticMode.NONE) }
+
+    if (hapticMode == HapticMode.NONE) {
+        AlertDialog(onDismissRequest = { },
+            title = { Text("Serial Connection Not Found", fontSize = 20.sp) },
+            text = { Text("Please connect the serial device and press Retry. If you are not using a serial device, press Ignore.") },
+            confirmButton = {
+                Button(onClick = {
+                    serialManager?.connect()
+                    if (serialManager?.isOpen() == true) hapticMode = HapticMode.SERIAL
+                }) {
+                    Text("Retry")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { hapticMode = HapticMode.VOICE },
+                ) {
+                    Text("Ignore")
+                }
+            })
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -78,68 +109,37 @@ fun MainScreen(soundManager: SoundManager?) {
         gesturesEnabled = drawerState.isOpen,
     ) {
         Scaffold(
-            topBar = {
-                if (showTopAppBar) {
-                    TopAppBar(title = { }, navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.apply {
-                                    if (isClosed) open() else close()
-                                }
-                            }
-                        }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu")
-                        }
-                    })
-                } else {
-                    CenterAlignedTopAppBar(
-                        title = {
-                            Button(
-                                onClick = { navController.navigate("testInit") },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFF3B30), contentColor = Color.White
-                                )
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Filled.Close, contentDescription = "End Test")
-                                    Spacer(modifier = Modifier.padding(8.dp))
-                                    Text("End Test")
-                                }
-                            }
-                        },
-                    )
-                }
-            },
+            topBar = { DrawTopAppBar(currentScreen, scope, drawerState, navController) },
             content = {
                 NavHost(
                     navController = navController,
                     startDestination = "freeType",
                 ) {
                     composable("freeType") {
-                        showTopAppBar = true
+                        currentScreen = "freeType"
                         FreeTypeMode(soundManager)
                     }
                     composable("train") {
-                        showTopAppBar = true
+                        currentScreen = "train"
                         TrainMode(soundManager)
                     }
                     composable("hapticTest") {
-                        showTopAppBar = true
+                        currentScreen = "hapticTest"
                         HapticTest(soundManager)
                     }
                     composable("testInit") {
-                        showTopAppBar = true
+                        currentScreen = "testInit"
                         TestInit(soundManager, navController)
                     }
                     composable("test2Init") {
-                        showTopAppBar = true
+                        currentScreen = "test2Init"
                         Test2Init(soundManager, navController)
                     }
                     composable("test/{subject}/{questions}") { backStackEntry ->
                         val subject = backStackEntry.arguments?.getString("subject")
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
-                            showTopAppBar = false
+                            currentScreen = "test"
                             TestMode(subject, questions, navController, soundManager)
                         }
                     }
@@ -147,9 +147,13 @@ fun MainScreen(soundManager: SoundManager?) {
                         val subject = backStackEntry.arguments?.getString("subject")
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
-                            showTopAppBar = false
+                            currentScreen = "test2"
                             Test2Mode(subject, questions, navController, soundManager)
                         }
+                    }
+                    composable("testEnd") {
+                        currentScreen = "testEnd"
+                        TestEnd(navController)
                     }
                 }
             },
@@ -209,10 +213,78 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DrawTopAppBar(
+    currentScreen: String,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    navController: NavHostController
+) {
+    val displayText = when (currentScreen) {
+        "freeType" -> "Free Type"
+        "train" -> "Train"
+        "hapticTest" -> "Study 1"
+        "testInit" -> "Study 3"
+        "test2Init" -> "Study 2"
+        else -> ""
+    }
+
+    when (currentScreen) {
+        "test" -> CenterAlignedTopAppBar(
+            title = {
+                Button(
+                    onClick = { navController.navigate("testInit") },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
+                    )
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.Close, contentDescription = "End Test")
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Text("End Test")
+                    }
+                }
+            },
+        )
+
+        "test2" -> CenterAlignedTopAppBar(
+            title = {
+                Button(
+                    onClick = { navController.navigate("test2Init") },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
+                    )
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.Close, contentDescription = "End Test")
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Text("End Test")
+                    }
+                }
+            },
+        )
+
+        "testEnd" -> {}
+
+        else -> TopAppBar(title = { Text(text = displayText) }, navigationIcon = {
+            IconButton(onClick = {
+                scope.launch {
+                    drawerState.apply {
+                        if (isClosed) open() else close()
+                    }
+                }
+            }) {
+                Icon(Icons.Filled.Menu, contentDescription = "Menu")
+            }
+        })
+    }
+}
+
 @Preview
 @Composable
 fun DefaultPreview() {
     HapticVBoardAndroidTheme {
-        MainScreen(null)
+        MainScreen(null, null)
     }
 }
