@@ -1,8 +1,6 @@
 package com.taehokimmm.hapticvboard_android
 
-import android.content.Context
 import android.view.MotionEvent
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,16 +8,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -31,24 +26,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.delay
-import java.io.BufferedReader
-import java.io.InputStreamReader
-
 
 @Composable
-fun Test2Init(soundManager: SoundManager?, navController: NavHostController) {
+fun Test2Init( navController: NavHostController) {
 
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var testQuestions by remember { mutableIntStateOf(26) }
@@ -147,7 +136,9 @@ fun Test2Mode(
     testName: String,
     testNumber: Int,
     navController: NavHostController?,
-    soundManager: SoundManager?
+    soundManager: SoundManager?,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode
 ) {
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
@@ -185,7 +176,8 @@ fun Test2Mode(
                 Spacer(modifier = Modifier.height(20.dp))
                 Box {
                     KeyboardLayout(
-                        touchEvents = keyboardTouchEvents, onKeyRelease = { key ->
+                        touchEvents = keyboardTouchEvents,
+                        onKeyRelease = { key ->
                             if (key == testList[testIter].toString()) {
                                 correct++
                             } else {
@@ -193,7 +185,10 @@ fun Test2Mode(
                                 correctAnswers.add(testList[testIter])
                             }
                             testIter++
-                        }, soundManager = soundManager
+                        },
+                        soundManager = soundManager,
+                        serialManager = serialManager,
+                        hapticMode = hapticMode
                     )
                     AndroidView(
                         modifier = Modifier
@@ -273,7 +268,8 @@ fun Test2End(
             Text("Wrong Answers: ", fontSize = 20.sp)
             for (i in wrongAnswers.indices) {
                 Text(
-                    text = "Q: ${wrongAnswers[i]}          A: ${correctAnswers[i]}", fontSize = 20.sp
+                    text = "Q: ${wrongAnswers[i]}          A: ${correctAnswers[i]}",
+                    fontSize = 20.sp
                 )
             }
         }

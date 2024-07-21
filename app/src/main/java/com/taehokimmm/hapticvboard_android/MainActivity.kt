@@ -117,11 +117,11 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                 ) {
                     composable("freeType") {
                         currentScreen = "freeType"
-                        FreeTypeMode(soundManager)
+                        FreeTypeMode(soundManager, serialManager, hapticMode)
                     }
                     composable("train") {
                         currentScreen = "train"
-                        TrainMode(soundManager)
+                        TrainMode(soundManager, serialManager, hapticMode)
                     }
                     composable("hapticTest") {
                         currentScreen = "hapticTest"
@@ -129,18 +129,25 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                     }
                     composable("testInit") {
                         currentScreen = "testInit"
-                        TestInit(soundManager, navController)
+                        TestInit(navController)
                     }
                     composable("test2Init") {
                         currentScreen = "test2Init"
-                        Test2Init(soundManager, navController)
+                        Test2Init(navController)
                     }
                     composable("test/{subject}/{questions}") { backStackEntry ->
                         val subject = backStackEntry.arguments?.getString("subject")
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
                             currentScreen = "test"
-                            TestMode(subject, questions, navController, soundManager)
+                            TestMode(
+                                subject,
+                                questions,
+                                navController,
+                                soundManager,
+                                serialManager,
+                                hapticMode
+                            )
                         }
                     }
                     composable("test2/{subject}/{questions}") { backStackEntry ->
@@ -148,7 +155,14 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
                             currentScreen = "test2"
-                            Test2Mode(subject, questions, navController, soundManager)
+                            Test2Mode(
+                                subject,
+                                questions,
+                                navController,
+                                soundManager,
+                                serialManager,
+                                hapticMode
+                            )
                         }
                     }
                     composable("testEnd") {

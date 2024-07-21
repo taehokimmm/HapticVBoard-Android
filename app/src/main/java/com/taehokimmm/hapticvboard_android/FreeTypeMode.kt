@@ -28,7 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun FreeTypeMode(soundManager: SoundManager?) {
+fun FreeTypeMode(
+    soundManager: SoundManager?, serialManager: SerialManager?, hapticMode: HapticMode
+) {
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
@@ -57,18 +59,23 @@ fun FreeTypeMode(soundManager: SoundManager?) {
             Spacer(modifier = Modifier.height(20.dp))
             Box {
                 KeyboardLayout(
-                    touchEvents = keyboardTouchEvents, onKeyRelease = { key ->
+                    touchEvents = keyboardTouchEvents,
+                    onKeyRelease = { key ->
                         inputText = when (key) {
                             "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                             "Space" -> "$inputText "
                             "Shift" -> inputText
                             else -> inputText + key
                         }
-                    }, soundManager = soundManager
+                    },
+                    soundManager = soundManager,
+                    serialManager = serialManager,
+                    hapticMode = hapticMode
                 )
-                AndroidView(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
                     factory = { context ->
                         MultiTouchView(context).apply {
                             onMultiTouchEvent = { event ->
@@ -85,5 +92,5 @@ fun FreeTypeMode(soundManager: SoundManager?) {
 @Preview
 @Composable
 fun PreviewFreeTypeMode() {
-    FreeTypeMode(null)
+    FreeTypeMode(null, null, HapticMode.NONE)
 }

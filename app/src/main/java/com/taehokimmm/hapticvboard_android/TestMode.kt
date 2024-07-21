@@ -47,7 +47,7 @@ import java.io.InputStreamReader
 
 
 @Composable
-fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
+fun TestInit(navController: NavHostController) {
 
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var testQuestions by remember { mutableIntStateOf(10) }
@@ -83,7 +83,8 @@ fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
             )
 
             // Number of questions
-            TextField(value = testQuestionString,
+            TextField(
+                value = testQuestionString,
                 onValueChange = {
                     testQuestionString = it
                     testQuestions = it.toIntOrNull() ?: 10
@@ -140,7 +141,12 @@ fun TestInit(soundManager: SoundManager?, navController: NavHostController) {
 
 @Composable
 fun TestMode(
-    testName: String, testNumber: Int, navController: NavHostController?, soundManager: SoundManager?
+    testName: String,
+    testNumber: Int,
+    navController: NavHostController?,
+    soundManager: SoundManager?,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode
 ) {
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
@@ -187,22 +193,25 @@ fun TestMode(
                                     ""
                                 }
 
-                                else -> inputText + key
+                            else -> inputText + key
+                        }
+                    },
+                    enterKeyVisibility = true,
+                    soundManager = soundManager,
+                    serialManager = serialManager,
+                    hapticMode = hapticMode
+                )
+                AndroidView(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                    factory = { context ->
+                        MultiTouchView(context).apply {
+                            onMultiTouchEvent = { event ->
+                                keyboardTouchEvents.clear()
+                                keyboardTouchEvents.add(event)
                             }
-                        }, enterKeyVisibility = true, soundManager = soundManager
-                    )
-                    AndroidView(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                        factory = { context ->
-                            MultiTouchView(context).apply {
-                                onMultiTouchEvent = { event ->
-                                    keyboardTouchEvents.clear()
-                                    keyboardTouchEvents.add(event)
-                                }
-                            }
-                        })
-                }
+                        }
+                    })
             }
         }
     }
@@ -270,13 +279,13 @@ fun readTxtFile(context: Context, resId: Int): List<String> {
 @Preview
 @Composable
 fun TestInitPreview() {
-    TestInit(null, NavHostController(LocalContext.current))
+    TestInit(NavHostController(LocalContext.current))
 }
 
 @Preview
 @Composable
 fun TestModePreview() {
-    TestMode("Test", 10, NavHostController(LocalContext.current), null)
+    TestMode("Test", 10, NavHostController(LocalContext.current), null, null, HapticMode.NONE)
 }
 
 @Preview

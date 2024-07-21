@@ -24,7 +24,9 @@ fun KeyboardLayout(
     touchEvents: List<MotionEvent>,
     onKeyRelease: (String) -> Unit,
     enterKeyVisibility: Boolean = false,
-    soundManager: SoundManager? = null
+    soundManager: SoundManager? = null,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode = HapticMode.NONE
 ) {
     // Coordinates for each key
     val keyPositions = remember { mutableStateOf(mapOf<String, LayoutCoordinates>()) }
@@ -97,7 +99,7 @@ fun KeyboardLayout(
     if (mutableTouchEvents.isNotEmpty()) {
         val event = mutableTouchEvents[0]
         processTouchEvent(
-            event, keyPositions.value, activeTouches, onKeyRelease, soundManager!!
+            event, keyPositions.value, activeTouches, onKeyRelease, soundManager!!, serialManager!!, hapticMode
         )
         mutableTouchEvents.clear()
     }
@@ -165,7 +167,9 @@ fun processTouchEvent(
     keyPositions: Map<String, LayoutCoordinates>,
     activeTouches: MutableMap<Int, String>,
     onKeyReleased: (String) -> Unit,
-    soundManager: SoundManager
+    soundManager: SoundManager,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode
 ) {
     when (event.actionMasked) {
         MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
@@ -177,7 +181,7 @@ fun processTouchEvent(
                 }?.key
                 if (key != null) {
                     activeTouches[pointerId] = key
-                    soundManager.playSoundForKey(key)
+                    hapticFeedback(soundManager, serialManager!!, hapticMode, key)
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
                 }
             }
@@ -204,11 +208,24 @@ fun processTouchEvent(
                         "TouchEvent",
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                     )
-                    soundManager.playSoundForKey(key)
+                    hapticFeedback(soundManager, serialManager!!, hapticMode, key)
                     activeTouches[pointerId] = key
                 }
             }
         }
+    }
+}
+
+fun hapticFeedback(
+    soundManager: SoundManager,
+    serialManager: SerialManager,
+    hapticMode: HapticMode,
+    key: String,
+) {
+    when (hapticMode) {
+        HapticMode.VOICE -> soundManager.playSoundForKey(key)
+        HapticMode.SERIAL -> serialManager.write("P${key.uppercase()}WAV".toByteArray())
+        else -> return
     }
 }
 
@@ -223,6 +240,6 @@ fun isPointerOverKey(coordinates: LayoutCoordinates, pointerPosition: Offset): B
 @Composable
 fun KeyboardLayoutPreview() {
     KeyboardLayout(
-        touchEvents = emptyList(), onKeyRelease = {}, soundManager = null
+        touchEvents = emptyList(), onKeyRelease = {}, soundManager = null, serialManager = null, hapticMode = HapticMode.NONE
     )
 }
