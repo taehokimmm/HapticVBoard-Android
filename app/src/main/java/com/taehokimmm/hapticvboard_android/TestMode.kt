@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+//import com.taehokimmm.hapticvboard_android.calculateAccuracy
+//import com.taehokimmm.hapticvboard_android.calculateWPM
 import kotlinx.coroutines.delay
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -151,6 +153,7 @@ fun TestText(
     navController: NavHostController?,
     soundManager: SoundManager?,
     serialManager: SerialManager?,
+    vibrationManager: VibrationManager?,
     hapticMode: HapticMode
 ) {
     var inputText by remember { mutableStateOf("") }
@@ -174,8 +177,8 @@ fun TestText(
         } else if (testIter < testNumber) {
             endTime = System.currentTimeMillis()
             wordCount = inputText.split("\\s+".toRegex()).size
-            accuracy = calculateAccuracy(inputText, testList[testIter - 1])
-            val wpm = calculateWPM(startTime, endTime, wordCount)
+//            accuracy = calculateAccuracy(inputText, testList[testIter - 1])
+//            val wpm = calculateWPM(startTime, endTime, wordCount)
 //            testMetricDao.insert(
 //                TestMetric(
 //                    testName = testName,
@@ -231,6 +234,7 @@ fun TestText(
                     enterKeyVisibility = true,
                     soundManager = soundManager,
                     serialManager = serialManager,
+                    vibrationManager = vibrationManager,
                     hapticMode = hapticMode
                 )
                 AndroidView(modifier = Modifier
@@ -257,6 +261,7 @@ fun TestLetter(
     navController: NavHostController?,
     soundManager: SoundManager?,
     serialManager: SerialManager?,
+    vibrationManager: VibrationManager?,
     hapticMode: HapticMode
 ) {
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
@@ -307,6 +312,7 @@ fun TestLetter(
                         },
                         soundManager = soundManager,
                         serialManager = serialManager,
+                        vibrationManager = vibrationManager,
                         hapticMode = hapticMode
                     )
                     AndroidView(
@@ -419,7 +425,7 @@ fun TestInitPreview() {
 @Preview
 @Composable
 fun TestModePreview() {
-    TestText(PaddingValues(0.dp),"Test", 10, NavHostController(LocalContext.current), null, null, HapticMode.NONE)
+    TestText(PaddingValues(0.dp),"Test", 10, NavHostController(LocalContext.current), null, null, null, HapticMode.NONE)
 }
 
 @Preview
@@ -427,3 +433,4 @@ fun TestModePreview() {
 fun TestEndPreview() {
     TestEnd(NavHostController(LocalContext.current))
 }
+

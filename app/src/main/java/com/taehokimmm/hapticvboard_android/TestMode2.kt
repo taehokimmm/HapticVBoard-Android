@@ -1,6 +1,9 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.content.Context
+import android.os.AsyncTask
 import android.view.MotionEvent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.Train
+import com.taehokimmm.hapticvboard_android.database.TrainDatabase
 
 @Composable
 fun Test2Init( navController: NavHostController) {
@@ -155,6 +160,7 @@ fun Test2Mode(
     // Create a list of a-z characters, shuffled
     val testList = remember { ('a'..'z').shuffled() }
 
+
     if (testIter >= testNumber) {
         // Navigate to the Test End Screen
         Test2End(
@@ -185,7 +191,12 @@ fun Test2Mode(
                                 wrongAnswers.add(key[0])
                                 correctAnswers.add(testList[testIter])
                             }
+                            // Add Data to Database
+                            val data = Train(testList[testIter].toString(), key)
+                            saveData(context, data)
+
                             testIter++
+
                         },
                         soundManager = soundManager,
                         serialManager = serialManager,
@@ -209,6 +220,8 @@ fun Test2Mode(
         }
     }
 }
+
+
 
 @Composable
 fun TestLetterDisplay(testIter: Int, testNumber: Int, testLetter: Char) {
@@ -276,4 +289,20 @@ fun Test2End(
             }
         }
     }
+}
+
+
+private fun saveData(context: Context, data: Train){
+    class SaveData : AsyncTask<Void, Void, Void>(){
+        override fun doInBackground(vararg p0: Void?): Void? {
+            TrainDatabase(context).getTrainDao().add(data)
+            return null
+        }
+
+        override fun onPostExecute(result: Void?) {
+            super.onPostExecute(result)
+            Toast.makeText(context, "Note Saved", Toast.LENGTH_LONG).show()
+        }
+    }
+    SaveData().execute()
 }

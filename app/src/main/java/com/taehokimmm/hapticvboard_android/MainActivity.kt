@@ -1,6 +1,7 @@
 package com.taehokimmm.hapticvboard_android
 
 import android.annotation.SuppressLint
+import android.os.AsyncTask
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +49,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.taehokimmm.hapticvboard_android.database.Train
+import com.taehokimmm.hapticvboard_android.database.TrainDatabase
 import com.taehokimmm.hapticvboard_android.ui.theme.HapticVBoardAndroidTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -141,15 +145,15 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?, vibra
                         val questions = backStackEntry.arguments?.getString("questions")?.toInt()
                         if (subject != null && questions != null) {
                             currentScreen = "test"
-                            TestMode(
-                                subject,
-                                questions,
-                                navController,
-                                soundManager,
-                                serialManager,
-                                vibrationManager,
-                                hapticMode
-                            )
+//                            TestMode(
+//                                subject,
+//                                questions,
+//                                navController,
+//                                soundManager,
+//                                serialManager,
+//                                vibrationManager,
+//                                hapticMode
+//                            )
                         }
                     }
                     composable("test2/{subject}/{questions}") { backStackEntry ->
