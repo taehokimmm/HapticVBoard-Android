@@ -214,6 +214,7 @@ fun processTouchEvent(
                         "TouchEvent",
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                     )
+                    soundManager?.speakOut(key)
                     hapticFeedback(soundManager, serialManager!!, hapticMode, key)
                     activeTouches[pointerId] = key
                 }
@@ -267,7 +268,7 @@ fun hapticFeedback(
     when (hapticMode) {
         HapticMode.VOICE -> {
             Log.d("HapticFeedback", "Sending haptic for key: $key over voice")
-            soundManager.playSoundForKey(key)
+            soundManager.speakOut(key)
         }
         HapticMode.SERIAL -> {
             Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
@@ -277,6 +278,7 @@ fun hapticFeedback(
         else -> return
     }
 }
+
 
 fun isPointerOverKey(coordinates: LayoutCoordinates, pointerPosition: Offset): Boolean {
     val topLeft = coordinates.positionInRoot()

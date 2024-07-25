@@ -57,9 +57,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val soundManager = SoundManager(this)
         val serialManager = SerialManager(this)
+        val vibrationManager = VibrationManager(this)
         setContent {
             HapticVBoardAndroidTheme {
-                MainScreen(soundManager, serialManager)
+                MainScreen(soundManager, serialManager, vibrationManager)
             }
         }
     }
@@ -71,7 +72,7 @@ enum class HapticMode {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
+fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?, vibrationManager: VibrationManager?) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -117,7 +118,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                 ) {
                     composable("freeType") {
                         currentScreen = "freeType"
-                        FreeTypeMode(soundManager, serialManager, hapticMode)
+                        FreeTypeMode(soundManager, serialManager, vibrationManager, hapticMode)
                     }
                     composable("train") {
                         currentScreen = "train"
@@ -167,7 +168,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                     }
                     composable("testEnd") {
                         currentScreen = "testEnd"
-                        TestEnd(navController)
+                        //TestEnd(navController)
                     }
                 }
             },
@@ -299,6 +300,6 @@ fun DrawTopAppBar(
 @Composable
 fun DefaultPreview() {
     HapticVBoardAndroidTheme {
-        MainScreen(null, null)
+        MainScreen(null, null, null)
     }
 }

@@ -1,5 +1,9 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.os.Build
+import android.os.Handler
+import android.text.InputType
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,21 +22,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.MotionEvent
+import android.widget.EditText
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.time.delay
+import java.util.Timer
+import java.util.TimerTask
 
 @Composable
 fun FreeTypeMode(
-    soundManager: SoundManager?, serialManager: SerialManager?, hapticMode: HapticMode
+    soundManager: SoundManager?, serialManager: SerialManager?, vibrationManager: VibrationManager?, hapticMode: HapticMode
 ) {
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+    var timer: Timer? = null
+    var timerTask: TimerTask? = null
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -51,9 +64,26 @@ fun FreeTypeMode(
                     .heightIn(min = 30.dp, max = 200.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
-                Text(
-                    text = inputText,
-                    fontSize = 20.sp,
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth(),
+                    factory = { ctx ->
+                        EditText(ctx).apply {
+                            hint = "Enter text here"
+                            textSize = 20f
+                            showSoftInputOnFocus = false
+                            setText(inputText)
+                            setSelection(inputText.length)
+                            isFocusable = true
+                            isCursorVisible = true
+                            isPressed=true
+                        }
+                    },
+                    update = { editText ->
+                        if (editText.text.toString() != inputText) {
+                            editText.setText(inputText)
+                            editText.setSelection(inputText.length)
+                        }
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -67,6 +97,37 @@ fun FreeTypeMode(
                             "Shift" -> inputText
                             else -> inputText + key
                         }
+                        if (key == "Space") {
+                            var words = inputText.split(" ")
+                            var word = words[words.size - 2]
+                            // Speak out the word
+                            soundManager?.speakOut(word)
+
+                            // Haptic Feedback for the word
+                            var index = 0
+                            timerTask = object: TimerTask() {
+                                override fun run() {
+                                    if (soundManager != null && serialManager != null){
+                                        if (index == word.length) {
+                                            timerTask?.cancel()
+                                            timer?.cancel()
+                                            timer?.purge()
+                                            return
+                                        }
+                                        var character = word[index++]
+                                        hapticFeedback(soundManager, serialManager, hapticMode,
+                                            character.toString()
+                                        )
+                                    }
+                                }
+                            }
+                            timer = Timer()
+                            timer?.schedule(timerTask, 0, 30)
+                        }
+
+                        // Provide Vibration for Non-Letter Keys
+                        vibrationManager?.vibratePhone(key)
+
                     },
                     soundManager = soundManager,
                     serialManager = serialManager,
@@ -92,5 +153,5 @@ fun FreeTypeMode(
 @Preview
 @Composable
 fun PreviewFreeTypeMode() {
-    FreeTypeMode(null, null, HapticMode.NONE)
+    FreeTypeMode(null, null, null, HapticMode.NONE)
 }

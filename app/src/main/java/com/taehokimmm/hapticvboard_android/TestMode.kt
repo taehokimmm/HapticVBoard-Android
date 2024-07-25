@@ -139,6 +139,66 @@ fun TestInit(navController: NavHostController) {
     }
 }
 
+fun readTxtFile(context: Context, resId: Int): List<String> {
+    val inputStream = context.resources.openRawResource(resId)
+    val reader = BufferedReader(InputStreamReader(inputStream))
+    val lines = reader.readLines()
+    reader.close()
+    return lines
+}
+
+
+@Composable
+fun TestTextDisplay(testIter: Int, testNumber: Int, testString: String) {
+    Column(
+        modifier = Modifier.padding(top = 72.dp)
+    ) {
+        Spacer(modifier = Modifier.height(50.dp))
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "${testIter + 1} / $testNumber", fontSize = 20.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = testString, fontSize = 20.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun TestEnd(navController: NavHostController) {
+    var countDown by remember { mutableIntStateOf(5) }
+    LaunchedEffect(Unit) {
+        while (countDown > 0) {
+            delay(1000L) // 1 second delay
+            countDown--
+        }
+        navController.navigate("testInit") // Navigate back to the initial screen
+    }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Test Completed!", fontSize = 20.sp
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "Returning to the main screen in $countDown seconds...", fontSize = 16.sp
+        )
+    }
+}
+
 @Composable
 fun TestMode(
     testName: String,
@@ -193,103 +253,45 @@ fun TestMode(
                                     ""
                                 }
 
-                            else -> inputText + key
-                        }
-                    },
-                    enterKeyVisibility = true,
-                    soundManager = soundManager,
-                    serialManager = serialManager,
-                    hapticMode = hapticMode
-                )
-                AndroidView(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                    factory = { context ->
-                        MultiTouchView(context).apply {
-                            onMultiTouchEvent = { event ->
-                                keyboardTouchEvents.clear()
-                                keyboardTouchEvents.add(event)
+                                else -> inputText + key
                             }
-                        }
-                    })
+                        },
+                        enterKeyVisibility = true,
+                        soundManager = soundManager,
+                        serialManager = serialManager,
+                        hapticMode = hapticMode
+                    )
+                    AndroidView(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                        factory = { context ->
+                            MultiTouchView(context).apply {
+                                onMultiTouchEvent = { event ->
+                                    keyboardTouchEvents.clear()
+                                    keyboardTouchEvents.add(event)
+                                }
+                            }
+                        })
+                }
             }
         }
     }
-}
 
-@Composable
-fun TestTextDisplay(testIter: Int, testNumber: Int, testString: String) {
-    Column(
-        modifier = Modifier.padding(top = 72.dp)
-    ) {
-        Spacer(modifier = Modifier.height(50.dp))
-        Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "${testIter + 1} / $testNumber", fontSize = 20.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = testString, fontSize = 20.sp
-            )
-        }
+    @Preview
+    @Composable
+    fun TestInitPreview() {
+        TestInit(NavHostController(LocalContext.current))
     }
-}
 
-@Composable
-fun TestEnd(navController: NavHostController) {
-    var countDown by remember { mutableIntStateOf(5) }
-    LaunchedEffect(Unit) {
-        while (countDown > 0) {
-            delay(1000L) // 1 second delay
-            countDown--
-        }
-        navController.navigate("testInit") // Navigate back to the initial screen
+    @Preview
+    @Composable
+    fun TestModePreview() {
+        TestMode("Test", 10, NavHostController(LocalContext.current), null, null, HapticMode.NONE)
     }
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Test Completed!", fontSize = 20.sp
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Returning to the main screen in $countDown seconds...", fontSize = 16.sp
-        )
+
+    @Preview
+    @Composable
+    fun TestEndPreview() {
+        TestEnd(NavHostController(LocalContext.current))
     }
-}
-
-fun readTxtFile(context: Context, resId: Int): List<String> {
-    val inputStream = context.resources.openRawResource(resId)
-    val reader = BufferedReader(InputStreamReader(inputStream))
-    val lines = reader.readLines()
-    reader.close()
-    return lines
-}
-
-@Preview
-@Composable
-fun TestInitPreview() {
-    TestInit(NavHostController(LocalContext.current))
-}
-
-@Preview
-@Composable
-fun TestModePreview() {
-    TestMode("Test", 10, NavHostController(LocalContext.current), null, null, HapticMode.NONE)
-}
-
-@Preview
-@Composable
-fun TestEndPreview() {
-    TestEnd(NavHostController(LocalContext.current))
 }
