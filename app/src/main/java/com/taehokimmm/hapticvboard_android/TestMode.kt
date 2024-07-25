@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +22,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +37,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,24 +49,6 @@ import kotlinx.coroutines.delay
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-
-@Preview
-@Composable
-fun TestInitPreview() {
-    TestInit(NavHostController(LocalContext.current))
-}
-
-@Preview
-@Composable
-fun TestModePreview() {
-    TestMode("Test", 10, NavHostController(LocalContext.current), null, null, null, HapticMode.NONE)
-}
-
-@Preview
-@Composable
-fun TestEndPreview() {
-    TestEnd(NavHostController(LocalContext.current))
-}
 
 @Composable
 fun TestInit(navController: NavHostController) {
@@ -157,21 +143,195 @@ fun TestInit(navController: NavHostController) {
     }
 }
 
-fun readTxtFile(context: Context, resId: Int): List<String> {
-    val inputStream = context.resources.openRawResource(resId)
-    val reader = BufferedReader(InputStreamReader(inputStream))
-    val lines = reader.readLines()
-    reader.close()
-    return lines
+@Composable
+fun TestText(
+    innerPadding: PaddingValues,
+    testName: String,
+    testNumber: Int,
+    navController: NavHostController?,
+    soundManager: SoundManager?,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode
+) {
+    var inputText by remember { mutableStateOf("") }
+    val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+
+    val context = LocalContext.current
+    var testIter by remember { mutableIntStateOf(0) }
+    val testList = readTxtFile(context, R.raw.phrases)
+
+//    val database = AppDatabase.getDatabase(context)
+//    val testMetricDao = database.testMetricDao()
+
+    var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var endTime by remember { mutableLongStateOf(0L) }
+    var wordCount by remember { mutableIntStateOf(0) }
+    var accuracy by remember { mutableDoubleStateOf(0.0) }
+
+    LaunchedEffect(testIter) {
+        if (testIter == 0) {
+            startTime = System.currentTimeMillis()
+        } else if (testIter < testNumber) {
+            endTime = System.currentTimeMillis()
+            wordCount = inputText.split("\\s+".toRegex()).size
+            accuracy = calculateAccuracy(inputText, testList[testIter - 1])
+            val wpm = calculateWPM(startTime, endTime, wordCount)
+//            testMetricDao.insert(
+//                TestMetric(
+//                    testName = testName,
+//                    iteration = testIter,
+//                    wpm = wpm,
+//                    accuracy = accuracy,
+//                    touchMetrics = emptyList(),
+//                    timestamp = System.currentTimeMillis()
+//                )
+//            )
+            startTime = System.currentTimeMillis()
+        } else {
+            navController!!.navigate("testEnd")
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        TextDisplay(testIter, testNumber, testList[testIter])
+        Column(
+            modifier = Modifier.align(Alignment.BottomStart),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
+                    .padding(20.dp, 16.dp)
+                    .heightIn(min = 30.dp, max = 200.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = inputText,
+                    fontSize = 20.sp,
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Box {
+                KeyboardLayout(
+                    touchEvents = keyboardTouchEvents,
+                    onKeyRelease = { key ->
+                        inputText = when (key) {
+                            "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                            "Space" -> "$inputText "
+                            "Shift" -> inputText
+                            "Enter" -> {
+                                testIter++
+                                ""
+                            }
+
+                            else -> inputText + key
+                        }
+                    },
+                    enterKeyVisibility = true,
+                    soundManager = soundManager,
+                    serialManager = serialManager,
+                    hapticMode = hapticMode
+                )
+                AndroidView(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                    factory = { context ->
+                        MultiTouchView(context).apply {
+                            onMultiTouchEvent = { event ->
+                                keyboardTouchEvents.clear()
+                                keyboardTouchEvents.add(event)
+                            }
+                        }
+                    })
+            }
+        }
+    }
 }
 
+@Composable
+fun TestLetter(
+    innerPadding: PaddingValues,
+    testName: String,
+    testNumber: Int,
+    navController: NavHostController?,
+    soundManager: SoundManager?,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode
+) {
+    val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+
+    val context = LocalContext.current
+    var testIter by remember { mutableIntStateOf(0) }
+
+    var correct by remember { mutableIntStateOf(0) }
+
+    // Record the wrong answers and the respective correct answers
+    val wrongAnswers = remember { mutableStateListOf<Char>() }
+    val correctAnswers = remember { mutableStateListOf<Char>() }
+
+    // Create a list of a-z characters, shuffled
+    val testList = remember { ('a'..'z').shuffled() }
+
+    if (testIter >= testNumber) {
+        // Navigate to the Test End Screen
+        Test2End(
+            subject = testName,
+            correct = correct,
+            testNumber = testNumber,
+            wrongAnswers = wrongAnswers,
+            correctAnswers = correctAnswers,
+            navController = navController!!
+        )
+    } else {
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
+            TestDisplay(testIter, testNumber, testList[testIter])
+
+            Column(
+                modifier = Modifier.align(Alignment.BottomStart),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Box {
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyRelease = { key ->
+                            if (key == testList[testIter].toString()) {
+                                correct++
+                            } else {
+                                wrongAnswers.add(key[0])
+                                correctAnswers.add(testList[testIter])
+                            }
+                            testIter++
+                        },
+                        soundManager = soundManager,
+                        serialManager = serialManager,
+                        hapticMode = hapticMode
+                    )
+                    AndroidView(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp),
+                        factory = { context ->
+                            MultiTouchView(context).apply {
+                                onMultiTouchEvent = { event ->
+                                    keyboardTouchEvents.clear()
+                                    keyboardTouchEvents.add(event)
+                                }
+                            }
+                        })
+                }
+            }
+        }
+    }
+}
 
 @Composable
-fun TestTextDisplay(testIter: Int, testNumber: Int, testString: String) {
+fun TextDisplay(testIter: Int, testNumber: Int, testString: String) {
     Column(
-        modifier = Modifier.padding(top = 72.dp)
+        modifier = Modifier.padding(top = 10.dp)
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
@@ -187,6 +347,31 @@ fun TestTextDisplay(testIter: Int, testNumber: Int, testString: String) {
         ) {
             Text(
                 text = testString, fontSize = 20.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char) {
+    Column(
+        modifier = Modifier.padding(top = 10.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "${testIter + 1} / $testNumber", fontSize = 20.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = testLetter.uppercase(), fontSize = 60.sp, fontWeight = FontWeight.Bold
             )
         }
     }
@@ -217,83 +402,28 @@ fun TestEnd(navController: NavHostController) {
     }
 }
 
+fun readTxtFile(context: Context, resId: Int): List<String> {
+    val inputStream = context.resources.openRawResource(resId)
+    val reader = BufferedReader(InputStreamReader(inputStream))
+    val lines = reader.readLines()
+    reader.close()
+    return lines
+}
+
+@Preview
 @Composable
-fun TestMode(
-    testName: String,
-    testNumber: Int,
-    navController: NavHostController?,
-    soundManager: SoundManager?,
-    serialManager: SerialManager?,
-    vibrationManager: VibrationManager?,
-    hapticMode: HapticMode
-) {
-    var inputText by remember { mutableStateOf("") }
-    val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+fun TestInitPreview() {
+    TestInit(NavHostController(LocalContext.current))
+}
 
-    val context = LocalContext.current
-    var testIter by remember { mutableIntStateOf(0) }
-    val testList = readTxtFile(context, R.raw.phrases)
+@Preview
+@Composable
+fun TestModePreview() {
+    TestText(PaddingValues(0.dp),"Test", 10, NavHostController(LocalContext.current), null, null, HapticMode.NONE)
+}
 
-    if (testIter >= testNumber) {
-        // Navigate to the Test End Screen
-        TestEnd(navController = navController!!)
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-
-            TestTextDisplay(testIter, testNumber, testList[testIter])
-
-            Column(
-                modifier = Modifier.align(Alignment.BottomStart),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
-                        .padding(20.dp, 16.dp)
-                        .heightIn(min = 30.dp, max = 200.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Text(
-                        text = inputText,
-                        fontSize = 20.sp,
-                    )
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-                Box {
-                    KeyboardLayout(
-                        touchEvents = keyboardTouchEvents, onKeyRelease = { key ->
-                            inputText = when (key) {
-                                "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
-                                "Space" -> "$inputText "
-                                "Shift" -> inputText
-                                "Enter" -> {
-                                    testIter++
-                                    ""
-                                }
-
-                                else -> inputText + key
-                            }
-                        },
-                        enterKeyVisibility = true,
-                        soundManager = soundManager,
-                        serialManager = serialManager,
-                        vibrationManager = vibrationManager,
-                        hapticMode = hapticMode
-                    )
-                    AndroidView(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                        factory = { context ->
-                            MultiTouchView(context).apply {
-                                onMultiTouchEvent = { event ->
-                                    keyboardTouchEvents.clear()
-                                    keyboardTouchEvents.add(event)
-                                }
-                            }
-                        })
-                }
-            }
-        }
-    }
+@Preview
+@Composable
+fun TestEndPreview() {
+    TestEnd(NavHostController(LocalContext.current))
 }
