@@ -26,7 +26,8 @@ fun KeyboardLayout(
     enterKeyVisibility: Boolean = false,
     soundManager: SoundManager? = null,
     serialManager: SerialManager?,
-    hapticMode: HapticMode = HapticMode.NONE
+    hapticMode: HapticMode = HapticMode.NONE,
+    suppress: List<String> = emptyList()
 ) {
     // Coordinates for each key
     val keyPositions = remember { mutableStateOf(mapOf<String, LayoutCoordinates>()) }
@@ -59,7 +60,7 @@ fun KeyboardLayout(
                 Row {
                     rowKeys.forEach { key ->
                         DrawKey(key = key,
-                            isPressed = activeTouches.values.contains(key),
+                            isPressed = activeTouches.values.contains(key) || suppress.contains(key),
                             onPositioned = { coordinates ->
                                 handlePositioned(key, coordinates, keyPositions)
                             })
@@ -105,7 +106,8 @@ fun KeyboardLayout(
             onKeyRelease,
             soundManager!!,
             serialManager!!,
-            hapticMode
+            hapticMode,
+            suppress
         )
         mutableTouchEvents.clear()
     }
@@ -175,7 +177,8 @@ fun processTouchEvent(
     onKeyReleased: (String) -> Unit,
     soundManager: SoundManager,
     serialManager: SerialManager?,
-    hapticMode: HapticMode
+    hapticMode: HapticMode,
+    suppress: List<String>
 ) {
     when (event.actionMasked) {
         MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
@@ -187,7 +190,8 @@ fun processTouchEvent(
                 }?.key
                 if (key != null) {
                     activeTouches[pointerId] = key
-                    hapticFeedback(soundManager, serialManager!!, hapticMode, key)
+                    if (!suppress.contains(key))
+                        hapticFeedback(soundManager, serialManager!!, hapticMode, key)
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
                 }
             }
@@ -214,7 +218,8 @@ fun processTouchEvent(
                         "TouchEvent",
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                     )
-                    hapticFeedback(soundManager, serialManager!!, hapticMode, key)
+                    if (!suppress.contains(key))
+                        hapticFeedback(soundManager, serialManager!!, hapticMode, key)
                     activeTouches[pointerId] = key
                 }
             }
@@ -269,11 +274,13 @@ fun hapticFeedback(
             Log.d("HapticFeedback", "Sending haptic for key: $key over voice")
             soundManager.playSoundForKey(key)
         }
+
         HapticMode.SERIAL -> {
             Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
-            Log.d("HapticFeedback","P${formattedKey}WAV")
+            Log.d("HapticFeedback", "P${formattedKey}WAV")
             serialManager.write("P${formattedKey}WAV\n".toByteArray())
         }
+
         else -> return
     }
 }

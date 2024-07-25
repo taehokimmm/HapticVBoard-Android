@@ -61,7 +61,12 @@ fun TrainMode(soundManager: SoundManager?, serialManager: SerialManager?, haptic
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {
-                                        hapticFeedback(soundManager!!, serialManager!!, hapticMode, key)
+                                        hapticFeedback(
+                                            soundManager!!,
+                                            serialManager!!,
+                                            hapticMode,
+                                            key
+                                        )
                                         backgroundColor.value =
                                             if (backgroundColor.value == Color.White) Color.Gray else Color.White
                                     }
@@ -75,5 +80,4 @@ fun TrainMode(soundManager: SoundManager?, serialManager: SerialManager?, haptic
             }
         }
     }
-
 }

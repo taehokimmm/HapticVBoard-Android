@@ -18,7 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.MotionEvent
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -29,13 +33,19 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun FreeTypeMode(
-    soundManager: SoundManager?, serialManager: SerialManager?, hapticMode: HapticMode
+    innerPadding: PaddingValues,
+    soundManager: SoundManager?,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode
 ) {
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.align(Alignment.BottomStart)
@@ -72,10 +82,79 @@ fun FreeTypeMode(
                     serialManager = serialManager,
                     hapticMode = hapticMode
                 )
-                AndroidView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
+                AndroidView(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                    factory = { context ->
+                        MultiTouchView(context).apply {
+                            onMultiTouchEvent = { event ->
+                                keyboardTouchEvents.clear()
+                                keyboardTouchEvents.add(event)
+                            }
+                        }
+                    })
+            }
+        }
+    }
+}
+
+@Composable
+fun FreeTypeWithGroup(
+    innerPadding: PaddingValues,
+    soundManager: SoundManager?,
+    serialManager: SerialManager?,
+    hapticMode: HapticMode
+) {
+    val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+
+    var selectedTabIndex by remember { mutableStateOf(0) }
+
+    val suppressKeys = when (selectedTabIndex) {
+        0 -> listOf("t", "y", "u", "i", "o", "p", "g", "h", "j", "k", "l", "v", "b", "n", "m")
+        1 -> listOf("q", "w", "e", "i", "o", "p", "a", "s", "d", "j", "k", "l", "z", "x", "n", "m")
+        2 -> listOf("q", "w", "e", "r", "t", "y", "a", "s", "d", "f", "g", "z", "x", "c", "v")
+        else -> emptyList()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+    ) {
+        TabRow(selectedTabIndex = 0, indicator = { tabPositions ->
+            SecondaryIndicator(
+                Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex])
+            )
+        }, tabs = {
+            TextButton(onClick = { selectedTabIndex = 0 }) {
+                Text("Left", fontSize = 20.sp)
+            }
+            TextButton(onClick = { selectedTabIndex = 1 }) {
+                Text("Center", fontSize = 20.sp)
+            }
+            TextButton(onClick = { selectedTabIndex = 2 }) {
+                Text("Right", fontSize = 20.sp)
+            }
+        })
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.align(Alignment.BottomStart)
+        ) {
+
+            Spacer(modifier = Modifier.height(440.dp))
+            Box {
+                KeyboardLayout(
+                    touchEvents = keyboardTouchEvents,
+                    onKeyRelease = { },
+                    soundManager = soundManager,
+                    serialManager = serialManager,
+                    hapticMode = hapticMode,
+                    suppress = suppressKeys
+                )
+                AndroidView(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
                     factory = { context ->
                         MultiTouchView(context).apply {
                             onMultiTouchEvent = { event ->
@@ -92,5 +171,11 @@ fun FreeTypeMode(
 @Preview
 @Composable
 fun PreviewFreeTypeMode() {
-    FreeTypeMode(null, null, HapticMode.NONE)
+    FreeTypeMode(PaddingValues(0.dp), null, null, HapticMode.NONE)
+}
+
+@Preview
+@Composable
+fun PreviewFreeTypewithGroup() {
+    FreeTypeWithGroup(PaddingValues(0.dp), null, null, HapticMode.NONE)
 }

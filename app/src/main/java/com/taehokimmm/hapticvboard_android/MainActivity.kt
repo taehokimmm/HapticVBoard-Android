@@ -1,6 +1,5 @@
 package com.taehokimmm.hapticvboard_android
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -69,7 +69,6 @@ enum class HapticMode {
     VOICE, SERIAL, NONE
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -110,22 +109,74 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
     ) {
         Scaffold(
             topBar = { DrawTopAppBar(currentScreen, scope, drawerState, navController) },
-            content = {
+            contentWindowInsets = WindowInsets(0.dp),
+            content = { innerPadding ->
                 NavHost(
                     navController = navController,
                     startDestination = "freeType",
                 ) {
                     composable("freeType") {
                         currentScreen = "freeType"
-                        FreeTypeMode(soundManager, serialManager, hapticMode)
+                        FreeTypeMode(innerPadding, soundManager, serialManager, hapticMode)
                     }
-                    composable("train") {
-                        currentScreen = "train"
-                        TrainMode(soundManager, serialManager, hapticMode)
+                    composable("freeType2") {
+                        currentScreen = "freeType2"
+                        FreeTypeWithGroup(innerPadding, soundManager, serialManager, hapticMode)
                     }
-                    composable("hapticTest") {
-                        currentScreen = "hapticTest"
-                        HapticTest(soundManager)
+                    composable("study1/train/init") {
+                        currentScreen = "study1/train/init"
+                        Study1TrainInit(navController)
+                    }
+                    composable("study1/train/phase1/{subject}/{Group}") {
+                        currentScreen = "study1/train/phase1"
+                        val subject = it.arguments?.getString("subject")!!
+                        val group = it.arguments?.getString("Group")!!
+                        Study1TrainPhase1(
+                            innerPadding,
+                            subject,
+                            group,
+                            navController,
+                            soundManager!!,
+                            serialManager!!,
+                            hapticMode
+                        )
+                    }
+                    composable("study1/train/phase2/{subject}/{Group}") {
+                        currentScreen = "study1/train/phase2"
+                        val subject = it.arguments?.getString("subject")!!
+                        val group = it.arguments?.getString("Group")!!
+                        Study1TrainPhase2(
+                            innerPadding,
+                            subject,
+                            group,
+                            navController,
+                            soundManager!!,
+                            serialManager!!,
+                            hapticMode
+                        )
+                    }
+                    composable("study1/train/phase3/{subject}/{Group}") {
+                        currentScreen = "study3/train"
+                        val subject = it.arguments?.getString("subject")!!
+                        val group = it.arguments?.getString("Group")!!
+                        Study1TrainPhase3(
+                            innerPadding,
+                            subject,
+                            group,
+                            navController,
+                            soundManager!!,
+                            serialManager!!,
+                            hapticMode
+                        )
+                    }
+                    composable("study1/train/end/{subject}") {
+                        currentScreen = "study1/train"
+                        val subject = it.arguments?.getString("subject")!!
+                        Study1TrainEnd(subject, navController)
+                    }
+                    composable("study1/test/init") {
+                        currentScreen = "study1/test/init"
+//                        Study1TestInit(navController)
                     }
                     composable("testInit") {
                         currentScreen = "testInit"
@@ -135,39 +186,13 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                         currentScreen = "test2Init"
                         Test2Init(navController)
                     }
-                    composable("test/{subject}/{questions}") { backStackEntry ->
-                        val subject = backStackEntry.arguments?.getString("subject")
-                        val questions = backStackEntry.arguments?.getString("questions")?.toInt()
-                        if (subject != null && questions != null) {
-                            currentScreen = "test"
-                            TestMode(
-                                subject,
-                                questions,
-                                navController,
-                                soundManager,
-                                serialManager,
-                                hapticMode
-                            )
-                        }
-                    }
-                    composable("test2/{subject}/{questions}") { backStackEntry ->
-                        val subject = backStackEntry.arguments?.getString("subject")
-                        val questions = backStackEntry.arguments?.getString("questions")?.toInt()
-                        if (subject != null && questions != null) {
-                            currentScreen = "test2"
-                            Test2Mode(
-                                subject,
-                                questions,
-                                navController,
-                                soundManager,
-                                serialManager,
-                                hapticMode
-                            )
-                        }
-                    }
                     composable("testEnd") {
                         currentScreen = "testEnd"
                         TestEnd(navController)
+                    }
+                    composable("serial") {
+                        currentScreen = "serial"
+                        SerialMonitorScreen()
                     }
                 }
             },
@@ -195,6 +220,13 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "freeType"
                     onItemClicked()
                 })
+            NavigationDrawerItem(label = { Text("Free Type 2") },
+                selected = selectedItem == "freeType2",
+                onClick = {
+                    navController.navigate("freeType2")
+                    selectedItem = "freeType2"
+                    onItemClicked()
+                })
             NavigationDrawerItem(label = { Text("Train") },
                 selected = selectedItem == "train",
                 onClick = {
@@ -202,25 +234,39 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "train"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 1") },
-                selected = selectedItem == "hapticTest",
+            NavigationDrawerItem(label = { Text("Study 1 Train") },
+                selected = selectedItem == "study1/train",
                 onClick = {
-                    navController.navigate("hapticTest")
-                    selectedItem = "hapticTest"
+                    navController.navigate("study1/train/init")
+                    selectedItem = "study1/train"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 2") },
-                selected = selectedItem == "test2Init",
+            NavigationDrawerItem(label = { Text("Study 1 Test") },
+                selected = selectedItem == "study1/test",
                 onClick = {
-                    navController.navigate("test2Init")
-                    selectedItem = "test2Init"
+                    navController.navigate("study1/test")
+                    selectedItem = "study1/test"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 3") },
-                selected = selectedItem == "testInit",
+            NavigationDrawerItem(label = { Text("Study 2 Train") },
+                selected = selectedItem == "study2/train",
                 onClick = {
-                    navController.navigate("testInit")
-                    selectedItem = "testInit"
+                    navController.navigate("study2/train")
+                    selectedItem = "study2/train"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Study 2 Test") },
+                selected = selectedItem == "study2/test",
+                onClick = {
+                    navController.navigate("study2/test")
+                    selectedItem = "study2/test"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Serial Monitor") },
+                selected = selectedItem == "serial",
+                onClick = {
+                    navController.navigate("serial")
+                    selectedItem = "serial"
                     onItemClicked()
                 })
         }
@@ -237,10 +283,16 @@ fun DrawTopAppBar(
 ) {
     val displayText = when (currentScreen) {
         "freeType" -> "Free Type"
+        "freeType2" -> "Free Type with Group"
         "train" -> "Train"
-        "hapticTest" -> "Study 1"
-        "testInit" -> "Study 3"
-        "test2Init" -> "Study 2"
+        "study1/train" -> "Study 1 Train"
+        "study1/train/phase1" -> "Phase 1 — Free Play"
+        "study1/train/phase2" -> "Phase 2 — Identification Test"
+        "study1/train/phase3" -> "Phase 3 — Typing Test"
+        "study1/test" -> "Study 1 Test"
+        "study2/train" -> "Study 2 Train"
+        "study2/test" -> "Study 2 Test"
+        "serial" -> "Serial Monitor"
         else -> ""
     }
 
@@ -281,7 +333,7 @@ fun DrawTopAppBar(
 
         "testEnd" -> {}
 
-        else -> TopAppBar(title = { Text(text = displayText) }, navigationIcon = {
+        else -> TopAppBar(title = { Text(displayText) }, navigationIcon = {
             IconButton(onClick = {
                 scope.launch {
                     drawerState.apply {
