@@ -10,21 +10,21 @@ import androidx.annotation.RequiresApi
 class VibrationManager (context: Context){
     val context:Context = context
     fun vibratePhone(key:String) {
-
-        var effect = VibrationEffect.DEFAULT_AMPLITUDE
-        if (key == "Backspace") {
-            effect = VibrationEffect.EFFECT_CLICK
-        } else if(key == "Space"){
-            effect = VibrationEffect.EFFECT_TICK
-        } else {
+        if (key != "Backspace" && key != "Space") {
             return
         }
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if (vibrator.hasVibrator()) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                vibrator.vibrate(
-                    VibrationEffect.createPredefined(effect)
-                )
+
+                var vibrate: VibrationEffect? = null
+                Log.e("VIBRATION", key)
+                if (key == "Backspace") {
+                    vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)
+                } else if(key == "Space"){
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                }
+                vibrator.vibrate(vibrate)
             } else {
                 // Deprecated in API 26
                 vibrator.vibrate(100)

@@ -47,6 +47,50 @@ fun FreeTypeMode(
     var timer: Timer? = null
     var timerTask: TimerTask? = null
 
+
+    fun onSpace() {
+        var words = inputText.split(" ")
+        if (words.size == 0) return
+        var word = words[words.size - 1]
+        // Speak out the word
+        if (soundManager == null) return
+        soundManager?.speakOut(word)
+
+        // Haptic Feedback for the word
+        if (serialManager == null) return
+        var index = 0
+        timerTask = object : TimerTask() {
+            override fun run() {
+                if (index == word.length) {
+                    timerTask?.cancel()
+                    timer?.cancel()
+                    timer?.purge()
+                    return
+                }
+                var character = word[index++]
+                Log.e("SPACE", character.toString())
+                hapticFeedback(
+                    soundManager, serialManager, hapticMode,
+                    character.toString()
+                )
+            }
+        }
+        timer = Timer()
+        timer?.schedule(timerTask, 0, 300)
+    }
+
+    fun onBackspace() {
+        if (inputText.length == 0) return
+        var character = inputText[inputText.length - 1]
+        Log.e("Backspace", character.toString())
+        if (soundManager != null && serialManager != null) {
+            hapticFeedback(
+                soundManager, serialManager, hapticMode,
+                character.toString()
+            )
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
 
         Column(
@@ -91,46 +135,22 @@ fun FreeTypeMode(
                 KeyboardLayout(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { key ->
+                        if (key == "Space") {
+                            onSpace()
+                        } else if(key == "Backspace") {
+                            onBackspace()
+                        }
+
                         inputText = when (key) {
                             "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                             "Space" -> "$inputText "
                             "Shift" -> inputText
                             else -> inputText + key
                         }
-                        if (key == "Space") {
-                            var words = inputText.split(" ")
-                            var word = words[words.size - 2]
-                            // Speak out the word
-                            soundManager?.speakOut(word)
-
-                            // Haptic Feedback for the word
-                            var index = 0
-                            timerTask = object: TimerTask() {
-                                override fun run() {
-                                    if (soundManager != null && serialManager != null){
-                                        if (index == word.length) {
-                                            timerTask?.cancel()
-                                            timer?.cancel()
-                                            timer?.purge()
-                                            return
-                                        }
-                                        var character = word[index++]
-                                        hapticFeedback(soundManager, serialManager, hapticMode,
-                                            character.toString()
-                                        )
-                                    }
-                                }
-                            }
-                            timer = Timer()
-                            timer?.schedule(timerTask, 0, 30)
-                        }
-
-                        // Provide Vibration for Non-Letter Keys
-                        vibrationManager?.vibratePhone(key)
-
                     },
                     soundManager = soundManager,
                     serialManager = serialManager,
+                    vibrationManager = vibrationManager,
                     hapticMode = hapticMode
                 )
                 AndroidView(

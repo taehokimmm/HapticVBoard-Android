@@ -138,6 +138,7 @@ fun Test2Mode(
     navController: NavHostController?,
     soundManager: SoundManager?,
     serialManager: SerialManager?,
+    vibrationManager: VibrationManager?,
     hapticMode: HapticMode
 ) {
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
@@ -188,6 +189,7 @@ fun Test2Mode(
                         },
                         soundManager = soundManager,
                         serialManager = serialManager,
+                        vibrationManager = vibrationManager,
                         hapticMode = hapticMode
                     )
                     AndroidView(

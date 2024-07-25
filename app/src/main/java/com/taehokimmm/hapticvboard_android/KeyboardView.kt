@@ -26,6 +26,7 @@ fun KeyboardLayout(
     enterKeyVisibility: Boolean = false,
     soundManager: SoundManager? = null,
     serialManager: SerialManager?,
+    vibrationManager: VibrationManager?,
     hapticMode: HapticMode = HapticMode.NONE
 ) {
     // Coordinates for each key
@@ -105,6 +106,7 @@ fun KeyboardLayout(
             onKeyRelease,
             soundManager!!,
             serialManager!!,
+            vibrationManager!!,
             hapticMode
         )
         mutableTouchEvents.clear()
@@ -175,6 +177,7 @@ fun processTouchEvent(
     onKeyReleased: (String) -> Unit,
     soundManager: SoundManager,
     serialManager: SerialManager?,
+    vibrationManager: VibrationManager?,
     hapticMode: HapticMode
 ) {
     when (event.actionMasked) {
@@ -216,6 +219,10 @@ fun processTouchEvent(
                     )
                     soundManager?.speakOut(key)
                     hapticFeedback(soundManager, serialManager!!, hapticMode, key)
+
+                    // Provide Vibration for Non-Letter Keys
+                    vibrationManager?.vibratePhone(key)
+
                     activeTouches[pointerId] = key
                 }
             }
@@ -295,6 +302,7 @@ fun KeyboardLayoutPreview() {
         onKeyRelease = {},
         soundManager = null,
         serialManager = null,
+        vibrationManager = null,
         hapticMode = HapticMode.NONE
     )
 }

@@ -147,6 +147,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?, vibra
                                 navController,
                                 soundManager,
                                 serialManager,
+                                vibrationManager,
                                 hapticMode
                             )
                         }
@@ -162,6 +163,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?, vibra
                                 navController,
                                 soundManager,
                                 serialManager,
+                                vibrationManager,
                                 hapticMode
                             )
                         }

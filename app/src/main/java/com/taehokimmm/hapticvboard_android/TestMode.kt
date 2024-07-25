@@ -46,6 +46,24 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
+@Preview
+@Composable
+fun TestInitPreview() {
+    TestInit(NavHostController(LocalContext.current))
+}
+
+@Preview
+@Composable
+fun TestModePreview() {
+    TestMode("Test", 10, NavHostController(LocalContext.current), null, null, null, HapticMode.NONE)
+}
+
+@Preview
+@Composable
+fun TestEndPreview() {
+    TestEnd(NavHostController(LocalContext.current))
+}
+
 @Composable
 fun TestInit(navController: NavHostController) {
 
@@ -206,6 +224,7 @@ fun TestMode(
     navController: NavHostController?,
     soundManager: SoundManager?,
     serialManager: SerialManager?,
+    vibrationManager: VibrationManager?,
     hapticMode: HapticMode
 ) {
     var inputText by remember { mutableStateOf("") }
@@ -259,6 +278,7 @@ fun TestMode(
                         enterKeyVisibility = true,
                         soundManager = soundManager,
                         serialManager = serialManager,
+                        vibrationManager = vibrationManager,
                         hapticMode = hapticMode
                     )
                     AndroidView(modifier = Modifier
@@ -275,23 +295,5 @@ fun TestMode(
                 }
             }
         }
-    }
-
-    @Preview
-    @Composable
-    fun TestInitPreview() {
-        TestInit(NavHostController(LocalContext.current))
-    }
-
-    @Preview
-    @Composable
-    fun TestModePreview() {
-        TestMode("Test", 10, NavHostController(LocalContext.current), null, null, HapticMode.NONE)
-    }
-
-    @Preview
-    @Composable
-    fun TestEndPreview() {
-        TestEnd(NavHostController(LocalContext.current))
     }
 }
