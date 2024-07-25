@@ -85,7 +85,7 @@ fun Study1TrainInit(navController: NavHostController) {
             // Select Test Group
             Text(
                 modifier = Modifier.padding(start = 14.dp),
-                text = "Select Test Group",
+                text = "Select Train Group",
                 fontSize = 16.sp
             )
             Row(
@@ -140,7 +140,7 @@ fun Study1TrainInit(navController: NavHostController) {
                     .padding(top = 20.dp)
                     .fillMaxWidth()
             ) {
-                Text("Start Test")
+                Text("Start Train")
             }
         }
     }
@@ -399,6 +399,210 @@ fun Study1TrainEnd(subject: String, navController: NavHostController) {
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
             navController.navigate("study1/train/init")
+        }) {
+            Text("Return to Test Selection")
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+
+@Composable
+fun Study1TestInit(navController: NavHostController) {
+    var testSubjectIdentifier by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
+
+    var checkboxLeftState by remember { mutableStateOf(false) }
+    var checkboxCenterState by remember { mutableStateOf(false) }
+    var checkboxRightState by remember { mutableStateOf(false) }
+
+    val subjectFocusRequester = FocusRequester()
+    val focusManager = LocalFocusManager.current
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            // Test subject identifier
+            TextField(
+                value = testSubjectIdentifier,
+                onValueChange = { testSubjectIdentifier = it.trim() },
+                maxLines = 1,
+                label = { Text(text = "Test Subject", fontSize = 16.sp) },
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .fillMaxWidth()
+                    .focusRequester(subjectFocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { focusManager.clearFocus() })
+            )
+
+            // Select Test Group
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Test Group",
+                fontSize = 16.sp
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CheckboxWithLabel(
+                    checked = checkboxLeftState,
+                    onCheckedChange = { checkboxLeftState = it },
+                    label = "Left"
+                )
+                CheckboxWithLabel(
+                    checked = checkboxCenterState,
+                    onCheckedChange = { checkboxCenterState = it },
+                    label = "Center"
+                )
+                CheckboxWithLabel(
+                    checked = checkboxRightState,
+                    onCheckedChange = { checkboxRightState = it },
+                    label = "Right"
+                )
+            }
+
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            Button(
+                onClick = {
+                    when {
+                        testSubjectIdentifier.isEmpty() -> errorMessage =
+                            "Please enter a test subject"
+
+                        !checkboxLeftState && !checkboxCenterState && !checkboxRightState -> errorMessage =
+                            "Please select a test group"
+
+                        else -> {
+                            val group = buildString {
+                                if (checkboxLeftState) append("L")
+                                if (checkboxCenterState) append("C")
+                                if (checkboxRightState) append("R")
+                            }
+                            navController.navigate("study1/test/${testSubjectIdentifier}/${group}")
+                        }
+                    }
+                }, modifier = Modifier
+                    .padding(top = 20.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Start Test")
+            }
+        }
+    }
+}
+
+@Composable
+fun Study1Test(
+    innerPadding: PaddingValues,
+    subject: String,
+    group: String,
+    navController: NavHostController,
+    soundManager: SoundManager,
+    serialManager: SerialManager,
+    hapticMode: HapticMode
+) {
+    val suppress = getSuppressGroup(group)
+    val allowlist = getAllowGroup(group)
+
+    var testEpoch by remember { mutableStateOf(0) }
+    var testIter by remember { mutableStateOf(0) }
+    var testList = remember { allowlist.shuffled() }
+
+    // Typing Test
+    val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+
+    var correct by remember { mutableIntStateOf(0) }
+
+    // Record the wrong answers and the respective correct answers
+    val wrongAnswers = remember { mutableStateListOf<Char>() }
+    val correctAnswers = remember { mutableStateListOf<Char>() }
+
+    if (testIter >= testList.size) {
+        testEpoch++
+        testIter = 0
+        correct = 0
+        wrongAnswers.clear()
+        correctAnswers.clear()
+        testList = allowlist.shuffled()
+        if (testEpoch >= 3) {
+            navController.navigate("study1/test/end/${subject}")
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+
+            TestDisplay(testIter, testList.size, testList[testIter][0])
+
+            Column(
+                modifier = Modifier.align(Alignment.BottomStart),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Box {
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyRelease = { key ->
+                            if (key == testList[testIter]) {
+                                correct++
+                            } else {
+                                wrongAnswers.add(key[0])
+                                correctAnswers.add(testList[testIter][0])
+                            }
+                            testIter++
+                        },
+                        soundManager = soundManager,
+                        serialManager = serialManager,
+                        hapticMode = hapticMode,
+                        suppress = suppress
+                    )
+                    AndroidView(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                        factory = { context ->
+                            MultiTouchView(context).apply {
+                                onMultiTouchEvent = { event ->
+                                    keyboardTouchEvents.clear()
+                                    keyboardTouchEvents.add(event)
+                                }
+                            }
+                        })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Study1TestEnd(subject: String, navController: NavHostController) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Test Completed for $subject!", fontSize = 20.sp
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(onClick = {
+            navController.navigate("study1/test/init")
         }) {
             Text("Return to Test Selection")
         }

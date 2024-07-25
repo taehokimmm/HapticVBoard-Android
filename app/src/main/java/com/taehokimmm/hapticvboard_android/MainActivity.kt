@@ -176,7 +176,26 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                     }
                     composable("study1/test/init") {
                         currentScreen = "study1/test/init"
-//                        Study1TestInit(navController)
+                        Study1TestInit(navController)
+                    }
+                    composable("study1/test/{subject}/{Group}") {
+                        currentScreen = "study1/test"
+                        val subject = it.arguments?.getString("subject")!!
+                        val group = it.arguments?.getString("Group")!!
+                        Study1Test(
+                            innerPadding,
+                            subject,
+                            group,
+                            navController,
+                            soundManager!!,
+                            serialManager!!,
+                            hapticMode
+                        )
+                    }
+                    composable("study1/test/end/{subject}") {
+                        currentScreen = "study1/test"
+                        val subject = it.arguments?.getString("subject")!!
+                        Study1TestEnd(subject, navController)
                     }
                     composable("testInit") {
                         currentScreen = "testInit"
