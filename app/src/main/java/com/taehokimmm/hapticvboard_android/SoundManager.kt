@@ -3,72 +3,85 @@ package com.taehokimmm.hapticvboard_android
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
+import android.speech.tts.TextToSpeech
 import android.util.Log
+import java.util.Locale
+import java.util.Timer
+import java.util.TimerTask
 
 class SoundManager(context: Context) {
-    private val soundPool: SoundPool
-    private val soundMap: MutableMap<String, Int> = mutableMapOf()
+    var timer: Timer? = null
+    var timerTask: TimerTask? = null
+    private lateinit var tts: TextToSpeech
 
     init {
-        // Define audio attributes for the sound pool
-        val audioAttributes =
-            AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+        // Init TTS
+        tts = TextToSpeech(context) {
+            if (it === TextToSpeech.SUCCESS) {
+                // Set TTS Language
+                val result = tts.setLanguage(Locale.US)
 
-        // Initialize the sound pool with the defined attributes
-        soundPool =
-            SoundPool.Builder().setMaxStreams(10).setAudioAttributes(audioAttributes).build()
-
-        // Map keys to their respective sound resource IDs
-        val keyToResourceMap = mapOf(
-            'a' to R.raw.aa,
-            'b' to R.raw.b,
-            'c' to R.raw.k,
-            'd' to R.raw.d,
-            'e' to R.raw.eh,
-            'f' to R.raw.f,
-            'g' to R.raw.g,
-            'h' to R.raw.hh,
-            'i' to R.raw.iy,
-            'j' to R.raw.g,
-            'k' to R.raw.k,
-            'l' to R.raw.l,
-            'm' to R.raw.m,
-            'n' to R.raw.n,
-            'o' to R.raw.ow,
-            'p' to R.raw.p,
-            'q' to R.raw.k,
-            'r' to R.raw.r,
-            's' to R.raw.s,
-            't' to R.raw.t,
-            'u' to R.raw.uw,
-            'v' to R.raw.v,
-            'w' to R.raw.uw,
-            'x' to R.raw.ks,
-            'y' to R.raw.ey,
-            'z' to R.raw.z,
-        )
-
-        // Load the sounds into the sound pool and map them by key
-        for ((key, resourceId) in keyToResourceMap) {
-            val soundId = soundPool.load(context, resourceId, 1)
-            soundMap[key.toString()] = soundId
+                if (result == TextToSpeech.LANG_NOT_SUPPORTED || result == TextToSpeech.LANG_MISSING_DATA) {
+                    Log.e("TTS", "This Language is not supported")
+                } else {
+                    Log.e("TTS", "SUCCESS")
+                }
+            } else {
+                Log.e("TTS", "Initialization Failed!")
+            }
         }
     }
 
     /**
-     * Plays the sound associated with the given key.
+     * Speak out the input text
      *
-     * @param key The key for which to play the sound.
+     * @param text The text for which to play the sound.
      */
-    @Synchronized
-    fun playSoundForKey(key: String) {
-        val soundId = soundMap[key]
-        if (soundId == null) {
-            Log.d("SoundManager", "No sound found for key: $key, skipping...")
-            return
+    fun speakOut(text: String) {
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
+
+
+    /**
+     * Speak out the input word first, then each letter
+     */
+    fun speakWord(word: String){
+        speakOut(word)
+        var index = 0
+        timerTask = object: TimerTask() {
+            override fun run() {
+                if (index == word.length) {
+                    timerTask?.cancel()
+                    timer?.cancel()
+                    timer?.purge()
+                    return
+                }
+                speakOut(word[index++].toString())
+            }
         }
-        Log.d("SoundManager", "Playing sound for key: $key")
-        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        timer = Timer()
+        timer?.schedule(timerTask, 0, 300)
+    }
+
+    /**
+     * Speak out sentence first, then each word
+     */
+    fun speakSentence(sentence: String){
+        speakOut(sentence)
+        val words = sentence.split(" ")
+        var index = 0
+        timerTask = object: TimerTask() {
+            override fun run() {
+                if (index == words.size) {
+                    timerTask?.cancel()
+                    timer?.cancel()
+                    timer?.purge()
+                    return
+                }
+                speakOut(words[index++])
+            }
+        }
+        timer = Timer()
+        timer?.schedule(timerTask, 0, 500)
     }
 }

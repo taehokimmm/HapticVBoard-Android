@@ -80,7 +80,7 @@ fun FreeTypeMode(
                     },
                     soundManager = soundManager,
                     hapticManager = hapticManager,
-                    hapticMode = hapticMode
+                    hapticMode = HapticMode.VOICEPHONEME
                 )
                 AndroidView(modifier = Modifier
                     .fillMaxWidth()
@@ -149,7 +149,7 @@ fun FreeTypeWithGroup(
                     onKeyRelease = { },
                     soundManager = soundManager,
                     hapticManager = hapticManager,
-                    hapticMode = hapticMode,
+                    hapticMode = HapticMode.VOICEPHONEME,
                     suppress = suppressKeys
                 )
                 AndroidView(modifier = Modifier

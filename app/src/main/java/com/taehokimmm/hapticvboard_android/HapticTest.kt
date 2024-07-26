@@ -59,7 +59,7 @@ fun HapticTest(soundManager: SoundManager?) {
                     .background(backgroundColor)
                     .clickable(onClick = {
                         // Haptic feedback
-                        soundManager!!.playSoundForKey(key.toString())
+                        soundManager!!.speakOut(key.toString())
 
                         backgroundColor =
                             if (backgroundColor == defaultColor) pressedColor else defaultColor

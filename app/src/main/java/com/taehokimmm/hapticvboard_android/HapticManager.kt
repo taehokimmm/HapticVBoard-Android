@@ -9,14 +9,30 @@ import android.os.Vibrator
 class HapticManager(context: Context) {
     private val context: Context = context
     private val serialManager:SerialManager = SerialManager(context)
+    private val soundManager:SoundManager = SoundManager(context)
 
-    fun generateHaptic(key: String){
+    fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE){
+        Log.e("HAPTIC", hapticMode.toString() + " key : " + key.toString())
+        // Provide Speech Feedback
+        if (hapticMode == HapticMode.VOICE ||
+            hapticMode == HapticMode.VOICEPHONEME ||
+            hapticMode == HapticMode.VOICETICK) {
+            soundManager.speakOut(key)
+        }
 
-        if (key == "Backspace" || key == "Space") {
+        if (hapticMode == HapticMode.VOICE) return
+        if (hapticMode == HapticMode.TICK ||
+            hapticMode == HapticMode.VOICETICK) {
             generateVibration(key)
             return
         }
 
+        // Haptic Tick for Special Keys
+        if (key == "Backspace" || key == "Space") {
+            generateVibration(key)
+            return
+        }
+        // Provide Phoneme Feedback
         val keyToResourceMap = mapOf(
             'a' to "aa",
             'b' to "b",
@@ -55,6 +71,7 @@ class HapticManager(context: Context) {
         Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
         Log.d("HapticFeedback", "P${formattedKey}WAV")
         serialManager.write("P${formattedKey}WAV\n".toByteArray())
+
     }
 
     fun generateVibration(key: String) {
@@ -66,6 +83,8 @@ class HapticManager(context: Context) {
                 if (key == "Backspace") {
                     vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)
                 } else if(key == "Space"){
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                } else {
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
                 }
                 vibrator.vibrate(vibrate)

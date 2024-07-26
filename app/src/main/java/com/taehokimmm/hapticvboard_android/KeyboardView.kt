@@ -191,7 +191,7 @@ fun processTouchEvent(
                 if (key != null) {
                     activeTouches[pointerId] = key
                     if (!suppress.contains(key))
-                        hapticManager?.generateHaptic(key)
+                        hapticManager?.generateHaptic(key, hapticMode)
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
                 }
             }
@@ -219,7 +219,7 @@ fun processTouchEvent(
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                     )
                     if (!suppress.contains(key))
-                        hapticManager?.generateHaptic(key)
+                        hapticManager?.generateHaptic(key, hapticMode)
                     activeTouches[pointerId] = key
                 }
             }

@@ -202,7 +202,7 @@ fun Study1TrainPhase1(
                     onKeyRelease = { },
                     soundManager = soundManager,
                     hapticManager = hapticManager,
-                    hapticMode = hapticMode,
+                    hapticMode = HapticMode.VOICEPHONEME,
                     suppress = suppress
                 )
                 AndroidView(modifier = Modifier

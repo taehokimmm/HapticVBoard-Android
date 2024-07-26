@@ -66,7 +66,8 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class HapticMode {
-    VOICE, SERIAL, NONE
+    VOICE, PHONEME, TICK, NONE,
+    VOICEPHONEME, VOICETICK
 }
 
 @Composable
@@ -84,7 +85,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
             confirmButton = {
                 Button(onClick = {
                     hapticManager?.connect()
-                    if (hapticManager?.isOpen() == true) hapticMode = HapticMode.SERIAL
+                    if (hapticManager?.isOpen() == true) hapticMode = HapticMode.PHONEME
                 }) {
                     Text("Retry")
                 }
