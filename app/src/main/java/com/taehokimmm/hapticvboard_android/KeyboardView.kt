@@ -25,7 +25,7 @@ fun KeyboardLayout(
     onKeyRelease: (String) -> Unit,
     enterKeyVisibility: Boolean = false,
     soundManager: SoundManager? = null,
-    serialManager: SerialManager?,
+    hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
     suppress: List<String> = emptyList()
 ) {
@@ -105,7 +105,7 @@ fun KeyboardLayout(
             activeTouches,
             onKeyRelease,
             soundManager!!,
-            serialManager!!,
+            hapticManager!!,
             hapticMode,
             suppress
         )
@@ -176,7 +176,7 @@ fun processTouchEvent(
     activeTouches: MutableMap<Int, String>,
     onKeyReleased: (String) -> Unit,
     soundManager: SoundManager,
-    serialManager: SerialManager?,
+    hapticManager: HapticManager?,
     hapticMode: HapticMode,
     suppress: List<String>
 ) {
@@ -191,7 +191,7 @@ fun processTouchEvent(
                 if (key != null) {
                     activeTouches[pointerId] = key
                     if (!suppress.contains(key))
-                        hapticFeedback(soundManager, serialManager!!, hapticMode, key)
+                        hapticManager?.generateHaptic(key, hapticMode)
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
                 }
             }
@@ -219,69 +219,11 @@ fun processTouchEvent(
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                     )
                     if (!suppress.contains(key))
-                        hapticFeedback(soundManager, serialManager!!, hapticMode, key)
+                        hapticManager?.generateHaptic(key, hapticMode)
                     activeTouches[pointerId] = key
                 }
             }
         }
-    }
-}
-
-fun hapticFeedback(
-    soundManager: SoundManager,
-    serialManager: SerialManager,
-    hapticMode: HapticMode,
-    key: String,
-) {
-    val keyToResourceMap = mapOf(
-        'a' to "aa",
-        'b' to "b",
-        'c' to "k",
-        'd' to "d",
-        'e' to "eh",
-        'f' to "f",
-        'g' to "g",
-        'h' to "hh",
-        'i' to "iy",
-        'j' to "g",
-        'k' to "k",
-        'l' to "l",
-        'm' to "m",
-        'n' to "n",
-        'o' to "ow",
-        'p' to "p",
-        'q' to "k",
-        'r' to "r",
-        's' to "s",
-        't' to "t",
-        'u' to "uw",
-        'v' to "v",
-        'w' to "uw",
-        'x' to "ks",
-        'y' to "ey",
-        'z' to "z",
-    )
-
-    val formattedKey = keyToResourceMap[key[0]]?.uppercase()?.padEnd(8)
-
-    if (formattedKey == null) {
-        Log.d("HapticFeedback", "No haptic found for key: $key, skipping...")
-        return
-    }
-
-    when (hapticMode) {
-        HapticMode.VOICE -> {
-            Log.d("HapticFeedback", "Sending haptic for key: $key over voice")
-            soundManager.playSoundForKey(key)
-        }
-
-        HapticMode.SERIAL -> {
-            Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
-            Log.d("HapticFeedback", "P${formattedKey}WAV")
-            serialManager.write("P${formattedKey}WAV\n".toByteArray())
-        }
-
-        else -> return
     }
 }
 
@@ -299,7 +241,7 @@ fun KeyboardLayoutPreview() {
         touchEvents = emptyList(),
         onKeyRelease = {},
         soundManager = null,
-        serialManager = null,
+        hapticManager = null,
         hapticMode = HapticMode.NONE
     )
 }

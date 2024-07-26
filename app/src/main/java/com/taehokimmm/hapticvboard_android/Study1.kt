@@ -153,7 +153,7 @@ fun Study1TrainPhase1(
     group: String,
     navController: NavHostController,
     soundManager: SoundManager,
-    serialManager: SerialManager,
+    hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
     val suppress = getSuppressGroup(group)
@@ -201,8 +201,8 @@ fun Study1TrainPhase1(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { },
                     soundManager = soundManager,
-                    serialManager = serialManager,
-                    hapticMode = hapticMode,
+                    hapticManager = hapticManager,
+                    hapticMode = HapticMode.VOICEPHONEME,
                     suppress = suppress
                 )
                 AndroidView(modifier = Modifier
@@ -228,7 +228,7 @@ fun Study1TrainPhase2(
     group: String,
     navController: NavHostController,
     soundManager: SoundManager,
-    serialManager: SerialManager,
+    hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
     val allowlist = getAllowGroup(group)
@@ -287,7 +287,7 @@ fun Study1TrainPhase2(
                         .background(backgroundColor)
                         .clickable(onClick = {
                             // Haptic feedback
-                            hapticFeedback(soundManager, serialManager, hapticMode, key)
+                            hapticManager.generateHaptic(key)
                             backgroundColor =
                                 if (backgroundColor == defaultColor) pressedColor else defaultColor
                         }),
@@ -309,7 +309,7 @@ fun Study1TrainPhase3(
     group: String,
     navController: NavHostController,
     soundManager: SoundManager,
-    serialManager: SerialManager,
+    hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
     val suppress = getSuppressGroup(group)
@@ -365,7 +365,7 @@ fun Study1TrainPhase3(
                             testIter++
                         },
                         soundManager = soundManager,
-                        serialManager = serialManager,
+                        hapticManager = hapticManager,
                         hapticMode = hapticMode,
                         suppress = suppress
                     )
@@ -513,7 +513,7 @@ fun Study1Test(
     group: String,
     navController: NavHostController,
     soundManager: SoundManager,
-    serialManager: SerialManager,
+    hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
     val suppress = getSuppressGroup(group)
@@ -569,7 +569,7 @@ fun Study1Test(
                             testIter++
                         },
                         soundManager = soundManager,
-                        serialManager = serialManager,
+                        hapticManager = hapticManager,
                         hapticMode = hapticMode,
                         suppress = suppress
                     )

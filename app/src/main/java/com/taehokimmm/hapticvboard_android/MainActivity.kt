@@ -56,21 +56,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val soundManager = SoundManager(this)
-        val serialManager = SerialManager(this)
+        val hapticManager = HapticManager(this)
         setContent {
             HapticVBoardAndroidTheme {
-                MainScreen(soundManager, serialManager)
+                MainScreen(soundManager, hapticManager)
             }
         }
     }
 }
 
 enum class HapticMode {
-    VOICE, SERIAL, NONE
+    VOICE, PHONEME, TICK, NONE,
+    VOICEPHONEME, VOICETICK
 }
 
 @Composable
-fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
+fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -83,8 +84,8 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
             text = { Text("Please connect the serial device and press Retry. If you are not using a serial device, press Ignore.") },
             confirmButton = {
                 Button(onClick = {
-                    serialManager?.connect()
-                    if (serialManager?.isOpen() == true) hapticMode = HapticMode.SERIAL
+                    hapticManager?.connect()
+                    if (hapticManager?.isOpen() == true) hapticMode = HapticMode.PHONEME
                 }) {
                     Text("Retry")
                 }
@@ -117,11 +118,11 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                 ) {
                     composable("freeType") {
                         currentScreen = "freeType"
-                        FreeTypeMode(innerPadding, soundManager, serialManager, hapticMode)
+                        FreeTypeMode(innerPadding, soundManager, hapticManager, hapticMode)
                     }
                     composable("freeType2") {
                         currentScreen = "freeType2"
-                        FreeTypeWithGroup(innerPadding, soundManager, serialManager, hapticMode)
+                        FreeTypeWithGroup(innerPadding, soundManager, hapticManager, hapticMode)
                     }
                     composable("study1/train/init") {
                         currentScreen = "study1/train/init"
@@ -137,7 +138,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                             group,
                             navController,
                             soundManager!!,
-                            serialManager!!,
+                            hapticManager!!,
                             hapticMode
                         )
                     }
@@ -151,7 +152,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                             group,
                             navController,
                             soundManager!!,
-                            serialManager!!,
+                            hapticManager!!,
                             hapticMode
                         )
                     }
@@ -165,7 +166,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                             group,
                             navController,
                             soundManager!!,
-                            serialManager!!,
+                            hapticManager!!,
                             hapticMode
                         )
                     }
@@ -188,7 +189,7 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                             group,
                             navController,
                             soundManager!!,
-                            serialManager!!,
+                            hapticManager!!,
                             hapticMode
                         )
                     }
@@ -209,10 +210,10 @@ fun MainScreen(soundManager: SoundManager?, serialManager: SerialManager?) {
                         currentScreen = "testEnd"
                         TestEnd(navController)
                     }
-                    composable("serial") {
-                        currentScreen = "serial"
-                        SerialMonitorScreen()
-                    }
+//                    composable("serial") {
+//                        currentScreen = "serial"
+//                        SerialMonitorScreen()
+//                    }
                 }
             },
         )

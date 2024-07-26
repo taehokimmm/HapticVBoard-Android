@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TrainMode(soundManager: SoundManager?, serialManager: SerialManager?, hapticMode: HapticMode) {
+fun TrainMode(soundManager: SoundManager?, hapticManager: HapticManager?, hapticMode: HapticMode) {
 
     val keys = listOf(
         listOf("a", "b", "c", "d"),
@@ -61,12 +61,7 @@ fun TrainMode(soundManager: SoundManager?, serialManager: SerialManager?, haptic
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {
-                                        hapticFeedback(
-                                            soundManager!!,
-                                            serialManager!!,
-                                            hapticMode,
-                                            key
-                                        )
+                                        hapticManager?.generateHaptic(key)
                                         backgroundColor.value =
                                             if (backgroundColor.value == Color.White) Color.Gray else Color.White
                                     }
