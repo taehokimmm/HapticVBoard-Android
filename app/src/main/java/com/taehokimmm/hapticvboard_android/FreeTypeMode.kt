@@ -35,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun FreeTypeMode(
     innerPadding: PaddingValues,
     soundManager: SoundManager?,
-    serialManager: SerialManager?,
+    hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
     var inputText by remember { mutableStateOf("") }
@@ -79,7 +79,7 @@ fun FreeTypeMode(
                         }
                     },
                     soundManager = soundManager,
-                    serialManager = serialManager,
+                    hapticManager = hapticManager,
                     hapticMode = hapticMode
                 )
                 AndroidView(modifier = Modifier
@@ -102,7 +102,7 @@ fun FreeTypeMode(
 fun FreeTypeWithGroup(
     innerPadding: PaddingValues,
     soundManager: SoundManager?,
-    serialManager: SerialManager?,
+    hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
@@ -148,7 +148,7 @@ fun FreeTypeWithGroup(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { },
                     soundManager = soundManager,
-                    serialManager = serialManager,
+                    hapticManager = hapticManager,
                     hapticMode = hapticMode,
                     suppress = suppressKeys
                 )

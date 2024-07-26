@@ -150,7 +150,7 @@ fun TestText(
     testNumber: Int,
     navController: NavHostController?,
     soundManager: SoundManager?,
-    serialManager: SerialManager?,
+    hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
     var inputText by remember { mutableStateOf("") }
@@ -230,7 +230,7 @@ fun TestText(
                     },
                     enterKeyVisibility = true,
                     soundManager = soundManager,
-                    serialManager = serialManager,
+                    hapticManager = hapticManager,
                     hapticMode = hapticMode
                 )
                 AndroidView(modifier = Modifier
@@ -256,7 +256,7 @@ fun TestLetter(
     testNumber: Int,
     navController: NavHostController?,
     soundManager: SoundManager?,
-    serialManager: SerialManager?,
+    hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
@@ -306,7 +306,7 @@ fun TestLetter(
                             testIter++
                         },
                         soundManager = soundManager,
-                        serialManager = serialManager,
+                        hapticManager = hapticManager,
                         hapticMode = hapticMode
                     )
                     AndroidView(
