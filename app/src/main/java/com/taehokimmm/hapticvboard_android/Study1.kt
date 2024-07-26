@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
@@ -45,6 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.saveStudy1Data
+import com.taehokimmm.hapticvboard_android.database.study1.Study1
+import com.taehokimmm.hapticvboard_android.manager.HapticManager
+import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import kotlinx.coroutines.delay
 
 @Composable
@@ -166,7 +171,9 @@ fun Study1TrainPhase1(
         }
         navController.navigate("study1/train/phase2/${subject}/${group}")
     }
-    // Free Play
+    // Free
+    //
+    // Play
 
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
@@ -516,6 +523,8 @@ fun Study1Test(
     hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
+    val context = LocalContext.current
+
     val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
 
@@ -560,6 +569,15 @@ fun Study1Test(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
+
+                            //--- Append Data to Database ---//
+                            val data = Study1 (
+                                answer = testList[testIter],
+                                perceived = key
+                            )
+                            saveStudy1Data(context, subject, data)
+                            // ------------------------------//
+
                             if (key == testList[testIter]) {
                                 correct++
                             } else {

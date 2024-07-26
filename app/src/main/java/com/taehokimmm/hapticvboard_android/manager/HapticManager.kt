@@ -1,28 +1,31 @@
-package com.taehokimmm.hapticvboard_android
+package com.taehokimmm.hapticvboard_android.manager
 
 import android.content.Context
 import android.util.Log
 import android.os.VibrationEffect
 import android.os.Vibrator
+import com.taehokimmm.hapticvboard_android.HapticMode
 
 
 class HapticManager(context: Context) {
     private val context: Context = context
-    private val serialManager:SerialManager = SerialManager(context)
-    private val soundManager:SoundManager = SoundManager(context)
+    private val serialManager: SerialManager = SerialManager(context)
+    private val soundManager: SoundManager = SoundManager(context)
 
     fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE){
         Log.e("HAPTIC", hapticMode.toString() + " key : " + key.toString())
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
             hapticMode == HapticMode.VOICEPHONEME ||
-            hapticMode == HapticMode.VOICETICK) {
+            hapticMode == HapticMode.VOICETICK
+        ) {
             soundManager.speakOut(key)
         }
 
         if (hapticMode == HapticMode.VOICE) return
         if (hapticMode == HapticMode.TICK ||
-            hapticMode == HapticMode.VOICETICK) {
+            hapticMode == HapticMode.VOICETICK
+        ) {
             generateVibration(key)
             return
         }
