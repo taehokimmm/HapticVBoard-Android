@@ -193,7 +193,7 @@ fun Test2Mode(
                             }
                             // Add Data to Database
                             val data = Train(testList[testIter].toString(), key)
-                            saveData(context, data)
+                            saveData(context, testName, data)
 
                             testIter++
 
@@ -292,10 +292,10 @@ fun Test2End(
 }
 
 
-private fun saveData(context: Context, data: Train){
+private fun saveData(context: Context, name: String, data: Train){
     class SaveData : AsyncTask<Void, Void, Void>(){
         override fun doInBackground(vararg p0: Void?): Void? {
-            TrainDatabase(context).getTrainDao().add(data)
+            TrainDatabase(context, name).getTrainDao().add(data)
             return null
         }
 

@@ -17,16 +17,16 @@ abstract class TrainDatabase : RoomDatabase(){
         @Volatile private var instance: TrainDatabase? = null
         private val LOCK = Any()
 
-        operator fun invoke(context: Context) = instance ?: synchronized(LOCK){
-            instance ?:buildDatabase(context).also{
+        operator fun invoke(context: Context, name: String) = instance ?: synchronized(LOCK){
+            instance ?:buildDatabase(context, name).also{
                 instance = it
             }
         }
 
-        private fun buildDatabase(context: Context) = Room.databaseBuilder(
+        private fun buildDatabase(context: Context, name: String) = Room.databaseBuilder(
             context.applicationContext,
             TrainDatabase::class.java,
-            "traindatabase"
+            "traindatabase" + name
         ).build()
     }
 }
