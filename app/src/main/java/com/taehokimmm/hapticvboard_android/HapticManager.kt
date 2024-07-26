@@ -2,12 +2,21 @@ package com.taehokimmm.hapticvboard_android
 
 import android.content.Context
 import android.util.Log
+import android.os.VibrationEffect
+import android.os.Vibrator
+
 
 class HapticManager(context: Context) {
-
+    private val context: Context = context
     private val serialManager:SerialManager = SerialManager(context)
 
     fun generateHaptic(key: String){
+
+        if (key == "Backspace" || key == "Space") {
+            generateVibration(key)
+            return
+        }
+
         val keyToResourceMap = mapOf(
             'a' to "aa",
             'b' to "b",
@@ -46,6 +55,25 @@ class HapticManager(context: Context) {
         Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
         Log.d("HapticFeedback", "P${formattedKey}WAV")
         serialManager.write("P${formattedKey}WAV\n".toByteArray())
+    }
+
+    fun generateVibration(key: String) {
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (vibrator.hasVibrator()) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+
+                var vibrate: VibrationEffect? = null
+                if (key == "Backspace") {
+                    vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)
+                } else if(key == "Space"){
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                }
+                vibrator.vibrate(vibrate)
+            } else {
+                // Deprecated in API 26
+                vibrator.vibrate(100)
+            }
+        }
     }
 
     fun connect(){
