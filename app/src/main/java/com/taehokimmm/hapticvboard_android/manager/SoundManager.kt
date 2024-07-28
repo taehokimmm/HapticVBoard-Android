@@ -1,8 +1,6 @@
-package com.taehokimmm.hapticvboard_android
+package com.taehokimmm.hapticvboard_android.manager
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import java.util.Locale

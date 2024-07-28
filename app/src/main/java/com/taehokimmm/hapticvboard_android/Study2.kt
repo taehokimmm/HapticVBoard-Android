@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.manager.HapticManager
+import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 @Composable
 fun Study2Init(navController: NavHostController) {

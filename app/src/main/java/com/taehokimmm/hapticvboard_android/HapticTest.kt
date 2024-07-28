@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 @Composable
 fun HapticTest(soundManager: SoundManager?) {

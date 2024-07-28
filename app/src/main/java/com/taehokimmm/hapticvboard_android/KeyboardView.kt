@@ -18,6 +18,8 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.tooling.preview.Preview
+import com.taehokimmm.hapticvboard_android.manager.HapticManager
+import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 @Composable
 fun KeyboardLayout(

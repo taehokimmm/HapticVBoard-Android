@@ -47,6 +47,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.taehokimmm.hapticvboard_android.manager.HapticManager
+import com.taehokimmm.hapticvboard_android.manager.SerialMonitorScreen
+import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import com.taehokimmm.hapticvboard_android.ui.theme.HapticVBoardAndroidTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android
+package com.taehokimmm.hapticvboard_android.manager
 
 import android.content.Context
 import android.hardware.usb.UsbManager
