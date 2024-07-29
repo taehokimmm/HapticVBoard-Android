@@ -7,11 +7,11 @@ import androidx.room.Query
 @Dao
 interface Study1Dao {
     @Insert
-    fun add(data: Study1)
+    fun add(data: Study1Answer)
 
-    @Query("SELECT * FROM study1")
-    fun getAll() : List<Study1>
+    @Query("SELECT * FROM study1Answer")
+    fun getAll() : List<Study1Answer>
 
     @Insert
-    fun addMultiple(vararg data: Study1)
+    fun addMultiple(vararg data: Study1Answer)
 }
