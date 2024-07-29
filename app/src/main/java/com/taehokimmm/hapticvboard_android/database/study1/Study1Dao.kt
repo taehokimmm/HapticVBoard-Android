@@ -9,6 +9,9 @@ interface Study1Dao {
     @Insert
     fun add(data: Study1Answer)
 
+//    @Insert
+//    fun addLog(data: Study1Logging)
+
     @Query("SELECT * FROM study1Answer")
     fun getAll() : List<Study1Answer>
 

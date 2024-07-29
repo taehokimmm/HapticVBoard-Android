@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android
+package com.taehokimmm.hapticvboard_android.layout.view
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.tooling.preview.Preview
+import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 

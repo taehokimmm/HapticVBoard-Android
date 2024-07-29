@@ -47,6 +47,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1Test
+import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestEnd
+import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestInit
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainEnd
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase1
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase2
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase3
+import com.taehokimmm.hapticvboard_android.layout.study2.Study2End
+import com.taehokimmm.hapticvboard_android.layout.study2.Study2Init
+import com.taehokimmm.hapticvboard_android.layout.study2.Study2Test
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 //import com.taehokimmm.hapticvboard_android.manager.SerialMonitorScreen
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -169,7 +180,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             navController,
                             soundManager!!,
                             hapticManager!!,
-                            hapticMode
+                            HapticMode.PHONEME
                         )
                     }
                     composable("study1/train/end/{subject}") {
@@ -192,7 +203,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             navController,
                             soundManager!!,
                             hapticManager!!,
-                            hapticMode
+                            HapticMode.PHONEME
                         )
                     }
                     composable("study1/test/end/{subject}") {
@@ -204,10 +215,16 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study2/init"
                         Study2Init(navController)
                     }
-                    composable("study2/{subject}/{questions}") {
+                    composable("study2/{subject}/{questions}/{feedback}") {
                         currentScreen = "study2/test"
                         val subject = it.arguments?.getString("subject")!!
+                        val feedback = it.arguments?.getString("feedback")!!
                         val questions = it.arguments?.getString("questions")!!.toInt()
+                        var hapticMode = HapticMode.NONE
+                        if (feedback == "audio") hapticMode = HapticMode.VOICE
+                        else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
+                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
+
                         Study2Test(
                             innerPadding,
                             subject,

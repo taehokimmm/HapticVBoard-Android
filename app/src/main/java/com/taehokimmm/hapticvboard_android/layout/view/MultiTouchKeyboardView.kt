@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android
+package com.taehokimmm.hapticvboard_android.layout.view
 
 import android.content.Context
 import android.util.AttributeSet

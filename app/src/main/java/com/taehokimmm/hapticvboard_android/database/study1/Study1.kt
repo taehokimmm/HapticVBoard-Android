@@ -9,7 +9,8 @@ data class Study1Answer(
     val answer: String,
     val perceived: String,
     val iter: Int,
-    val block: Int
+    val block: Int,
+    val duration: Long
 ) {
     @PrimaryKey(autoGenerate = true)
     var id : Int = 0
