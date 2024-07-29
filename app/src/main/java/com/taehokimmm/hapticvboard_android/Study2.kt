@@ -168,8 +168,8 @@ fun Study2Test(
         } else if (testIter < testNumber) {
             endTime = System.currentTimeMillis()
             wordCount = inputText.split("\\s+".toRegex()).size
-            accuracy = calculateAccuracy(inputText, testList[testIter - 1])
-            val wpm = calculateWPM(startTime, endTime, wordCount)
+           // accuracy = calculateAccuracy(inputText, testList[testIter - 1])
+           // val wpm = calculateWPM(startTime, endTime, wordCount)
 //            testMetricDao.insert(
 //                TestMetric(
 //                    testName = testName,
