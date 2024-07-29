@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
@@ -30,7 +28,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,24 +40,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
 import com.taehokimmm.hapticvboard_android.database.resetStudy1Data
-import com.taehokimmm.hapticvboard_android.database.saveStudy1Data
+import com.taehokimmm.hapticvboard_android.database.addStudy1Answer
+import com.taehokimmm.hapticvboard_android.database.addStudy1Log
 import com.taehokimmm.hapticvboard_android.database.study1.Study1Answer
+import com.taehokimmm.hapticvboard_android.database.study1.Study1Logging
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import kotlinx.coroutines.delay
+import java.util.Timer
+import java.util.TimerTask
+import kotlin.concurrent.timerTask
 
 
 @Composable
@@ -630,12 +629,37 @@ fun Study1Test(
     var testIter by remember { mutableStateOf(-1) }
 
     var testList = remember { allowlist.shuffled() }
+    var startTime by remember { mutableStateOf(0L) }
 
     // Typing Test
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
+    val timer = Timer()
+    var timerTask: TimerTask = object: TimerTask() {
+        override fun run(){
+            return
+        }
+    }
 
     if (testIter == -1) {
+        // Audio Explanation
         soundManager.speakOut("Tap to start Block " + testBlock)
+        // Logger
+//        timerTask = object: TimerTask() {
+//            override fun run() {
+//                val data = Study1Logging(
+//                    answer = testList[testIter],
+//                    touched = "a",
+//                    iter = testIter,
+//                    block = testBlock,
+//                    timestamp = System.currentTimeMillis()/1000,
+//                    x = 0,
+//                    y = 0,
+//                    state = "Touch"
+//                )
+//                addStudy1Log(context, subject, group, data)
+//            }
+//        }
+        // Layout
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -644,6 +668,7 @@ fun Study1Test(
             Button(
                 onClick = {
                     soundManager.speakOut("Press :"+testList[0])
+                    startTime = System.currentTimeMillis()
                     testIter = 0
                 },
                 modifier = Modifier
@@ -683,21 +708,27 @@ fun Study1Test(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
-
+                            // Stop Logging
+                            timerTask.cancel()
+                            timer.cancel()
+                            timer.purge()
                             //--- Append Data to Database ---//
+                            val curTime = System.currentTimeMillis()
                             val data = Study1Answer (
                                 answer = testList[testIter],
                                 perceived = key,
-                                iter= testIter,
-                                block= testBlock
+                                iter = testIter,
+                                block = testBlock,
+                                duration = curTime - startTime
                             )
-                            saveStudy1Data(context, subject, group, data)
+                            addStudy1Answer(context, subject, group, data)
                             // ------------------------------//
                             testIter++
 
                             if (testIter < testList.size) {
                                 // Speak next target alphabet key
                                 soundManager.speakOut("Press : "+testList[testIter])
+                                startTime = System.currentTimeMillis()
                             }
                         },
                         soundManager = soundManager,
@@ -719,6 +750,8 @@ fun Study1Test(
                 }
             }
         }
+
+        timer.schedule(timerTask, 0, 100)
     }
 }
 

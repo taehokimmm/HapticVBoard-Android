@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,7 +48,7 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 @Composable
 fun Study2Init(navController: NavHostController) {
-    var testSubjectIdentifier by remember { mutableStateOf("") }
+    var testSubjectIdentifier by remember { mutableStateOf("test") }
     var testQuestions by remember { mutableIntStateOf(10) }
     var testQuestionString by remember { mutableStateOf("10") }
     var errorMessage by remember { mutableStateOf("") }
@@ -56,6 +57,18 @@ fun Study2Init(navController: NavHostController) {
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
+    var checkboxLeftState by remember { mutableStateOf(false) }
+    var checkboxCenterState by remember { mutableStateOf(false) }
+    var checkboxRightState by remember { mutableStateOf(false) }
+
+    var subjects = listOf("test")
+    for(i in 1 until 12) {
+        subjects += listOf("P" + i)
+    }
+    for(i in 1 until 5) {
+        subjects += listOf("Pilot" + i)
+    }
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -63,22 +76,41 @@ fun Study2Init(navController: NavHostController) {
         ) {
 
             // Test subject identifier
-            TextField(
-                value = testSubjectIdentifier,
-                onValueChange = { testSubjectIdentifier = it.trim() },
-                maxLines = 1,
-                label = { Text(text = "Test Subject", fontSize = 16.sp) },
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .fillMaxWidth()
-                    .focusRequester(subjectFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { questionsFocusRequester.requestFocus() })
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Subject",
+                fontSize = 16.sp
             )
+
+            Spinner(
+                options = subjects,
+                onOptionSelected = { selectedOption ->
+                    testSubjectIdentifier = selectedOption.trim()
+                }
+            )
+
+            // Select Modality
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CheckboxWithLabel(
+                    checked = checkboxLeftState,
+                    onCheckedChange = { checkboxLeftState = it },
+                    label = "Audio"
+                )
+                CheckboxWithLabel(
+                    checked = checkboxCenterState,
+                    onCheckedChange = { checkboxCenterState = it },
+                    label = "Phoneme"
+                )
+                CheckboxWithLabel(
+                    checked = checkboxRightState,
+                    onCheckedChange = { checkboxRightState = it },
+                    label = "Vibration"
+                )
+            }
 
             // Number of questions
             TextField(
@@ -121,7 +153,12 @@ fun Study2Init(navController: NavHostController) {
             Button(
                 onClick = {
                     if (testSubjectIdentifier.isNotEmpty() && testQuestions > 0) {
-                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions")
+                        val feedback = buildString {
+                            if (checkboxLeftState) append("audio")
+                            if (checkboxCenterState) append("phoneme")
+                            if (checkboxRightState) append("vibration")
+                        }
+                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions/$feedback")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     } else {
@@ -209,6 +246,7 @@ fun Study2Test(
                     fontSize = 20.sp,
                 )
             }
+
             Spacer(modifier = Modifier.height(20.dp))
             Box {
                 KeyboardLayout(

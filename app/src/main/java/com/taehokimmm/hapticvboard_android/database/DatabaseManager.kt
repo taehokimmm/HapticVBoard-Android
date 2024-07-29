@@ -4,14 +4,42 @@ import android.content.Context
 import android.os.AsyncTask
 import android.util.Log
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.taehokimmm.hapticvboard_android.database.study1.Study1Answer
 import com.taehokimmm.hapticvboard_android.database.study1.Study1Database
+import com.taehokimmm.hapticvboard_android.database.study1.Study1Logging
 import java.io.File
 
+// INSERT DATA
+fun addStudy1Answer(context: Context, subject: String, group: String, data: Study1Answer){
+    class SaveData : AsyncTask<Void, Void, Void>(){
+        override fun doInBackground(vararg p0: Void?): Void? {
+            Study1Database(context, subject + "_" + group).getDao().add(data)
+            return null
+        }
+
+        override fun onPostExecute(result: Void?) {
+            super.onPostExecute(result)
+        }
+    }
+    SaveData().execute()
+}
+
+fun addStudy1Log(context: Context, subject: String, group: String, data: Study1Logging){
+    class SaveData : AsyncTask<Void, Void, Void>(){
+        override fun doInBackground(vararg p0: Void?): Void? {
+            //Study1Database(context, subject + "_" + group).getDao().addLog(data)
+            return null
+        }
+
+        override fun onPostExecute(result: Void?) {
+            super.onPostExecute(result)
+        }
+    }
+    SaveData().execute()
+}
+
+// DELETE DATABASE TO RESET
 fun deleteDatabaseByName(context: Context, databaseName: String) {
-    Log.e("DELETE DATABASE", databaseName)
     var myDatabase = Room.databaseBuilder(
         context,
         Study1Database::class.java, databaseName
@@ -53,32 +81,4 @@ private fun deleteDatabase(context: Context, databaseName: String) {
             }
         }
     }
-}
-
-fun saveStudy1Data(context: Context, subject: String, group: String, data: Study1Answer){
-    class SaveData : AsyncTask<Void, Void, Void>(){
-        override fun doInBackground(vararg p0: Void?): Void? {
-            Study1Database(context, subject + "_" + group).getDao().add(data)
-            return null
-        }
-
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-        }
-    }
-    SaveData().execute()
-}
-
-fun openStudy1(context: Context, subject: String, group: String) {
-    class SaveData : AsyncTask<Void, Void, Void>(){
-        override fun doInBackground(vararg p0: Void?): Void? {
-            Study1Database(context, subject + "_" + group).getDao().getAll()
-            return null
-        }
-
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-        }
-    }
-    SaveData().execute()
 }
