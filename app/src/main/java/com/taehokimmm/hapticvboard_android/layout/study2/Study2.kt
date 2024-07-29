@@ -48,141 +48,13 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.R
-import com.taehokimmm.hapticvboard_android.layout.study1.CheckboxWithLabel
-import com.taehokimmm.hapticvboard_android.layout.study1.Spinner
-import com.taehokimmm.hapticvboard_android.layout.study1.TestDisplay
+import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
+import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
+import com.taehokimmm.hapticvboard_android.layout.study1.train.TestDisplay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.io.BufferedReader
 import java.io.InputStreamReader
-
-@Composable
-fun Study2Init(navController: NavHostController) {
-    var testSubjectIdentifier by remember { mutableStateOf("test") }
-    var testQuestions by remember { mutableIntStateOf(10) }
-    var testQuestionString by remember { mutableStateOf("10") }
-    var errorMessage by remember { mutableStateOf("") }
-
-    val subjectFocusRequester = FocusRequester()
-    val questionsFocusRequester = FocusRequester()
-    val focusManager = LocalFocusManager.current
-
-    var checkboxLeftState by remember { mutableStateOf(false) }
-    var checkboxCenterState by remember { mutableStateOf(false) }
-    var checkboxRightState by remember { mutableStateOf(false) }
-
-    var subjects = listOf("test")
-    for(i in 1 until 12) {
-        subjects += listOf("P" + i)
-    }
-    for(i in 1 until 5) {
-        subjects += listOf("Pilot" + i)
-    }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-
-            // Test subject identifier
-            Text(
-                modifier = Modifier.padding(start = 14.dp),
-                text = "Select Subject",
-                fontSize = 16.sp
-            )
-
-            Spinner(
-                options = subjects,
-                onOptionSelected = { selectedOption ->
-                    testSubjectIdentifier = selectedOption.trim()
-                }
-            )
-
-            // Select Modality
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                CheckboxWithLabel(
-                    checked = checkboxLeftState,
-                    onCheckedChange = { checkboxLeftState = it },
-                    label = "Audio"
-                )
-                CheckboxWithLabel(
-                    checked = checkboxCenterState,
-                    onCheckedChange = { checkboxCenterState = it },
-                    label = "Phoneme"
-                )
-                CheckboxWithLabel(
-                    checked = checkboxRightState,
-                    onCheckedChange = { checkboxRightState = it },
-                    label = "Vibration"
-                )
-            }
-
-            // Number of questions
-            TextField(
-                value = testQuestionString,
-                onValueChange = {
-                    testQuestionString = it
-                    testQuestions = it.toIntOrNull() ?: 10
-                },
-                maxLines = 1,
-                label = { Text(text = "Number of Questions", fontSize = 16.sp) },
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .fillMaxWidth()
-                    .focusRequester(questionsFocusRequester)
-                    .onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                            testQuestionString = ""
-                        }
-                        if (!focusState.isFocused && testQuestionString.isEmpty()) {
-                            testQuestions = 10
-                            testQuestionString = testQuestions.toString()
-                        }
-                    },
-                keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-            )
-
-            if (errorMessage.isNotEmpty()) {
-                Text(
-                    text = errorMessage,
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            Button(
-                onClick = {
-                    if (testSubjectIdentifier.isNotEmpty() && testQuestions > 0) {
-                        val feedback = buildString {
-                            if (checkboxLeftState) append("audio")
-                            if (checkboxCenterState) append("phoneme")
-                            if (checkboxRightState) append("vibration")
-                        }
-                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions/$feedback")
-                    } else if (testSubjectIdentifier.isEmpty()) {
-                        errorMessage = "Please enter a test subject"
-                    } else {
-                        errorMessage = "Number must be a positive integer"
-                    }
-                }, modifier = Modifier
-                    .padding(top = 20.dp)
-                    .fillMaxWidth()
-            ) {
-                Text("Start Test")
-            }
-        }
-    }
-}
 
 @Composable
 fun Study2Test(
@@ -292,28 +164,6 @@ fun Study2Test(
                     })
             }
         }
-    }
-}
-
-@Composable
-fun Study2End(
-    subject: String, navController: NavHostController
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Test Completed for $subject!", fontSize = 20.sp
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = {
-            navController.navigate("study2/init")
-        }) {
-            Text("Return to Test Selection")
-        }
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 

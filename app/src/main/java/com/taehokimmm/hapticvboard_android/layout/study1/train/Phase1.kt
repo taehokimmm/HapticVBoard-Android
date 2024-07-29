@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study1
+package com.taehokimmm.hapticvboard_android.layout.study1.train
 
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box

@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study1
+package com.taehokimmm.hapticvboard_android.layout.study1.train
 
 import android.os.Handler
 import android.os.Looper
@@ -162,23 +162,3 @@ fun Study1TrainPhase3(
     }
 }
 
-
-@Composable
-fun Study1TrainEnd(subject: String, navController: NavHostController) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Train Completed for $subject!", fontSize = 20.sp
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = {
-            navController.navigate("study1/train/init")
-        }) {
-            Text("Return to Test Selection")
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-}

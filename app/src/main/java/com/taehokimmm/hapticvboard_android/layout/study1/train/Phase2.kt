@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study1
+package com.taehokimmm.hapticvboard_android.layout.study1.train
 
 import android.os.Handler
 import android.os.Looper
