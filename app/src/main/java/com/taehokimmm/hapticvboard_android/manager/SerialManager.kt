@@ -47,7 +47,7 @@ class SerialManager(context: Context) {
         }
 
         try {
-            port?.write(data, timeout)
+            port?.write(data,  1)
         } catch (e: SerialTimeoutException) {
             throw IOException("Write timeout occurred.", e)
         } catch (e: IOException) {

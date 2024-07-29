@@ -6,9 +6,12 @@ import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,9 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -57,6 +62,7 @@ import com.taehokimmm.hapticvboard_android.database.study1.Study1Logging
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.selects.select
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.concurrent.timerTask
@@ -168,6 +174,7 @@ fun Study1TrainInit(navController: NavHostController) {
     }
 }
 
+// PHASE 1 : FREE PLAY
 @Composable
 fun Study1TrainPhase1(
     innerPadding: PaddingValues,
@@ -186,12 +193,8 @@ fun Study1TrainPhase1(
             delay(1000L)
             countdown--
         }
-        navController.navigate("study1/train/phase3/${subject}/${group}")
+        navController.navigate("study1/train/phase2/${subject}/${group}")
     }
-    // Free
-    //
-    // Play
-
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
     Box(
@@ -210,7 +213,7 @@ fun Study1TrainPhase1(
 
         Button(
             onClick = {
-                navController.navigate("study1/train/phase3/${subject}/${group}")
+                navController.navigate("study1/train/phase2/${subject}/${group}")
             }, modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Text("Skip")
@@ -245,6 +248,8 @@ fun Study1TrainPhase1(
     }
 }
 
+// PHASE 2 : Identification Test
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun Study1TrainPhase2(
     innerPadding: PaddingValues,
@@ -257,68 +262,99 @@ fun Study1TrainPhase2(
 ) {
     val allowlist = getAllowGroup(group)
 
-    var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableStateOf(0) }
-    val testList = allowlist.shuffled()
+    var testList by remember {mutableStateOf(allowlist.shuffled())}
+    val testNumber = testList.size
+    var selectedOption by remember{mutableStateOf("1")}
+    var options by remember { mutableStateOf(generateCandidates(testList[testIter], allowlist)) }
+    val touchEvents = remember { mutableStateListOf<MotionEvent>() }
 
     // Identification Test
-    if (testBlock < 3) {
-        val defaultColor = Color.LightGray
-        val pressedColor = Color.Gray
-        var backgroundColor by remember { mutableStateOf(defaultColor) }
-        var key by remember { mutableStateOf(testList[testIter]) }
-
+    if (testIter < testNumber) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Text(
-                text = "Epoch ${testBlock + 1}, Iteration ${testIter + 1}/${testList.size}",
-                fontSize = 20.sp,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(20.dp)
-            )
-
-            Box(
-                Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(10.dp)
-            ) {
-                TextButton(onClick = {
-                    testIter++
-                    if (testIter == testList.size) {
-                        testIter = 0
-                        testBlock++
-                    }
-                    key = testList[testIter]
-                }) {
-                    Text(text = "Next", color = Color(0xFF006AFF), fontSize = 20.sp)
-                }
-            }
+            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 100.dp)
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 30.dp),
-                contentAlignment = Alignment.BottomCenter
+                    .padding(10.dp)
+                    .align(Alignment.BottomStart)
             ) {
-                Box(
+                FlowRow(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(60.dp))
-                        .size(300.dp, 300.dp)
-                        .background(backgroundColor)
-                        .clickable(onClick = {
-                            // Haptic feedback
-                            hapticManager.generateHaptic(key)
-                            backgroundColor =
-                                if (backgroundColor == defaultColor) pressedColor else defaultColor
-                        }),
-                    contentAlignment = Alignment.Center,
+                        .padding(8.dp)
+                        .align(Alignment.BottomCenter),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.Center,
+
                 ) {
-                    Text(text = key.uppercase(), color = Color.White, fontSize = 60.sp)
+                    options.forEachIndexed { index, alphabet ->
+                        Box (
+                            modifier = Modifier
+                                .size(180.dp, 180.dp)
+                                .padding(10.dp)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onTap = {
+                                            hapticManager.generateHaptic(
+                                                options[index],
+                                                HapticMode.PHONEME
+                                            )
+                                            selectedOption = options[index]
+                                        },
+                                        onDoubleTap = {
+                                            // Correct Feedback
+                                            val isCorrect = selectedOption == testList[testIter]
+                                            soundManager.playSound(isCorrect)
+
+                                            // Deliver the answer feedback
+                                            Handler(Looper.getMainLooper()).postDelayed(
+                                                {
+                                                    hapticManager.generateHaptic(
+                                                        testList[testIter],
+                                                        HapticMode.PHONEME
+                                                    )
+                                                }, 500
+                                            )
+
+                                            // Move to Next Trial after 1 sec
+                                            Handler(Looper.getMainLooper()).postDelayed(
+                                                {
+                                                    selectedOption = "1"
+                                                    options = generateCandidates(
+                                                        testList[testIter + 1],
+                                                        allowlist
+                                                    )
+                                                    testIter++
+                                                }, 1000
+                                            )
+                                        }
+                                    )
+                                }.background(if (alphabet == selectedOption) Color.Blue else Color.White)
+                        ) {
+                            Text(
+                                text = (index+1).toString(),
+                                color =  if (alphabet == selectedOption) Color.White else Color.Blue,
+                                fontSize = 40.sp,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
                 }
+            }
+
+            Button(
+                onClick = {
+                    Log.e("Phase2", "Double Tapped")
+
+                }
+            ) {
+                Text(text = "NEXT")
             }
         }
     } else {
@@ -326,6 +362,7 @@ fun Study1TrainPhase2(
     }
 }
 
+// Phase 3 : Typing Test
 @Composable
 fun Study1TrainPhase3(
     innerPadding: PaddingValues,
@@ -793,6 +830,16 @@ fun getAllowGroup(group: String): List<String> {
     if (group.contains("C")) allow += listOf("r", "t", "y", "u", "f", "g", "h", "c", "v", "b")
     if (group.contains("R")) allow += listOf("u", "i", "o", "p", "h", "j", "k", "l", "b", "n", "m")
     return allow
+}
+
+fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
+    var group = listOf(key)
+    var others = allowGroup.filterNot{it == key}
+    if (key == "q" || key == "c") {
+        others = others.filterNot{it == "q" || it == "c"}
+    }
+    group += others.shuffled().slice(0..4)
+    return group.shuffled()
 }
 
 @Composable

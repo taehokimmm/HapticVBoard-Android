@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -358,7 +359,7 @@ fun TextDisplay(testIter: Int, testNumber: Int, testString: String) {
 }
 
 @Composable
-fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager) {
+fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height:Dp = 420.dp) {
     Column(
         modifier = Modifier.padding(top = 10.dp)
     ) {
@@ -376,7 +377,7 @@ fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: 
             onClick = {
                 soundManager.speakOut(testLetter.toString())
             },
-            modifier = Modifier.fillMaxWidth().height(420.dp),
+            modifier = Modifier.fillMaxWidth().height(height),
             shape = RoundedCornerShape(corner = CornerSize(0)),
             colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
         ) {
