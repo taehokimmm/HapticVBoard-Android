@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android
+package com.taehokimmm.hapticvboard_android.layout.study2
 
 import android.content.Context
 import android.view.MotionEvent
@@ -7,19 +7,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -40,26 +38,27 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
+import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
+import com.taehokimmm.hapticvboard_android.R
+import com.taehokimmm.hapticvboard_android.layout.study1.CheckboxWithLabel
+import com.taehokimmm.hapticvboard_android.layout.study1.Spinner
+import com.taehokimmm.hapticvboard_android.layout.study1.TestDisplay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
-import kotlinx.coroutines.delay
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-
 @Composable
-fun TestInit(navController: NavHostController) {
-
-    var testSubjectIdentifier by remember { mutableStateOf("") }
+fun Study2Init(navController: NavHostController) {
+    var testSubjectIdentifier by remember { mutableStateOf("test") }
     var testQuestions by remember { mutableIntStateOf(10) }
     var testQuestionString by remember { mutableStateOf("10") }
     var errorMessage by remember { mutableStateOf("") }
@@ -68,6 +67,18 @@ fun TestInit(navController: NavHostController) {
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
+    var checkboxLeftState by remember { mutableStateOf(false) }
+    var checkboxCenterState by remember { mutableStateOf(false) }
+    var checkboxRightState by remember { mutableStateOf(false) }
+
+    var subjects = listOf("test")
+    for(i in 1 until 12) {
+        subjects += listOf("P" + i)
+    }
+    for(i in 1 until 5) {
+        subjects += listOf("Pilot" + i)
+    }
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -75,22 +86,41 @@ fun TestInit(navController: NavHostController) {
         ) {
 
             // Test subject identifier
-            TextField(
-                value = testSubjectIdentifier,
-                onValueChange = { testSubjectIdentifier = it.trim() },
-                maxLines = 1,
-                label = { Text(text = "Test Subject", fontSize = 16.sp) },
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .fillMaxWidth()
-                    .focusRequester(subjectFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { questionsFocusRequester.requestFocus() })
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Subject",
+                fontSize = 16.sp
             )
+
+            Spinner(
+                options = subjects,
+                onOptionSelected = { selectedOption ->
+                    testSubjectIdentifier = selectedOption.trim()
+                }
+            )
+
+            // Select Modality
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CheckboxWithLabel(
+                    checked = checkboxLeftState,
+                    onCheckedChange = { checkboxLeftState = it },
+                    label = "Audio"
+                )
+                CheckboxWithLabel(
+                    checked = checkboxCenterState,
+                    onCheckedChange = { checkboxCenterState = it },
+                    label = "Phoneme"
+                )
+                CheckboxWithLabel(
+                    checked = checkboxRightState,
+                    onCheckedChange = { checkboxRightState = it },
+                    label = "Vibration"
+                )
+            }
 
             // Number of questions
             TextField(
@@ -133,7 +163,12 @@ fun TestInit(navController: NavHostController) {
             Button(
                 onClick = {
                     if (testSubjectIdentifier.isNotEmpty() && testQuestions > 0) {
-                        navController.navigate("test/${testSubjectIdentifier}/${testQuestions}")
+                        val feedback = buildString {
+                            if (checkboxLeftState) append("audio")
+                            if (checkboxCenterState) append("phoneme")
+                            if (checkboxRightState) append("vibration")
+                        }
+                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions/$feedback")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     } else {
@@ -150,12 +185,12 @@ fun TestInit(navController: NavHostController) {
 }
 
 @Composable
-fun TestText(
+fun Study2Test(
     innerPadding: PaddingValues,
     testName: String,
     testNumber: Int,
     navController: NavHostController?,
-    soundManager: SoundManager?,
+    soundManager: SoundManager,
     hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
@@ -180,8 +215,8 @@ fun TestText(
         } else if (testIter < testNumber) {
             endTime = System.currentTimeMillis()
             wordCount = inputText.split("\\s+".toRegex()).size
-//            accuracy = calculateAccuracy(inputText, testList[testIter - 1])
-//            val wpm = calculateWPM(startTime, endTime, wordCount)
+           // accuracy = calculateAccuracy(inputText, testList[testIter - 1])
+           // val wpm = calculateWPM(startTime, endTime, wordCount)
 //            testMetricDao.insert(
 //                TestMetric(
 //                    testName = testName,
@@ -194,12 +229,16 @@ fun TestText(
 //            )
             startTime = System.currentTimeMillis()
         } else {
-            navController!!.navigate("testEnd")
+            navController!!.navigate("study2/end/$testName")
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-        TextDisplay(testIter, testNumber, testList[testIter])
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+    ) {
+        TestDisplay(testIter, testNumber, testList[testIter][0], soundManager)
         Column(
             modifier = Modifier.align(Alignment.BottomStart),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -217,6 +256,7 @@ fun TestText(
                     fontSize = 20.sp,
                 )
             }
+
             Spacer(modifier = Modifier.height(20.dp))
             Box {
                 KeyboardLayout(
@@ -256,160 +296,24 @@ fun TestText(
 }
 
 @Composable
-fun TestLetter(
-    innerPadding: PaddingValues,
-    testName: String,
-    testNumber: Int,
-    navController: NavHostController?,
-    soundManager: SoundManager,
-    hapticManager: HapticManager?,
-    hapticMode: HapticMode
+fun Study2End(
+    subject: String, navController: NavHostController
 ) {
-    val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
-
-    val context = LocalContext.current
-    var testIter by remember { mutableIntStateOf(0) }
-
-    var correct by remember { mutableIntStateOf(0) }
-
-    // Record the wrong answers and the respective correct answers
-    val wrongAnswers = remember { mutableStateListOf<Char>() }
-    val correctAnswers = remember { mutableStateListOf<Char>() }
-
-    // Create a list of a-z characters, shuffled
-    val testList = remember { ('a'..'z').shuffled() }
-
-    if (testIter >= testNumber) {
-        // Navigate to the Test End Screen
-        Test2End(
-            subject = testName,
-            correct = correct,
-            testNumber = testNumber,
-            wrongAnswers = wrongAnswers,
-            correctAnswers = correctAnswers,
-            navController = navController!!
-        )
-    } else {
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-
-            TestDisplay(testIter, testNumber, testList[testIter], soundManager)
-
-            Column(
-                modifier = Modifier.align(Alignment.BottomStart),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(modifier = Modifier.height(20.dp))
-                Box {
-                    KeyboardLayout(
-                        touchEvents = keyboardTouchEvents,
-                        onKeyRelease = { key ->
-                            if (key == testList[testIter].toString()) {
-                                correct++
-                            } else {
-                                wrongAnswers.add(key[0])
-                                correctAnswers.add(testList[testIter])
-                            }
-                            testIter++
-                        },
-                        soundManager = soundManager,
-                        hapticManager = hapticManager,
-                        hapticMode = hapticMode
-                    )
-                    AndroidView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp),
-                        factory = { context ->
-                            MultiTouchView(context).apply {
-                                onMultiTouchEvent = { event ->
-                                    keyboardTouchEvents.clear()
-                                    keyboardTouchEvents.add(event)
-                                }
-                            }
-                        })
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TextDisplay(testIter: Int, testNumber: Int, testString: String) {
-    Column(
-        modifier = Modifier.padding(top = 10.dp)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "${testIter + 1} / $testNumber", fontSize = 20.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = testString, fontSize = 20.sp
-            )
-        }
-    }
-}
-
-@Composable
-fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height:Dp = 420.dp) {
-    Column(
-        modifier = Modifier.padding(top = 10.dp)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "${testIter + 1} / $testNumber", fontSize = 20.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(
-            onClick = {
-                soundManager.speakOut(testLetter.toString())
-            },
-            modifier = Modifier.fillMaxWidth().height(height),
-            shape = RoundedCornerShape(corner = CornerSize(0)),
-            colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
-        ) {
-            Text(
-                text = testLetter.uppercase(), fontSize = 60.sp, fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-fun TestEnd(navController: NavHostController) {
-    var countDown by remember { mutableIntStateOf(5) }
-    LaunchedEffect(Unit) {
-        while (countDown > 0) {
-            delay(1000L) // 1 second delay
-            countDown--
-        }
-        navController.navigate("testInit") // Navigate back to the initial screen
-    }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Test Completed!", fontSize = 20.sp
+            text = "Test Completed for $subject!", fontSize = 20.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Returning to the main screen in $countDown seconds...", fontSize = 16.sp
-        )
+        Button(onClick = {
+            navController.navigate("study2/init")
+        }) {
+            Text("Return to Test Selection")
+        }
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -419,22 +323,4 @@ fun readTxtFile(context: Context, resId: Int): List<String> {
     val lines = reader.readLines()
     reader.close()
     return lines
-}
-
-@Preview
-@Composable
-fun TestInitPreview() {
-    TestInit(NavHostController(LocalContext.current))
-}
-
-@Preview
-@Composable
-fun TestModePreview() {
-    TestText(PaddingValues(0.dp),"Test", 10, NavHostController(LocalContext.current), null, null, HapticMode.NONE)
-}
-
-@Preview
-@Composable
-fun TestEndPreview() {
-    TestEnd(NavHostController(LocalContext.current))
 }

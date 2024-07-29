@@ -47,6 +47,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1Test
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1TestEnd
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1TestInit
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1TrainEnd
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1TrainInit
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1TrainPhase1
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1TrainPhase2
+import com.taehokimmm.hapticvboard_android.layout.study1.Study1TrainPhase3
+import com.taehokimmm.hapticvboard_android.layout.study2.Study2End
+import com.taehokimmm.hapticvboard_android.layout.study2.Study2Init
+import com.taehokimmm.hapticvboard_android.layout.study2.Study2Test
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 //import com.taehokimmm.hapticvboard_android.manager.SerialMonitorScreen
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
