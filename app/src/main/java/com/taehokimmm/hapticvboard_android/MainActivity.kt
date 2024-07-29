@@ -169,7 +169,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             navController,
                             soundManager!!,
                             hapticManager!!,
-                            hapticMode
+                            HapticMode.PHONEME
                         )
                     }
                     composable("study1/train/end/{subject}") {
@@ -192,7 +192,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             navController,
                             soundManager!!,
                             hapticManager!!,
-                            hapticMode
+                            HapticMode.PHONEME
                         )
                     }
                     composable("study1/test/end/{subject}") {

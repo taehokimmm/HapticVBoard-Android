@@ -8,15 +8,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -257,7 +260,7 @@ fun TestLetter(
     testName: String,
     testNumber: Int,
     navController: NavHostController?,
-    soundManager: SoundManager?,
+    soundManager: SoundManager,
     hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
@@ -288,7 +291,7 @@ fun TestLetter(
     } else {
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
 
-            TestDisplay(testIter, testNumber, testList[testIter])
+            TestDisplay(testIter, testNumber, testList[testIter], soundManager)
 
             Column(
                 modifier = Modifier.align(Alignment.BottomStart),
@@ -355,7 +358,7 @@ fun TextDisplay(testIter: Int, testNumber: Int, testString: String) {
 }
 
 @Composable
-fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char) {
+fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager) {
     Column(
         modifier = Modifier.padding(top = 10.dp)
     ) {
@@ -369,8 +372,13 @@ fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        Button(
+            onClick = {
+                soundManager.speakOut(testLetter.toString())
+            },
+            modifier = Modifier.fillMaxWidth().height(420.dp),
+            shape = RoundedCornerShape(corner = CornerSize(0)),
+            colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
         ) {
             Text(
                 text = testLetter.uppercase(), fontSize = 60.sp, fontWeight = FontWeight.Bold

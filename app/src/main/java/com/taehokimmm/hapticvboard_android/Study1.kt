@@ -1,10 +1,10 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
-import android.widget.Spinner
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,10 +18,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -48,24 +50,23 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
 import com.taehokimmm.hapticvboard_android.database.resetStudy1Data
-import com.taehokimmm.hapticvboard_android.database.openStudy1
 import com.taehokimmm.hapticvboard_android.database.saveStudy1Data
 import com.taehokimmm.hapticvboard_android.database.study1.Study1Answer
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import kotlinx.coroutines.delay
 
+
 @Composable
 fun Study1TrainInit(navController: NavHostController) {
     var context = LocalContext.current
-    var testSubjectIdentifier by remember { mutableStateOf("") }
+    var testSubjectIdentifier by remember { mutableStateOf("test") }
     var errorMessage by remember { mutableStateOf("") }
 
     var checkboxLeftState by remember { mutableStateOf(false) }
@@ -75,27 +76,32 @@ fun Study1TrainInit(navController: NavHostController) {
     val subjectFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
+    var subjects = listOf("test")
+    for(i in 1 until 12) {
+        subjects += listOf("P" + i)
+    }
+    for(i in 1 until 5) {
+        subjects += listOf("Pilot" + i)
+    }
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
             // Test subject identifier
-            TextField(
-                value = testSubjectIdentifier,
-                onValueChange = { testSubjectIdentifier = it.trim() },
-                maxLines = 1,
-                label = { Text(text = "Test Subject", fontSize = 16.sp) },
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .fillMaxWidth()
-                    .focusRequester(subjectFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusManager.clearFocus() })
+            // Test subject identifier
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Subject",
+                fontSize = 16.sp
+            )
+
+            Spinner(
+                options = subjects,
+                onOptionSelected = { selectedOption ->
+                    testSubjectIdentifier = selectedOption.trim()
+                }
             )
 
             // Select Test Group
@@ -181,7 +187,7 @@ fun Study1TrainPhase1(
             delay(1000L)
             countdown--
         }
-        navController.navigate("study1/train/phase2/${subject}/${group}")
+        navController.navigate("study1/train/phase3/${subject}/${group}")
     }
     // Free
     //
@@ -205,7 +211,7 @@ fun Study1TrainPhase1(
 
         Button(
             onClick = {
-                navController.navigate("study1/train/phase2/${subject}/${group}")
+                navController.navigate("study1/train/phase3/${subject}/${group}")
             }, modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Text("Skip")
@@ -334,8 +340,8 @@ fun Study1TrainPhase3(
     val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
 
-    var testBlock by remember { mutableStateOf(0) }
-    var testIter by remember { mutableStateOf(0) }
+    var testBlock by remember { mutableStateOf(1) }
+    var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
 
     // Typing Test
@@ -347,15 +353,38 @@ fun Study1TrainPhase3(
     val wrongAnswers = remember { mutableStateListOf<Char>() }
     val correctAnswers = remember { mutableStateListOf<Char>() }
 
-    if (testIter >= testList.size) {
+    if (testIter == -1) {
+        soundManager.speakOut("Tap to start Block " + testBlock)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Button(
+                onClick = {
+                    soundManager.speakOut("Press :"+testList[0])
+                    testIter = 0
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(corner = CornerSize(0)),
+                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+            ) {
+                Text(text="Tap to Start \n Block : " + testBlock,
+                    fontSize = 20.sp)
+            }
+        }
+    } else if (testIter >= testList.size) {
         testBlock++
-        testIter = 0
         correct = 0
         wrongAnswers.clear()
         correctAnswers.clear()
         testList = allowlist.shuffled()
-        if (testBlock >= 3) {
+        if (testBlock > 3) {
             navController.navigate("study1/train/end/${subject}")
+        } else {
+            testIter = -1
         }
     } else {
         Box(
@@ -364,7 +393,7 @@ fun Study1TrainPhase3(
                 .padding(innerPadding)
         ) {
 
-            TestDisplay(testIter, testList.size, testList[testIter][0])
+            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager)
 
             Column(
                 modifier = Modifier.align(Alignment.BottomStart),
@@ -375,13 +404,28 @@ fun Study1TrainPhase3(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
+                            soundManager.speakOut(key)
+
+                            val isCorrect = key == testList[testIter]
                             if (key == testList[testIter]) {
                                 correct++
                             } else {
                                 wrongAnswers.add(key[0])
                                 correctAnswers.add(testList[testIter][0])
                             }
-                            testIter++
+                            Handler(Looper.getMainLooper()).postDelayed(
+                                {// Speak next target alphabet key
+                                    soundManager.playSound(isCorrect)
+                                },500
+                            )
+                            if (testIter < testList.size) {
+                                Handler(Looper.getMainLooper()).postDelayed(
+                                    {// Speak next target alphabet key
+                                        testIter++
+                                        soundManager.speakOut("Press :" + testList[testIter]) },
+                                    1500
+                                )
+                            }
                         },
                         soundManager = soundManager,
                         hapticManager = hapticManager,
@@ -597,19 +641,19 @@ fun Study1Test(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Text(
-                "Block : " + testBlock
-            )
             Button(
                 onClick = {
+                    soundManager.speakOut("Press :"+testList[0])
                     testIter = 0
-                    soundManager.speakOut(testList[0])
                 },
-                modifier =Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(),
+                shape = RoundedCornerShape(corner = CornerSize(0)),
+                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {
-                Text(text="Tap to Start")
+                Text(text="Tap to Start \n Block : " + testBlock,
+                    fontSize = 20.sp)
             }
         }
     }
@@ -628,7 +672,7 @@ fun Study1Test(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TestDisplay(testIter, testList.size, testList[testIter][0])
+            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager)
 
             Column(
                 modifier = Modifier.align(Alignment.BottomStart),
@@ -653,7 +697,7 @@ fun Study1Test(
 
                             if (testIter < testList.size) {
                                 // Speak next target alphabet key
-                                soundManager.speakOut(testList[testIter])
+                                soundManager.speakOut("Press : "+testList[testIter])
                             }
                         },
                         soundManager = soundManager,

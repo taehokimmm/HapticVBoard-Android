@@ -1,18 +1,39 @@
 package com.taehokimmm.hapticvboard_android.manager
 
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import com.taehokimmm.hapticvboard_android.R
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 
 class SoundManager(context: Context) {
+    val context:Context = context
     var timer: Timer? = null
     var timerTask: TimerTask? = null
     private lateinit var tts: TextToSpeech
 
+    private lateinit var soundPool: SoundPool
+    var correctId: Int = 0
+    var wrongId: Int = 0
+
     init {
+
+        // Define audio attributes for the sound pool
+        val audioAttributes =
+            AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+
+        // Initialize the sound pool with the defined attributes
+        soundPool =
+            SoundPool.Builder().setMaxStreams(10).setAudioAttributes(audioAttributes).build()
+
+        correctId = soundPool.load(context, R.raw.correct, 1)
+        wrongId = soundPool.load(context, R.raw.wrong, 1)
+
         // Init TTS
         tts = TextToSpeech(context) {
             if (it === TextToSpeech.SUCCESS) {
@@ -81,5 +102,16 @@ class SoundManager(context: Context) {
         }
         timer = Timer()
         timer?.schedule(timerTask, 0, 500)
+    }
+
+    /**
+     * Plays the sound for correct answer.
+     */
+    @Synchronized
+    fun playSound(isCorrect: Boolean) {
+        Log.e("Play Sound", isCorrect.toString())
+        var soundId = wrongId
+        if (isCorrect) soundId = correctId
+        soundPool.play(soundId, 0.5f, 0.5f, 1, 0, 1f)
     }
 }

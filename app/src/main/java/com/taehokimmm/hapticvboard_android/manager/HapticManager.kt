@@ -13,7 +13,7 @@ class HapticManager(context: Context) {
     private val soundManager: SoundManager = SoundManager(context)
 
     fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE){
-        Log.e("HAPTIC", hapticMode.toString() + " key : " + key.toString())
+        if (hapticMode == HapticMode.NONE) return
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
             hapticMode == HapticMode.VOICEPHONEME ||
