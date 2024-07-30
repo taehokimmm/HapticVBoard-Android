@@ -107,18 +107,20 @@ fun FreeTypeWithGroup(
     innerPadding: PaddingValues,
     soundManager: SoundManager?,
     hapticManager: HapticManager?,
-    hapticMode: HapticMode
+    group: List<List<String>>,
+    name: List<String>
 ) {
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
     var selectedTabIndex by remember { mutableStateOf(0) }
 
-    val suppressKeys = when (selectedTabIndex) {
-        0 -> listOf("t", "y", "u", "i", "o", "p", "g", "h", "j", "k", "l", "v", "b", "n", "m")
-        1 -> listOf("q", "w", "e", "i", "o", "p", "a", "s", "d", "j", "k", "l", "z", "x", "n", "m")
-        2 -> listOf("q", "w", "e", "r", "t", "y", "a", "s", "d", "f", "g", "z", "x", "c", "v")
-        else -> emptyList()
+    var allKeys = ('a'..'z').map { it.toString() }
+    val suppressKeys = if(selectedTabIndex in 0..group.size) {
+        allKeys.filterNot {it in group[selectedTabIndex]}
+    } else {
+        emptyList()
     }
+
 
     Box(
         modifier = Modifier
@@ -130,14 +132,10 @@ fun FreeTypeWithGroup(
                 Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex])
             )
         }, tabs = {
-            TextButton(onClick = { selectedTabIndex = 0 }) {
-                Text("Left", fontSize = 20.sp)
-            }
-            TextButton(onClick = { selectedTabIndex = 1 }) {
-                Text("Center", fontSize = 20.sp)
-            }
-            TextButton(onClick = { selectedTabIndex = 2 }) {
-                Text("Right", fontSize = 20.sp)
+            name.forEachIndexed { i, n ->
+                TextButton(onClick = { selectedTabIndex = i }) {
+                    Text(n, fontSize = 20.sp)
+                }
             }
         })
 
@@ -181,5 +179,5 @@ fun PreviewFreeTypeMode() {
 @Preview
 @Composable
 fun PreviewFreeTypewithGroup() {
-    FreeTypeWithGroup(PaddingValues(0.dp), null, null, HapticMode.NONE)
+    FreeTypeWithGroup(PaddingValues(0.dp), null, null, listOf(listOf()), listOf())
 }
