@@ -1,5 +1,9 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.test
 
+import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +44,7 @@ import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
+import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 
@@ -61,7 +67,6 @@ fun Study1Test(
     var testIter by remember { mutableStateOf(-1) }
 
     var testList = remember { allowlist.shuffled() }
-    var startTime by remember { mutableStateOf(0L) }
 
     // Typing Test
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
@@ -72,25 +77,41 @@ fun Study1Test(
         }
     }
 
+
+    var startTime by remember { mutableStateOf(0L) }
+    var isSpeakingDone by remember {mutableStateOf(false)}
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    LaunchedEffect(Unit) {
+        // Initiate TTS
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.US
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                    }
+
+                    override fun onDone(utteranceId: String?) {
+                        isSpeakingDone = true
+                        Log.e("phase3", "speech done")
+                        startTime = System.currentTimeMillis()
+                    }
+
+                    override fun onError(utteranceId: String?) {
+                    }
+                })
+            }
+        }
+    }
+    fun speak() {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.speak("Press : "+testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+    }
+
     if (testIter == -1) {
         // Audio Explanation
         soundManager.speakOut("Tap to start Block " + testBlock)
-        // Logger
-//        timerTask = object: TimerTask() {
-//            override fun run() {
-//                val data = Study1Logging(
-//                    answer = testList[testIter],
-//                    touched = "a",
-//                    iter = testIter,
-//                    block = testBlock,
-//                    timestamp = System.currentTimeMillis()/1000,
-//                    x = 0,
-//                    y = 0,
-//                    state = "Touch"
-//                )
-//                addStudy1Log(context, subject, group, data)
-//            }
-//        }
         // Layout
         Box(
             modifier = Modifier
@@ -99,9 +120,8 @@ fun Study1Test(
         ) {
             Button(
                 onClick = {
-                    soundManager.speakOut("Press :"+testList[0])
-                    startTime = System.currentTimeMillis()
                     testIter = 0
+                    speak()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,48 +157,42 @@ fun Study1Test(
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
                 Box {
-                    KeyboardLayout(
-                        touchEvents = keyboardTouchEvents,
-                        onKeyRelease = { key ->
-                            // Stop Logging
-                            timerTask.cancel()
-                            timer.cancel()
-                            timer.purge()
-                            //--- Append Data to Database ---//
-                            val curTime = System.currentTimeMillis()
-                            val data = Study1Answer (
-                                answer = testList[testIter],
-                                perceived = key,
-                                iter = testIter,
-                                block = testBlock,
-                                duration = curTime - startTime
-                            )
-                            addStudy1Answer(context, subject, group, data)
-                            // ------------------------------//
-                            testIter++
 
-                            if (testIter < testList.size) {
-                                // Speak next target alphabet key
-                                soundManager.speakOut("Press : "+testList[testIter])
-                                startTime = System.currentTimeMillis()
-                            }
-                        },
-                        soundManager = soundManager,
-                        hapticManager = hapticManager,
-                        hapticMode = hapticMode,
-                        suppress = suppress
-                    )
-                    AndroidView(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                        factory = { context ->
-                            MultiTouchView(context).apply {
-                                onMultiTouchEvent = { event ->
-                                    keyboardTouchEvents.clear()
-                                    keyboardTouchEvents.add(event)
+                    if (isSpeakingDone) {
+                        KeyboardLayout(
+                            touchEvents = keyboardTouchEvents,
+                            onKeyRelease = { key ->
+                                //--- Append Data to Database ---//
+                                val curTime = System.currentTimeMillis()
+                                val data = Study1Answer(
+                                    answer = testList[testIter],
+                                    perceived = key,
+                                    iter = testIter,
+                                    block = testBlock,
+                                    duration = curTime - startTime
+                                )
+                                addStudy1Answer(context, subject, group, data)
+                                // ------------------------------//
+                                testIter++
+                                if (testIter < testList.size) speak()
+                            },
+                            soundManager = soundManager,
+                            hapticManager = hapticManager,
+                            hapticMode = hapticMode,
+                            suppress = suppress
+                        )
+                        AndroidView(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp),
+                            factory = { context ->
+                                MultiTouchView(context).apply {
+                                    onMultiTouchEvent = { event ->
+                                        keyboardTouchEvents.clear()
+                                        keyboardTouchEvents.add(event)
+                                    }
                                 }
-                            }
-                        })
+                            })
+                    }
                 }
             }
         }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,12 +19,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
+import com.taehokimmm.hapticvboard_android.database.resetData
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 
@@ -34,9 +37,10 @@ fun Study1TrainInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("test") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var checkboxLeftState by remember { mutableStateOf(false) }
-    var checkboxCenterState by remember { mutableStateOf(false) }
-    var checkboxRightState by remember { mutableStateOf(false) }
+    var checkbox1State by remember { mutableStateOf(false) }
+    var checkbox2State by remember { mutableStateOf(false) }
+    var checkbox3State by remember { mutableStateOf(false) }
+    var checkbox4State by remember { mutableStateOf(false) }
 
     val subjectFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -81,19 +85,24 @@ fun Study1TrainInit(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 CheckboxWithLabel(
-                    checked = checkboxLeftState,
-                    onCheckedChange = { checkboxLeftState = it },
-                    label = "Left"
+                    checked = checkbox1State,
+                    onCheckedChange = { checkbox1State = it },
+                    label = "1"
                 )
                 CheckboxWithLabel(
-                    checked = checkboxCenterState,
-                    onCheckedChange = { checkboxCenterState = it },
-                    label = "Center"
+                    checked = checkbox2State,
+                    onCheckedChange = { checkbox2State = it },
+                    label = "2"
                 )
                 CheckboxWithLabel(
-                    checked = checkboxRightState,
-                    onCheckedChange = { checkboxRightState = it },
-                    label = "Right"
+                    checked = checkbox3State,
+                    onCheckedChange = { checkbox3State = it },
+                    label = "3"
+                )
+                CheckboxWithLabel(
+                    checked = checkbox4State,
+                    onCheckedChange = { checkbox4State = it },
+                    label = "4"
                 )
             }
 
@@ -105,20 +114,22 @@ fun Study1TrainInit(navController: NavHostController) {
                 )
             }
 
+
             Button(
                 onClick = {
                     when {
                         testSubjectIdentifier.isEmpty() -> errorMessage =
                             "Please enter a test subject"
 
-                        !checkboxLeftState && !checkboxCenterState && !checkboxRightState -> errorMessage =
+                        !checkbox1State && !checkbox2State && !checkbox3State && !checkbox4State -> errorMessage =
                             "Please select a test group"
 
                         else -> {
                             val group = buildString {
-                                if (checkboxLeftState) append("L")
-                                if (checkboxCenterState) append("C")
-                                if (checkboxRightState) append("R")
+                                if (checkbox1State) append("1")
+                                if (checkbox2State) append("2")
+                                if (checkbox3State) append("3")
+                                if (checkbox4State) append("4")
                             }
                             deleteDatabaseByName(context, testSubjectIdentifier)
                             navController.navigate("study1/train/phase1/${testSubjectIdentifier}/${group}")
@@ -129,6 +140,22 @@ fun Study1TrainInit(navController: NavHostController) {
                     .fillMaxWidth()
             ) {
                 Text("Start Train")
+            }
+
+
+            Button(onClick = {
+                val group = buildString {
+                    if (checkbox1State) append("1")
+                    if (checkbox2State) append("2")
+                    if (checkbox3State) append("3")
+                    if (checkbox4State) append("4")
+                }
+                resetData(context, testSubjectIdentifier, group)
+            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
+            )
+            {
+                Text("DELETE DATABASE",
+                    color = Color.White)
             }
         }
     }

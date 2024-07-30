@@ -1,7 +1,11 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.train
 
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -28,15 +33,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
+import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase3Answer
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
+import java.util.Locale
 
 
 // Phase 3 : Typing Test
@@ -50,12 +59,14 @@ fun Study1TrainPhase3(
     hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
+    val context = LocalContext.current
     val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
 
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
+
 
     // Typing Test
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
@@ -66,6 +77,36 @@ fun Study1TrainPhase3(
     val wrongAnswers = remember { mutableStateListOf<Char>() }
     val correctAnswers = remember { mutableStateListOf<Char>() }
 
+    var startTime by remember { mutableStateOf(0L) }
+    var isSpeakingDone by remember {mutableStateOf(false)}
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    LaunchedEffect(Unit) {
+        // Initiate TTS
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.US
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                    }
+
+                    override fun onDone(utteranceId: String?) {
+                        isSpeakingDone = true
+                        startTime = System.currentTimeMillis()
+                    }
+
+                    override fun onError(utteranceId: String?) {
+                    }
+                })
+            }
+        }
+    }
+    fun speak() {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.speak("Press : "+testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+    }
+
     if (testIter == -1) {
         soundManager.speakOut("Tap to start Block " + testBlock)
         Box(
@@ -75,8 +116,8 @@ fun Study1TrainPhase3(
         ) {
             Button(
                 onClick = {
-                    soundManager.speakOut("Press :"+testList[0])
                     testIter = 0
+                    speak()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -88,15 +129,15 @@ fun Study1TrainPhase3(
                     fontSize = 20.sp)
             }
         }
-    } else if (testIter >= testList.size) {
+    } else if (testIter == testList.size) {
         testBlock++
-        correct = 0
-        wrongAnswers.clear()
-        correctAnswers.clear()
-        testList = allowlist.shuffled()
-        if (testBlock > 3) {
+        if (testBlock >= 3) {
             navController.navigate("study1/train/end/${subject}")
         } else {
+            correct = 0
+            wrongAnswers.clear()
+            correctAnswers.clear()
+            testList = allowlist.shuffled()
             testIter = -1
         }
     } else {
@@ -108,54 +149,70 @@ fun Study1TrainPhase3(
 
             TestDisplay(testIter, testList.size, testList[testIter][0], soundManager)
 
-            Column(
-                modifier = Modifier.align(Alignment.BottomStart),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(modifier = Modifier.height(20.dp))
-                Box {
-                    KeyboardLayout(
-                        touchEvents = keyboardTouchEvents,
-                        onKeyRelease = { key ->
-                            soundManager.speakOut(key)
+                Column(
+                    modifier = Modifier.align(Alignment.BottomStart),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Box {
+                        if (isSpeakingDone) {
+                            KeyboardLayout(
+                                touchEvents = keyboardTouchEvents,
+                                onKeyRelease = { key ->
+                                    soundManager.speakOut(key)
 
-                            val isCorrect = key == testList[testIter]
-                            if (key == testList[testIter]) {
-                                correct++
-                            } else {
-                                wrongAnswers.add(key[0])
-                                correctAnswers.add(testList[testIter][0])
-                            }
-                            Handler(Looper.getMainLooper()).postDelayed(
-                                {// Speak next target alphabet key
-                                    soundManager.playSound(isCorrect)
-                                },500
+                                    val isCorrect = key == testList[testIter]
+                                    if (key == testList[testIter]) {
+                                        correct++
+                                    } else {
+                                        wrongAnswers.add(key[0])
+                                        correctAnswers.add(testList[testIter][0])
+                                    }
+                                    //--- Append Data to Database ---//
+                                    val curTime = System.currentTimeMillis()
+
+                                    val data = Study1TrainPhase3Answer(
+                                        answer = testList[testIter],
+                                        perceived = key,
+                                        iter = testIter,
+                                        block = testBlock,
+                                        duration = curTime - startTime
+                                    )
+                                    Log.e("Phase3", "apend data")
+                                    addStudy1TrainPhase3Answer(context, subject, group, data)
+                                    // ------------------------------//
+
+                                    Handler(Looper.getMainLooper()).postDelayed(
+                                        {// Speak next target alphabet key
+                                            soundManager.playSound(isCorrect)
+                                        },500
+                                    )
+
+                                    Handler(Looper.getMainLooper()).postDelayed(
+                                        {// Speak next target alphabet key
+                                            testIter++
+                                            if (testIter < testList.size) speak()
+                                        },
+                                        1500
+                                    )
+                                },
+                                soundManager = soundManager,
+                                hapticManager = hapticManager,
+                                hapticMode = hapticMode,
+                                suppress = suppress
                             )
-                            if (testIter < testList.size) {
-                                Handler(Looper.getMainLooper()).postDelayed(
-                                    {// Speak next target alphabet key
-                                        testIter++
-                                        soundManager.speakOut("Press :" + testList[testIter]) },
-                                    1500
-                                )
-                            }
-                        },
-                        soundManager = soundManager,
-                        hapticManager = hapticManager,
-                        hapticMode = hapticMode,
-                        suppress = suppress
-                    )
-                    AndroidView(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                        factory = { context ->
-                            MultiTouchView(context).apply {
-                                onMultiTouchEvent = { event ->
-                                    keyboardTouchEvents.clear()
-                                    keyboardTouchEvents.add(event)
-                                }
-                            }
-                        })
+                            AndroidView(modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp),
+                                factory = { context ->
+                                    MultiTouchView(context).apply {
+                                        onMultiTouchEvent = { event ->
+                                            keyboardTouchEvents.clear()
+                                            keyboardTouchEvents.add(event)
+                                        }
+                                    }
+                            })
+                        }
                 }
             }
         }

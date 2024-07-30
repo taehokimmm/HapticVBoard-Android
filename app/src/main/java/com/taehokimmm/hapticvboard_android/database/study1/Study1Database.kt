@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Study1Answer::class],
+    entities = [Study1Answer::class, Study1TrainPhase2Answer::class, Study1TrainPhase3Answer::class],
     version = 1
 )
 abstract class Study1Database : RoomDatabase() {
@@ -25,7 +25,7 @@ abstract class Study1Database : RoomDatabase() {
         private fun buildDatabase(context: Context, name:String) = Room.databaseBuilder(
             context.applicationContext,
             Study1Database::class.java,
-            "study1"+name
+            name
         ).build()
     }
 }

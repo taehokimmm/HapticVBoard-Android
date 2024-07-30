@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.train
 
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -107,12 +108,8 @@ fun Study1TrainPhase1(
 }
 
 fun getSuppressGroup(group: String): List<String> {
+    val allow = getAllowGroup(group)
     var suppress = ('a'..'z').map { it.toString() }
-    if (group.contains("L")) suppress =
-        suppress.filterNot { it in listOf("q", "w", "e", "r", "a", "s", "d", "f", "z", "x", "c") }
-    if (group.contains("C")) suppress =
-        suppress.filterNot { it in listOf("r", "t", "y", "u", "f", "g", "h", "c", "v", "b") }
-    if (group.contains("R")) suppress =
-        suppress.filterNot { it in listOf("u", "i", "o", "p", "h", "j", "k", "l", "b", "n", "m") }
+    suppress = suppress.filterNot { it in allow }
     return suppress
 }
