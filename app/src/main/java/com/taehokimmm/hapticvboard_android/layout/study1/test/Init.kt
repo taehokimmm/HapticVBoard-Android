@@ -30,7 +30,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.taehokimmm.hapticvboard_android.database.resetStudy1Data
 
 
 @Composable
@@ -39,9 +38,10 @@ fun Study1TestInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("test") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var checkboxLeftState by remember { mutableStateOf(false) }
-    var checkboxCenterState by remember { mutableStateOf(false) }
-    var checkboxRightState by remember { mutableStateOf(false) }
+    var checkbox1State by remember { mutableStateOf(false) }
+    var checkbox2State by remember { mutableStateOf(false) }
+    var checkbox3State by remember { mutableStateOf(false) }
+    var checkbox4State by remember { mutableStateOf(false) }
 
     val subjectFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -84,19 +84,24 @@ fun Study1TestInit(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 CheckboxWithLabel(
-                    checked = checkboxLeftState,
-                    onCheckedChange = { checkboxLeftState = it },
-                    label = "Left"
+                    checked = checkbox1State,
+                    onCheckedChange = { checkbox1State = it },
+                    label = "1"
                 )
                 CheckboxWithLabel(
-                    checked = checkboxCenterState,
-                    onCheckedChange = { checkboxCenterState = it },
-                    label = "Center"
+                    checked = checkbox2State,
+                    onCheckedChange = { checkbox2State = it },
+                    label = "2"
                 )
                 CheckboxWithLabel(
-                    checked = checkboxRightState,
-                    onCheckedChange = { checkboxRightState = it },
-                    label = "Right"
+                    checked = checkbox3State,
+                    onCheckedChange = { checkbox3State = it },
+                    label = "3"
+                )
+                CheckboxWithLabel(
+                    checked = checkbox4State,
+                    onCheckedChange = { checkbox4State = it },
+                    label = "4"
                 )
             }
 
@@ -114,16 +119,16 @@ fun Study1TestInit(navController: NavHostController) {
                         testSubjectIdentifier.isEmpty() -> errorMessage =
                             "Please enter a test subject"
 
-                        !checkboxLeftState && !checkboxCenterState && !checkboxRightState -> errorMessage =
+                        !checkbox1State && !checkbox2State && !checkbox3State && !checkbox4State -> errorMessage =
                             "Please select a test group"
 
                         else -> {
                             val group = buildString {
-                                if (checkboxLeftState) append("L")
-                                if (checkboxCenterState) append("C")
-                                if (checkboxRightState) append("R")
+                                if (checkbox1State) append("1")
+                                if (checkbox2State) append("2")
+                                if (checkbox3State) append("3")
+                                if (checkbox4State) append("4")
                             }
-                            resetStudy1Data(context, testSubjectIdentifier, group)
                             navController.navigate("study1/test/${testSubjectIdentifier}/${group}")
                         }
                     }

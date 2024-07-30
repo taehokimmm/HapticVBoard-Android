@@ -5,6 +5,8 @@ import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -40,6 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase2Answer
+import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
+import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase2Answer
+import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase3Answer
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
@@ -56,24 +63,127 @@ fun Study1TrainPhase2(
     hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
+    val context = LocalContext.current
     val allowlist = getAllowGroup(group)
 
+    var isStart by remember {mutableStateOf(false)}
     var testIter by remember { mutableStateOf(0) }
+    var testBlock by remember { mutableStateOf(1) }
     var testList by remember { mutableStateOf(allowlist.shuffled()) }
     val testNumber = testList.size
-    var selectedOption by remember{ mutableStateOf("1") }
-    var options by remember { mutableStateOf(generateCandidates(testList[testIter], allowlist)) }
-    val touchEvents = remember { mutableStateListOf<MotionEvent>() }
 
+    var selectedIndex by remember {mutableStateOf(0)}
+    var selectedAnswer by remember {mutableStateOf(-1)}
+    var options by remember { mutableStateOf(generateCandidates(testList[testIter], allowlist)) }
+    var isShowAnswer by remember {mutableStateOf(false)}
+
+    // Swipe Gesture
+    var swipeAmount by remember{mutableStateOf(0f)}
+    var swipeStartTime by remember{mutableStateOf(0L)}
+
+    fun onConfirm() {
+        if (isShowAnswer) {
+            // Move to Next Trial after 1 sec
+            if (testIter < testList.size - 1) {
+                selectedIndex = 0
+                selectedAnswer = -1
+                options = generateCandidates(
+                    testList[testIter + 1],
+                    allowlist
+                )
+                testIter++
+                soundManager.speakOut("Find : " +  testList[testIter])
+                isShowAnswer = false
+            } else {
+                navController.navigate("study1/train/phase3/${subject}/${group}")
+            }
+        } else {
+            // Correct Feedback
+            val selectedOption = options[selectedIndex]
+            val targetOption = testList[testIter]
+            val isCorrect = selectedOption == targetOption
+            soundManager.playSound(isCorrect)
+            selectedAnswer = selectedIndex
+            // Deliver the answer feedback
+            isShowAnswer = true
+
+
+            //--- Append Data to Database ---//
+            val data = Study1TrainPhase2Answer(
+                answer = targetOption,
+                perceived = selectedOption,
+                iter = testIter,
+                block = testBlock
+            )
+            addStudy1TrainPhase2Answer(context, subject, group, data)
+            // ------------------------------//
+        }
+    }
+
+    fun onSelect(index: Int) {
+        hapticManager.generateHaptic(
+            options[index],
+            HapticMode.PHONEME
+        )
+        selectedIndex = index
+
+        if (isShowAnswer) {
+            soundManager.speakOut(options[index])
+        }
+    }
+    if (!isStart) {
+        soundManager.speakOut("Find : " +  testList[testIter])
+        isStart = true
+    }
     // Identification Test
     if (testIter < testNumber) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onDoubleTap = {onConfirm()},
+                        onTap = {onSelect(selectedIndex)}
+                    )
+                }.pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragStart = {offset ->
+                            swipeStartTime = System.currentTimeMillis() },
+                        onHorizontalDrag = {change, dragAmount ->
+                            swipeAmount = dragAmount},
+                        onDragEnd = {
+                            val time = System.currentTimeMillis() - swipeStartTime
+                            val speed = swipeAmount / time * 1000
+                            if (swipeAmount > 0 && speed > 0) {
+                                if (selectedIndex < options.size - 1) {
+                                    selectedIndex ++
+                                } else {
+                                    selectedIndex = 0
+                                }
+                                onSelect(selectedIndex)
+                            } else if (swipeAmount < 0 && speed < 0) {
+                                if (selectedIndex > 0) {
+                                    selectedIndex --
+                                } else {
+                                    selectedIndex = options.size - 1
+                                }
+                                onSelect(selectedIndex)
+                            }
+                        }
+                    )
+                }
         ) {
-            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 100.dp)
+            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 400.dp)
 
+            Button(
+                onClick = {
+                    navController.navigate("study1/train/phase3/${subject}/${group}")
+                },
+                modifier = Modifier.align(Alignment.TopEnd)
+            ) {
+                Text("Skip")
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -93,89 +203,63 @@ fun Study1TrainPhase2(
                             modifier = Modifier
                                 .size(180.dp, 180.dp)
                                 .padding(10.dp)
+                                .align(Alignment.CenterVertically)
                                 .pointerInput(Unit) {
                                     detectTapGestures(
-                                        onTap = {
-                                            hapticManager.generateHaptic(
-                                                options[index],
-                                                HapticMode.PHONEME
-                                            )
-                                            selectedOption = options[index]
-                                        },
-                                        onDoubleTap = {
-                                            // Correct Feedback
-                                            val isCorrect = selectedOption == testList[testIter]
-                                            soundManager.playSound(isCorrect)
-
-                                            // Deliver the answer feedback
-                                            Handler(Looper.getMainLooper()).postDelayed(
-                                                {
-                                                    hapticManager.generateHaptic(
-                                                        testList[testIter],
-                                                        HapticMode.PHONEME
-                                                    )
-                                                }, 500
-                                            )
-
-                                            // Move to Next Trial after 1 sec
-                                            Handler(Looper.getMainLooper()).postDelayed(
-                                                {
-                                                    selectedOption = "1"
-                                                    options = generateCandidates(
-                                                        testList[testIter + 1],
-                                                        allowlist
-                                                    )
-                                                    testIter++
-                                                }, 1000
-                                            )
-                                        }
+                                        onTap = {onSelect(selectedIndex)},
+                                        onDoubleTap = {onConfirm()}
                                     )
-                                }.background(if (alphabet == selectedOption) Color.Blue else Color.White)
+                                }.background(
+                                    if (index == selectedIndex) Color.Blue else Color.White
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = (index+1).toString(),
-                                color =  if (alphabet == selectedOption) Color.White else Color.Blue,
+                                text = if (isShowAnswer) alphabet.toUpperCase() else (index+1).toString(),
+                                color =  (
+                                    if (isShowAnswer) {
+                                        if (options[index] == testList[testIter]) {
+                                            Color.Green
+                                        } else if (index == selectedAnswer) {
+                                            Color.Red
+                                        } else if(index == selectedIndex) {
+                                            Color.White
+                                        } else {
+                                            Color.Blue
+                                        }
+                                    } else {
+                                        if (index == selectedIndex) Color.White else Color.Blue
+                                    }
+                                ),
                                 fontSize = 40.sp,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
                             )
-                            Spacer(modifier = Modifier.height(10.dp))
                         }
                     }
                 }
             }
 
-            Button(
-                onClick = {
-                    Log.e("Phase2", "Double Tapped")
-
-                }
-            ) {
-                Text(text = "NEXT")
-            }
         }
-    } else {
-        navController.navigate("study1/train/phase3/${subject}/${group}")
     }
+
 }
+
 
 fun getAllowGroup(group: String): List<String> {
     val allow = emptyList<String>().toMutableList()
-    if (group.contains("L")) allow += listOf("q", "w", "e", "r", "a", "s", "d", "f", "z", "x", "c")
-    if (group.contains("C")) allow += listOf("r", "t", "y", "u", "f", "g", "h", "c", "v", "b")
-    if (group.contains("R")) allow += listOf("u", "i", "o", "p", "h", "j", "k", "l", "b", "n", "m")
+    if (group.contains("1")) allow += listOf("q", "w", "e", "a", "s", "d", "z", "x")
+    if (group.contains("2")) allow += listOf("e", "d", "x", "r", "t", "f", "g", "c", "v")
+    if (group.contains("3")) allow += listOf("t", "y", "u", "g", "h", "j", "v", "b", "n")
+    if (group.contains("4")) allow += listOf("u", "i", "o", "p", "j", "k", "l", "n", "m")
     return allow
 }
 
 fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
     var group = listOf(key)
     var others = allowGroup.filterNot{it == key}
-    if (key == "q" || key == "c") {
-        others = others.filterNot{it == "q" || it == "c"}
-    }
-    group += others.shuffled().slice(0..4)
+    group += others.shuffled().slice(0..2)
     return group.shuffled()
 }
-
 
 @Composable
 fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height: Dp = 420.dp) {

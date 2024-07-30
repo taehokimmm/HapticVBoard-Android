@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.taehokimmm.hapticvboard_android.R
 import java.util.Locale
@@ -49,6 +50,18 @@ class SoundManager(context: Context) {
                 Log.e("TTS", "Initialization Failed!")
             }
         }
+        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(s: String) {
+                Log.e("phase3", "on start")
+            }
+
+            override fun onDone(s: String) {
+                Log.e("phase3", "on done")
+            }
+
+            override fun onError(s: String) {
+            }
+        })
     }
 
     /**
