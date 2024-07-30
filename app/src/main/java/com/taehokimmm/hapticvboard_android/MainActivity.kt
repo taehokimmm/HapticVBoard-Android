@@ -47,6 +47,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.taehokimmm.hapticvboard_android.layout.study1.TrainGroup
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1Test
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestEnd
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestInit
@@ -135,7 +136,32 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                     }
                     composable("freeType2") {
                         currentScreen = "freeType2"
-                        FreeTypeWithGroup(innerPadding, soundManager, hapticManager, hapticMode)
+                        val group = listOf(
+                            listOf("s", "z", "f", "v", "h"),
+                            listOf("n", "m"),
+                            listOf("p", "t", "k", "c", "q"),
+                            listOf("b", "d", "g", "j"),
+                            listOf("l", "r"),
+                            listOf("a", "e", "i", "o", "u", "w", "y"),
+                            listOf("x")
+                        )
+                        val name = listOf(
+                            "마찰음", "비음", "파열음-strong", "파열음-weak", "설측음", "모음", "others"
+                        )
+                        TrainGroup(innerPadding, soundManager, hapticManager, group, name)
+                    }
+                    composable("freeType3") {
+                        currentScreen = "freeType3"
+                        val group = listOf(
+                            listOf("k", "g", "s", "z", "n", "r", "c", "q", "a", "j"), // "S", "Z"는 둘다 남
+                            listOf("p", "b", "f", "v", "m", "l"),
+                            listOf("t", "d"),
+                            listOf("e", "o", "i", "u", "h", "w", "x", "y")
+                        )
+                        val name = listOf(
+                            "Up", "Down", "Both", "Other"
+                        )
+                        TrainGroup(innerPadding, soundManager, hapticManager, group, name)
                     }
                     composable("study1/train/init") {
                         currentScreen = "study1/train/init"
@@ -270,11 +296,18 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "freeType"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Free Type 2") },
+            NavigationDrawerItem(label = { Text("Free Type - Phoneme") },
                 selected = selectedItem == "freeType2",
                 onClick = {
                     navController.navigate("freeType2")
                     selectedItem = "freeType2"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Free Type - Location") },
+                selected = selectedItem == "freeType3",
+                onClick = {
+                    navController.navigate("freeType3")
+                    selectedItem = "freeType3"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Study 1 Train") },
@@ -319,7 +352,8 @@ fun DrawTopAppBar(
 ) {
     val displayText = when (currentScreen) {
         "freeType" -> "Free Type"
-        "freeType2" -> "Free Type with Group"
+        "freeType2" -> "Free Type with Phoneme Group"
+        "freeType3" -> "Free Type with Location Group"
         "train" -> "Train"
         "study1/train/init" -> "Study 1 Train"
         "study1/train/phase1" -> "Phase 1 — Free Play"
