@@ -2,20 +2,15 @@ package com.taehokimmm.hapticvboard_android.database
 
 import android.content.Context
 import android.os.AsyncTask
-import android.util.Log
 import androidx.room.Room
-import com.taehokimmm.hapticvboard_android.database.study1.Study1Answer
-import com.taehokimmm.hapticvboard_android.database.study1.Study1Database
-import com.taehokimmm.hapticvboard_android.database.study1.Study1Logging
-import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase2Answer
-import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase3Answer
 import java.io.File
 
-// INSERT DATA
-fun addStudy1Answer(context: Context, subject: String, group: String, data: Study1Answer){
-    class SaveData : AsyncTask<Void, Void, Void>(){
+// INSERT DATA FOR STUDY1
+fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1Dao, data: T) -> Unit) {
+    class SaveData : AsyncTask<Void, Void, Void>() {
         override fun doInBackground(vararg p0: Void?): Void? {
-            Study1Database(context, subject + "_" + group).getDao().add(data)
+            val dao = Study1Database(context, name).getDao()
+            addFunction(dao, data)
             return null
         }
 
@@ -26,33 +21,21 @@ fun addStudy1Answer(context: Context, subject: String, group: String, data: Stud
     SaveData().execute()
 }
 
-fun addStudy1TrainPhase3Answer(context: Context, subject: String, group: String, data: Study1TrainPhase3Answer){
-    class SaveData : AsyncTask<Void, Void, Void>(){
-        override fun doInBackground(vararg p0: Void?): Void? {
-            Study1Database(context, subject + "_" + group).getDao().addTrainPhase3(data)
-            return null
-        }
-
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-        }
-    }
-    SaveData().execute()
+fun addStudy1Answer(context: Context, subject: String, group: String, data: Study1TestAnswer){
+    addData(context, subject + "_" + group, data
+    ) { dao, answer -> dao.addTest(answer) }
 }
 
-fun addStudy1TrainPhase2Answer(context: Context, subject: String, group: String, data: Study1TrainPhase2Answer){
-    class SaveData : AsyncTask<Void, Void, Void>(){
-        override fun doInBackground(vararg p0: Void?): Void? {
-            Study1Database(context, subject + "_" + group).getDao().addTrainPhase2(data)
-            return null
-        }
-
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-        }
-    }
-    SaveData().execute()
+fun addStudy1TrainPhase3Answer(context: Context, subject: String, group: String, data: Study1Phase3Answer){
+    addData(context, subject + "_" + group, data
+    ) { dao, answer -> dao.addTrainPhase3(answer) }
 }
+
+fun addStudy1TrainPhase2Answer(context: Context, subject: String, group: String, data: Study1Phase2Answer){
+    addData(context, subject+"_"+group, data
+    ) { dao, answer -> dao.addTrainPhase2(answer) }
+}
+
 
 // DELETE DATABASE TO RESET
 fun deleteDatabaseByName(context: Context, databaseName: String) {

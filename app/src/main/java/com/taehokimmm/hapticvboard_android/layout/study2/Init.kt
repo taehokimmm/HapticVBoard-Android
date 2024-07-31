@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -23,18 +24,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.resetData
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 
 
 @Composable
 fun Study2Init(navController: NavHostController) {
+    var context = LocalContext.current
     var testSubjectIdentifier by remember { mutableStateOf("test") }
     var testQuestions by remember { mutableIntStateOf(10) }
     var testQuestionString by remember { mutableStateOf("10") }
@@ -156,6 +161,21 @@ fun Study2Init(navController: NavHostController) {
                     .fillMaxWidth()
             ) {
                 Text("Start Test")
+            }
+
+
+            Button(onClick = {
+                val feedback = buildString {
+                    if (checkboxLeftState) append("audio")
+                    if (checkboxCenterState) append("phoneme")
+                    if (checkboxRightState) append("vibration")
+                }
+                resetData(context, testSubjectIdentifier, feedback)
+            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
+            )
+            {
+                Text("DELETE DATABASE",
+                    color = Color.White)
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.database.study1
+package com.taehokimmm.hapticvboard_android.database
 
 import android.content.Context
 import androidx.room.Database
@@ -6,25 +6,25 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Study1Answer::class, Study1TrainPhase2Answer::class, Study1TrainPhase3Answer::class],
+    entities = [Study2Metric::class],
     version = 1
 )
-abstract class Study1Database : RoomDatabase() {
-    abstract fun getDao() : Study1Dao
+abstract class Study2Database : RoomDatabase() {
+    abstract fun getDao() : Study2Dao
 
     companion object{
-        @Volatile private var instance: Study1Database? = null
+        @Volatile private var instance: Study2Database? = null
         private val LOCK = Any()
 
         operator fun invoke(context: Context, name:String) = instance ?: synchronized(LOCK){
-            instance ?:buildDatabase(context, name).also{
+            instance ?: buildDatabase(context, name).also{
                 instance = it
             }
         }
 
         private fun buildDatabase(context: Context, name:String) = Room.databaseBuilder(
             context.applicationContext,
-            Study1Database::class.java,
+            Study2Database::class.java,
             name
         ).build()
     }

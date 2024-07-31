@@ -36,7 +36,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1Answer
-import com.taehokimmm.hapticvboard_android.database.study1.Study1Answer
+import com.taehokimmm.hapticvboard_android.database.Study1TestAnswer
 import com.taehokimmm.hapticvboard_android.layout.study1.train.TestDisplay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getSuppressGroup
@@ -164,7 +164,7 @@ fun Study1Test(
                             onKeyRelease = { key ->
                                 //--- Append Data to Database ---//
                                 val curTime = System.currentTimeMillis()
-                                val data = Study1Answer(
+                                val data = Study1TestAnswer(
                                     answer = testList[testIter],
                                     perceived = key,
                                     iter = testIter,
