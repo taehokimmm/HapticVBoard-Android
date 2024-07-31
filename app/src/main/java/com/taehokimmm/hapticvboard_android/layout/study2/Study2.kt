@@ -72,6 +72,7 @@ fun Study2Test(
 
     // IKI
     val keystrokeTimestamps = remember { mutableStateListOf<Long>() }
+
     // Keyboard Efficiency
     var keyStrokeNum by remember{mutableStateOf(0)}
 
