@@ -7,7 +7,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.MotionEvent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,7 +39,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
-import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase3Answer
+import com.taehokimmm.hapticvboard_android.database.Study1Phase3Answer
+import com.taehokimmm.hapticvboard_android.database.Study1Phase3Log
+import com.taehokimmm.hapticvboard_android.database.Study1TestLog
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -171,14 +172,13 @@ fun Study1TrainPhase3(
                                     //--- Append Data to Database ---//
                                     val curTime = System.currentTimeMillis()
 
-                                    val data = Study1TrainPhase3Answer(
+                                    val data = Study1Phase3Answer(
                                         answer = testList[testIter],
                                         perceived = key,
                                         iter = testIter,
                                         block = testBlock,
                                         duration = curTime - startTime
                                     )
-                                    Log.e("Phase3", "apend data")
                                     addStudy1TrainPhase3Answer(context, subject, group, data)
                                     // ------------------------------//
 
@@ -199,7 +199,13 @@ fun Study1TrainPhase3(
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,
                                 hapticMode = hapticMode,
-                                suppress = suppress
+                                suppress = suppress,
+                                logData = Study1Phase3Log(
+                                    answer = testList[testIter],
+                                    iter = testIter,
+                                    block = testBlock
+                                ),
+                                name = subject + "_" + group.last()
                             )
                             AndroidView(modifier = Modifier
                                 .fillMaxWidth()

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,10 +38,8 @@ fun Study1TrainInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("test") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var checkbox1State by remember { mutableStateOf(false) }
-    var checkbox2State by remember { mutableStateOf(false) }
-    var checkbox3State by remember { mutableStateOf(false) }
-    var checkbox4State by remember { mutableStateOf(false) }
+    var options = listOf("A", "B", "C", "D")
+    var selectedOption by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -84,26 +83,17 @@ fun Study1TrainInit(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                CheckboxWithLabel(
-                    checked = checkbox1State,
-                    onCheckedChange = { checkbox1State = it },
-                    label = "1"
-                )
-                CheckboxWithLabel(
-                    checked = checkbox2State,
-                    onCheckedChange = { checkbox2State = it },
-                    label = "2"
-                )
-                CheckboxWithLabel(
-                    checked = checkbox3State,
-                    onCheckedChange = { checkbox3State = it },
-                    label = "3"
-                )
-                CheckboxWithLabel(
-                    checked = checkbox4State,
-                    onCheckedChange = { checkbox4State = it },
-                    label = "4"
-                )
+                Column {
+                    options.forEach{option -> (
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedOption == option,
+                                onClick = { selectedOption = option }
+                            )
+                            Text(text = option)
+                        }
+                    )}
+                }
             }
 
             if (errorMessage.isNotEmpty()) {
@@ -121,18 +111,12 @@ fun Study1TrainInit(navController: NavHostController) {
                         testSubjectIdentifier.isEmpty() -> errorMessage =
                             "Please enter a test subject"
 
-                        !checkbox1State && !checkbox2State && !checkbox3State && !checkbox4State -> errorMessage =
+                        selectedOption.isEmpty() -> errorMessage =
                             "Please select a test group"
 
                         else -> {
-                            val group = buildString {
-                                if (checkbox1State) append("1")
-                                if (checkbox2State) append("2")
-                                if (checkbox3State) append("3")
-                                if (checkbox4State) append("4")
-                            }
                             deleteDatabaseByName(context, testSubjectIdentifier)
-                            navController.navigate("study1/train/phase1/${testSubjectIdentifier}/${group}")
+                            navController.navigate("study1/train/phase1/${testSubjectIdentifier}/${selectedOption}")
                         }
                     }
                 }, modifier = Modifier
@@ -142,15 +126,8 @@ fun Study1TrainInit(navController: NavHostController) {
                 Text("Start Train")
             }
 
-
             Button(onClick = {
-                val group = buildString {
-                    if (checkbox1State) append("1")
-                    if (checkbox2State) append("2")
-                    if (checkbox3State) append("3")
-                    if (checkbox4State) append("4")
-                }
-                resetData(context, testSubjectIdentifier, group)
+                resetData(context, testSubjectIdentifier, selectedOption)
             }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
             )
             {

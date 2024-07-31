@@ -153,10 +153,10 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                     composable("freeType3") {
                         currentScreen = "freeType3"
                         val group = listOf(
-                            listOf("k", "g", "s", "z", "n", "r", "c", "q", "a", "j"), // "S", "Z"는 둘다 남
-                            listOf("p", "b", "f", "v", "m", "l"),
-                            listOf("t", "d"),
-                            listOf("e", "o", "i", "u", "h", "w", "x", "y")
+                            listOf("k", "g", "n", "r", "c", "q", "j", "e", "i"), // "S", "Z"는 둘다 남
+                            listOf("p", "b", "f", "v", "m", "h", "a", "o", "u"),
+                            listOf("t", "d", "s", "z", "l", "x", "w", "y"),
+                            listOf()
                         )
                         val name = listOf(
                             "Up", "Down", "Both", "Other"

@@ -53,7 +53,6 @@ fun TrainGroup(
     group: List<List<String>>,
     name: List<String>
 ) {
-    val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
     var selectedTabIndex by remember { mutableStateOf(0) }
     var selectedIndex by remember { mutableStateOf(0) }
 
@@ -140,11 +139,7 @@ fun TrainGroup(
                             .size(120.dp, 120.dp)
                             .padding(0.dp)
                             .align(Alignment.CenterVertically)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = {onSelect(index)}
-                                )
-                            }.background(
+                            .background(
                                 if (index == selectedIndex) Color.Blue else Color.White
                             ),
                         contentAlignment = Alignment.Center

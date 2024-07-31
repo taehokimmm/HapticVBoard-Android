@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.view
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,8 +18,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.database.addLog
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
@@ -30,8 +33,11 @@ fun KeyboardLayout(
     soundManager: SoundManager? = null,
     hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
-    suppress: List<String> = emptyList()
+    suppress: List<String> = emptyList(),
+    logData: Any? = null,
+    name: String? = ""
 ) {
+    val context = LocalContext.current
     // Coordinates for each key
     val keyPositions = remember { mutableStateOf(mapOf<String, LayoutCoordinates>()) }
 
@@ -110,7 +116,10 @@ fun KeyboardLayout(
             soundManager!!,
             hapticManager!!,
             hapticMode,
-            suppress
+            suppress,
+            logData,
+            context,
+            name
         )
         mutableTouchEvents.clear()
     }
@@ -181,7 +190,10 @@ fun processTouchEvent(
     soundManager: SoundManager,
     hapticManager: HapticManager?,
     hapticMode: HapticMode,
-    suppress: List<String>
+    suppress: List<String>,
+    logData: Any?,
+    context: Context,
+    name: String?
 ) {
     when (event.actionMasked) {
         MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
@@ -196,6 +208,14 @@ fun processTouchEvent(
                     if (!suppress.contains(key))
                         hapticManager?.generateHaptic(key, hapticMode)
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
+
+                    // Add Log
+                    if (name != null && logData != null) {
+                        addLog(
+                            context, name, logData, "DOWN", key,
+                            pointerPosition.x, pointerPosition.y
+                        )
+                    }
                 }
             }
         }
@@ -206,6 +226,14 @@ fun processTouchEvent(
             if (key != null) {
                 Log.d("TouchEvent", "Key released: $key for pointer $pointerId")
                 onKeyReleased(key)
+                // Add Log
+                if (name != null && logData != null) {
+                    val pointerPosition = Offset(event.getX(event.actionIndex), event.getY(event.actionIndex))
+                    addLog(
+                        context, name, logData, "UP", key,
+                        pointerPosition.x, pointerPosition.y
+                    )
+                }
             }
         }
 
@@ -224,6 +252,14 @@ fun processTouchEvent(
                     if (!suppress.contains(key))
                         hapticManager?.generateHaptic(key, hapticMode)
                     activeTouches[pointerId] = key
+
+                    // Add Log
+                    if (name != null && logData != null) {
+                        addLog(
+                            context, name, logData, "MOVE", key,
+                            pointerPosition.x, pointerPosition.y
+                        )
+                    }
                 }
             }
         }

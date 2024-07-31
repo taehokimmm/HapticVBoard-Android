@@ -1,6 +1,8 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.test
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
@@ -36,7 +38,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1Answer
-import com.taehokimmm.hapticvboard_android.database.study1.Study1Answer
+import com.taehokimmm.hapticvboard_android.database.Study1TestAnswer
+import com.taehokimmm.hapticvboard_android.database.Study1TestLog
 import com.taehokimmm.hapticvboard_android.layout.study1.train.TestDisplay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getSuppressGroup
@@ -157,14 +160,16 @@ fun Study1Test(
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
                 Box {
-
+                    val answer = testList[testIter]
+                    val iter = testIter
+                    val block = testBlock
                     if (isSpeakingDone) {
                         KeyboardLayout(
                             touchEvents = keyboardTouchEvents,
                             onKeyRelease = { key ->
                                 //--- Append Data to Database ---//
                                 val curTime = System.currentTimeMillis()
-                                val data = Study1Answer(
+                                val data = Study1TestAnswer(
                                     answer = testList[testIter],
                                     perceived = key,
                                     iter = testIter,
@@ -173,13 +178,24 @@ fun Study1Test(
                                 )
                                 addStudy1Answer(context, subject, group, data)
                                 // ------------------------------//
-                                testIter++
-                                if (testIter < testList.size) speak()
+                                Handler(Looper.getMainLooper()).postDelayed(
+                                    {// Speak next target alphabet key
+                                        testIter++
+                                        if (testIter < testList.size) speak()
+                                    },
+                                    200
+                                )
                             },
                             soundManager = soundManager,
                             hapticManager = hapticManager,
                             hapticMode = hapticMode,
-                            suppress = suppress
+                            suppress = suppress,
+                            logData = Study1TestLog(
+                                answer = answer,
+                                iter = iter,
+                                block = block
+                            ),
+                            name = subject + "_" + group.last()
                         )
                         AndroidView(modifier = Modifier
                             .fillMaxWidth()

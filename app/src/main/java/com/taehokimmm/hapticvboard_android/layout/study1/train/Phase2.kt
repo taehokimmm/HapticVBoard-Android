@@ -1,11 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.train
 
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
-import android.view.MotionEvent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +22,6 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,9 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase2Answer
-import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
-import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase2Answer
-import com.taehokimmm.hapticvboard_android.database.study1.Study1TrainPhase3Answer
+import com.taehokimmm.hapticvboard_android.database.Study1Phase2Answer
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
@@ -109,7 +101,7 @@ fun Study1TrainPhase2(
 
 
             //--- Append Data to Database ---//
-            val data = Study1TrainPhase2Answer(
+            val data = Study1Phase2Answer(
                 answer = targetOption,
                 perceived = selectedOption,
                 iter = testIter,
@@ -244,13 +236,12 @@ fun Study1TrainPhase2(
 
 }
 
-
 fun getAllowGroup(group: String): List<String> {
     val allow = emptyList<String>().toMutableList()
-    if (group.contains("1")) allow += listOf("q", "w", "e", "a", "s", "d", "z", "x")
-    if (group.contains("2")) allow += listOf("e", "d", "x", "r", "t", "f", "g", "c", "v")
-    if (group.contains("3")) allow += listOf("t", "y", "u", "g", "h", "j", "v", "b", "n")
-    if (group.contains("4")) allow += listOf("u", "i", "o", "p", "j", "k", "l", "n", "m")
+    if (group.contains("A")) allow += listOf("q", "w", "e", "a", "s", "d", "z", "x")
+    if (group.contains("B")) allow += listOf("e", "d", "x", "r", "t", "f", "g", "c", "v")
+    if (group.contains("C")) allow += listOf("t", "y", "u", "g", "h", "j", "v", "b", "n")
+    if (group.contains("D")) allow += listOf("u", "i", "o", "p", "j", "k", "l", "n", "m")
     return allow
 }
 

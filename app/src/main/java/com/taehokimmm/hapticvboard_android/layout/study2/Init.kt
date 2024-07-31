@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -23,18 +25,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.resetData
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 
 
 @Composable
 fun Study2Init(navController: NavHostController) {
+    var context = LocalContext.current
     var testSubjectIdentifier by remember { mutableStateOf("test") }
     var testQuestions by remember { mutableIntStateOf(10) }
     var testQuestionString by remember { mutableStateOf("10") }
@@ -44,9 +50,9 @@ fun Study2Init(navController: NavHostController) {
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var checkboxLeftState by remember { mutableStateOf(false) }
-    var checkboxCenterState by remember { mutableStateOf(false) }
-    var checkboxRightState by remember { mutableStateOf(false) }
+    var options = listOf("audio", "phoneme", "vibration")
+    var selectedOption by remember { mutableStateOf("audio") }
+
 
     var subjects = listOf("test")
     for(i in 1 until 12) {
@@ -82,21 +88,17 @@ fun Study2Init(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                CheckboxWithLabel(
-                    checked = checkboxLeftState,
-                    onCheckedChange = { checkboxLeftState = it },
-                    label = "Audio"
-                )
-                CheckboxWithLabel(
-                    checked = checkboxCenterState,
-                    onCheckedChange = { checkboxCenterState = it },
-                    label = "Phoneme"
-                )
-                CheckboxWithLabel(
-                    checked = checkboxRightState,
-                    onCheckedChange = { checkboxRightState = it },
-                    label = "Vibration"
-                )
+                Column {
+                    options.forEach{option -> (
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedOption == option,
+                                onClick = { selectedOption = option }
+                            )
+                            Text(text = option)
+                        }
+                    )}
+                }
             }
 
             // Number of questions
@@ -140,12 +142,7 @@ fun Study2Init(navController: NavHostController) {
             Button(
                 onClick = {
                     if (testSubjectIdentifier.isNotEmpty() && testQuestions > 0) {
-                        val feedback = buildString {
-                            if (checkboxLeftState) append("audio")
-                            if (checkboxCenterState) append("phoneme")
-                            if (checkboxRightState) append("vibration")
-                        }
-                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions/$feedback")
+                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions/$selectedOption")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     } else {
@@ -156,6 +153,16 @@ fun Study2Init(navController: NavHostController) {
                     .fillMaxWidth()
             ) {
                 Text("Start Test")
+            }
+
+
+            Button(onClick = {
+                resetData(context, testSubjectIdentifier, selectedOption)
+            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
+            )
+            {
+                Text("DELETE DATABASE",
+                    color = Color.White)
             }
         }
     }

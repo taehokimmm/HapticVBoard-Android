@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.database.study2
+package com.taehokimmm.hapticvboard_android.database
 
 
 import androidx.room.Entity
@@ -22,13 +22,17 @@ data class TouchMetric(
     val touchDuration: Long
 )
 
-@Entity(tableName = "test_metrics")
-data class TestMetric(
-    @PrimaryKey(autoGenerate = true) val uid : Int = 0,
-    val testName: String,
+@Entity(tableName = "study2Metric")
+data class Study2Metric(
     val iteration: Int,
     val wpm: Double,
-    val accuracy: Double,
-    val timestamp: Long,
-    val touchMetrics: List<TouchMetric>
-)
+    val iki: Double,
+    val uer: Double,
+    val keyEff: Double,
+    val target: String,
+    val input: String,
+    var timestamp: String = System.currentTimeMillis().toFormattedDateString()
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0
+}
