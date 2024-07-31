@@ -13,22 +13,8 @@ data class Study1TestAnswer(
     val perceived: String,
     val iter: Int,
     val block: Int,
-    val duration: Long
-) {
-    @PrimaryKey(autoGenerate = true)
-    var id : Int = 0
-}
-
-@Entity("study1Log")
-data class Study1Logging(
-    val answer: String,
-    val touched: String,
-    val iter: Int,
-    val block: Int,
-    val timestamp: Long,
-    val state: String, // Touch, Move, Release
-    val x : Int,
-    val y : Int
+    val duration: Long,
+    var timestamp: String = System.currentTimeMillis().toFormattedDateString()
 ) {
     @PrimaryKey(autoGenerate = true)
     var id : Int = 0
@@ -63,4 +49,36 @@ fun Long.toFormattedDateString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String 
     val date = Date(this)
     val format = SimpleDateFormat(pattern, Locale.getDefault())
     return format.format(date)
+}
+
+@Entity("study1TestLog")
+data class Study1TestLog(
+    val answer: String,
+    val iter: Int,
+    val block: Int,
+    var state: String = "", // DOWN, UP, MOVE
+    var touchedKey: String = "",
+    var x : Float = 0.0f,
+    var y : Float = 0.0f,
+    var timestamp: Long = System.currentTimeMillis(),
+    var date: String = System.currentTimeMillis().toFormattedDateString()
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id : Int = 0
+}
+
+@Entity("study1Phase3Log")
+data class Study1Phase3Log(
+    val answer: String,
+    val iter: Int,
+    val block: Int,
+    var state: String = "", // DOWN, UP, MOVE
+    var touchedKey: String = "",
+    var x : Float = 0.0f,
+    var y : Float = 0.0f,
+    var timestamp: Long = System.currentTimeMillis(),
+    var date: String = System.currentTimeMillis().toFormattedDateString()
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id : Int = 0
 }

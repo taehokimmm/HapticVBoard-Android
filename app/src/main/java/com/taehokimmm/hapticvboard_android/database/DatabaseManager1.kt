@@ -2,6 +2,7 @@ package com.taehokimmm.hapticvboard_android.database
 
 import android.content.Context
 import android.os.AsyncTask
+import android.util.Log
 import androidx.room.Room
 import java.io.File
 
@@ -36,6 +37,44 @@ fun addStudy1TrainPhase2Answer(context: Context, subject: String, group: String,
     ) { dao, answer -> dao.addTrainPhase2(answer) }
 }
 
+fun addStudy1TestLog(context: Context, name: String, data: Study1TestLog){
+    addData(context, name, data
+    ) { dao, answer -> dao.addTestLog(answer) }
+}
+
+fun addStudy1Phase3Log(context: Context, name: String, data: Study1Phase3Log){
+    addData(context, name, data
+    ) { dao, answer -> dao.addPhase3Log(answer) }
+}
+
+fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touchedKey: String, x: Float, y:Float) {
+    when (data) {
+        is Study1TestLog -> {
+            // Handle Study1TestLog specific logic here
+            data.x = x
+            data.y = y
+            data.state = state
+            data.touchedKey = touchedKey
+            data.timestamp = System.currentTimeMillis()
+            data.date = System.currentTimeMillis().toFormattedDateString()
+            addStudy1TestLog(context, name, data)
+        }
+        is Study1Phase3Log -> {
+            // Handle Study1TestLog specific logic here
+            data.x = x
+            data.y = y
+            data.state = state
+            data.touchedKey = touchedKey
+            data.timestamp = System.currentTimeMillis()
+            data.date = System.currentTimeMillis().toFormattedDateString()
+            addStudy1Phase3Log(context, name, data)
+        }
+        else -> {
+            // Handle unknown type
+            println("Unknown log type")
+        }
+    }
+}
 
 // DELETE DATABASE TO RESET
 fun deleteDatabaseByName(context: Context, databaseName: String) {

@@ -40,6 +40,8 @@ import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Answer
+import com.taehokimmm.hapticvboard_android.database.Study1Phase3Log
+import com.taehokimmm.hapticvboard_android.database.Study1TestLog
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -177,7 +179,6 @@ fun Study1TrainPhase3(
                                         block = testBlock,
                                         duration = curTime - startTime
                                     )
-                                    Log.e("Phase3", "apend data")
                                     addStudy1TrainPhase3Answer(context, subject, group, data)
                                     // ------------------------------//
 
@@ -198,7 +199,13 @@ fun Study1TrainPhase3(
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,
                                 hapticMode = hapticMode,
-                                suppress = suppress
+                                suppress = suppress,
+                                logData = Study1Phase3Log(
+                                    answer = testList[testIter],
+                                    iter = testIter,
+                                    block = testBlock
+                                ),
+                                name = subject + "_" + group.last()
                             )
                             AndroidView(modifier = Modifier
                                 .fillMaxWidth()

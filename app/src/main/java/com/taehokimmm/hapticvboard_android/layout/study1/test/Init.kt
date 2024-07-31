@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.resetData
 
 
 @Composable
@@ -121,6 +123,13 @@ fun Study1TestInit(navController: NavHostController) {
                     .fillMaxWidth()
             ) {
                 Text("Start Test")
+            }
+
+            Button(onClick = {
+                resetData(context, testSubjectIdentifier, selectedOption)
+            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
+            ) {
+                Text("DELETE DATABASE", color = Color.White)
             }
         }
     }

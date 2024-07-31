@@ -126,7 +126,6 @@ fun Study1TrainInit(navController: NavHostController) {
                 Text("Start Train")
             }
 
-
             Button(onClick = {
                 resetData(context, testSubjectIdentifier, selectedOption)
             }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
