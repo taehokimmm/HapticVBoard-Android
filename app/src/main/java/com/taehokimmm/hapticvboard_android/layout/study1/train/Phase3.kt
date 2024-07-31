@@ -195,6 +195,7 @@ fun Study1TrainPhase3(
                                         },
                                         1500
                                     )
+                                    isSpeakingDone = false
                                 },
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,

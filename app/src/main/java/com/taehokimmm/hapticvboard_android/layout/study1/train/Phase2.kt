@@ -237,11 +237,12 @@ fun Study1TrainPhase2(
 }
 
 fun getAllowGroup(group: String): List<String> {
-    val allow = emptyList<String>().toMutableList()
+    var allow = emptyList<String>().toMutableList()
     if (group.contains("A")) allow += listOf("q", "w", "e", "a", "s", "d", "z", "x")
     if (group.contains("B")) allow += listOf("e", "d", "x", "r", "t", "f", "g", "c", "v")
     if (group.contains("C")) allow += listOf("t", "y", "u", "g", "h", "j", "v", "b", "n")
     if (group.contains("D")) allow += listOf("u", "i", "o", "p", "j", "k", "l", "n", "m")
+    allow = allow.toSet().toMutableList()
     return allow
 }
 

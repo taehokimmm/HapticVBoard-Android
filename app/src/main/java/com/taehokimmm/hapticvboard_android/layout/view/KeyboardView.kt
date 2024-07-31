@@ -49,7 +49,9 @@ fun KeyboardLayout(
 
     Box(modifier = Modifier
         .fillMaxWidth()
-        .background(Color.LightGray)
+        .background(Color(255,
+            235,
+            205))
         .onGloballyPositioned { coordinates ->
             rootCoordinates = coordinates
         }) {
@@ -64,7 +66,7 @@ fun KeyboardLayout(
             )
             val lastRow = listOf(",", "Space", ".")
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             keys.forEach { rowKeys ->
                 Row {
                     rowKeys.forEach { key ->
@@ -75,6 +77,7 @@ fun KeyboardLayout(
                             })
                     }
                 }
+                Spacer(modifier = Modifier.height(9.dp))
             }
 
             Row {
@@ -98,7 +101,7 @@ fun KeyboardLayout(
             }
 
 
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(66.dp))
         }
     }
 
@@ -132,8 +135,8 @@ fun DrawKey(
     onPositioned: (LayoutCoordinates) -> Unit,
 ) {
     val width = 36.dp
-    val height = width * 1.5f
-    val textSize = 20.sp
+    val height = 51.dp
+    val textSize = 28.sp
     val spacing = 2.dp
 
     val backgroundColor = when {
@@ -167,7 +170,8 @@ fun DrawKey(
                 else -> key
             },
             fontSize = if (key == "Enter") 18.sp else textSize,
-            color = if (key == "Enter") Color.White else Color.Black
+            color = if (key == "Enter") Color.White else Color.Black,
+
         )
     }
 }

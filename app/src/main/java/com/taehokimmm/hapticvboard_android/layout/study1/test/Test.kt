@@ -185,6 +185,7 @@ fun Study1Test(
                                     },
                                     200
                                 )
+                                isSpeakingDone = false
                             },
                             soundManager = soundManager,
                             hapticManager = hapticManager,
