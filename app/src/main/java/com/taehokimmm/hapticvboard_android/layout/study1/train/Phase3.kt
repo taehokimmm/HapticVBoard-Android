@@ -64,7 +64,7 @@ fun Study1TrainPhase3(
     val context = LocalContext.current
     val allowlist = getAllowGroup(group)
 
-    val totalBlock = 2
+    val totalBlock = 3
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
