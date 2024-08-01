@@ -48,5 +48,6 @@ abstract class Study1Database : RoomDatabase() {
                 INSTANCE = null
             }
         }
+
     }
 }

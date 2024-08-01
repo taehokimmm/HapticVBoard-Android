@@ -8,11 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 // INSERT DATA FOR STUDY1
 fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1Dao, data: T) -> Unit) {
-    Log.e("database", name)
 //    class SaveData : AsyncTask<Void, Void, Void>() {
 //        override fun doInBackground(vararg p0: Void?): Void? {
 //            val dao = Study1Database(context, name).getDao()

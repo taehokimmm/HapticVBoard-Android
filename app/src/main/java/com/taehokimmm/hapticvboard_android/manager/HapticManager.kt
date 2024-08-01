@@ -74,7 +74,7 @@ class HapticManager(context: Context) {
         }
         Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
         Log.d("HapticFeedback", "P${formattedKey}WAV")
-        serialManager.write("P${formattedKey}WAV\n".toByteArray())
+        //serialManager.write("P${formattedKey}WAV\n".toByteArray())
     }
 
     fun generateVibration(key: String) {

@@ -156,6 +156,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             listOf("p", "b", "f", "v", "m"),
                             listOf("t", "d", "s", "z", "l", "x"),
                             listOf("k", "c", "q", "g", "j", "n", "r", "h")
+
                         )
                         val name = listOf(
                             "Up", "Both", "Down"

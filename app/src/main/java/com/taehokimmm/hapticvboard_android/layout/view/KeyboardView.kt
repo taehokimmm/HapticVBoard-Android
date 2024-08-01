@@ -120,6 +120,7 @@ fun KeyboardLayout(
             hapticManager!!,
             hapticMode,
             allow,
+            suppress,
             logData,
             context,
             name

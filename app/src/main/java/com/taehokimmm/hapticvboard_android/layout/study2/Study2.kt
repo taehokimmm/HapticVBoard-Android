@@ -80,7 +80,6 @@ fun Study2Test(
     // Keyboard Efficiency
     var keyStrokeNum by remember{mutableStateOf(0)}
 
-
     var isSpeakingDone by remember {mutableStateOf(false)}
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     LaunchedEffect(Unit) {
@@ -109,7 +108,6 @@ fun Study2Test(
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
         tts?.speak(word, TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
     }
-
     LaunchedEffect(testIter) {
         if (testIter == 0) {
             startTime = System.currentTimeMillis()
