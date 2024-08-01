@@ -14,19 +14,39 @@ abstract class Study1Database : RoomDatabase() {
     abstract fun getDao() : Study1Dao
 
     companion object{
-        @Volatile private var instance: Study1Database? = null
+        @Volatile private var INSTANCE: Study1Database? = null
         private val LOCK = Any()
 
-        operator fun invoke(context: Context, name:String) = instance ?: synchronized(LOCK){
-            instance ?: buildDatabase(context, name).also{
-                instance = it
+//        operator fun invoke(context: Context, name:String) = instance ?: synchronized(LOCK){
+//            instance ?: buildDatabase(context, name).also{
+//                instance = it
+//            }
+//        }
+//
+//        private fun buildDatabase(context: Context, name:String) = Room.databaseBuilder(
+//            context.applicationContext,
+//            Study1Database::class.java,
+//            name
+//        ).build()
+        fun getInstance(context: Context, name: String): Study1Database {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    Study1Database::class.java,
+                    name
+                ).build()
+                INSTANCE = instance
+                instance
             }
         }
 
-        private fun buildDatabase(context: Context, name:String) = Room.databaseBuilder(
-            context.applicationContext,
-            Study1Database::class.java,
-            name
-        ).build()
+        fun closeDatabase() {
+            INSTANCE?.apply {
+                if (isOpen) {
+                    close()
+                }
+                INSTANCE = null
+            }
+        }
     }
 }

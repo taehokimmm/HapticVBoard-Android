@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
 import com.taehokimmm.hapticvboard_android.database.resetData
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
@@ -107,6 +108,7 @@ fun Study1TrainInit(navController: NavHostController) {
 
             Button(
                 onClick = {
+                    closeStudy1Database()
                     when {
                         testSubjectIdentifier.isEmpty() -> errorMessage =
                             "Please enter a test subject"
@@ -126,14 +128,14 @@ fun Study1TrainInit(navController: NavHostController) {
                 Text("Start Train")
             }
 
-            Button(onClick = {
-                resetData(context, testSubjectIdentifier, selectedOption)
-            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
-            )
-            {
-                Text("DELETE DATABASE",
-                    color = Color.White)
-            }
+//            Button(onClick = {
+//                resetData(context, testSubjectIdentifier, selectedOption)
+//            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
+//            )
+//            {
+//                Text("DELETE DATABASE",
+//                    color = Color.White)
+//            }
         }
     }
 }

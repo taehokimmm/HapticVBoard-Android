@@ -40,9 +40,9 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1Answer
 import com.taehokimmm.hapticvboard_android.database.Study1TestAnswer
 import com.taehokimmm.hapticvboard_android.database.Study1TestLog
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.study1.train.TestDisplay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
-import com.taehokimmm.hapticvboard_android.layout.study1.train.getSuppressGroup
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -64,7 +64,6 @@ fun Study1Test(
 ) {
     val context = LocalContext.current
 
-    val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
 
     val totalBlock = 1
@@ -146,6 +145,7 @@ fun Study1Test(
         testBlock++
         testList = allowlist.shuffled()
         if (testBlock > totalBlock) {
+            closeStudy1Database()
             navController.navigate("study1/test/end/${subject}")
         } else {
             testIter = -1
@@ -195,7 +195,7 @@ fun Study1Test(
                             soundManager = soundManager,
                             hapticManager = hapticManager,
                             hapticMode = hapticMode,
-                            suppress = suppress,
+                            allow = allowlist,
                             logData = Study1TestLog(
                                 answer = answer,
                                 iter = iter,

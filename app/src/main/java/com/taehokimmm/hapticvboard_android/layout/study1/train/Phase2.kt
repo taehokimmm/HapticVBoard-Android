@@ -44,6 +44,7 @@ import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase2Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase2Answer
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
@@ -63,7 +64,7 @@ fun Study1TrainPhase2(
     val context = LocalContext.current
     val allowlist = getAllowGroup(group)
 
-    val totalBlock = 1
+    val totalBlock = 2
     var testIter by remember { mutableStateOf(-1) }
     var testBlock by remember { mutableStateOf(1) }
     var testList by remember { mutableStateOf(allowlist.shuffled()) }
@@ -109,6 +110,7 @@ fun Study1TrainPhase2(
                 iter = testIter,
                 block = testBlock
             )
+            Log.d("database", group)
             addStudy1TrainPhase2Answer(context, subject, group, data)
             // ------------------------------//
 
@@ -130,16 +132,22 @@ fun Study1TrainPhase2(
 
         if (isShowAnswer) {
             soundManager.speakOut(options[index])
+        } else {
+            soundManager.speakOut((index+1).toString())
         }
     }
 
     LaunchedEffect (testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("Tap to start")
+            soundManager.speakOut("Tap to start block " + testBlock)
         }
     }
     // Identification Test
     if (testIter == -1) {
+        isShowAnswer = false
+        selectedIndex = 0
+        options = listOf("")
+        selectedAnswer = -1
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -167,6 +175,7 @@ fun Study1TrainPhase2(
     } else if (testIter == testNumber) {
         testBlock++
         if (testBlock > totalBlock) {
+            closeStudy1Database()
             navController.navigate("study1/train/phase3/${subject}/${group}")
         } else {
             testList = allowlist.shuffled()
@@ -217,6 +226,7 @@ fun Study1TrainPhase2(
 
             Button(
                 onClick = {
+                    closeStudy1Database()
                     navController.navigate("study1/train/phase3/${subject}/${group}")
                 },
                 modifier = Modifier.align(Alignment.TopEnd)

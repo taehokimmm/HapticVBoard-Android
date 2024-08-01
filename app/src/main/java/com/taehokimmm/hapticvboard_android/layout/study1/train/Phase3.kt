@@ -42,6 +42,7 @@ import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Log
 import com.taehokimmm.hapticvboard_android.database.Study1TestLog
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -61,10 +62,9 @@ fun Study1TrainPhase3(
     hapticMode: HapticMode
 ) {
     val context = LocalContext.current
-    val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
 
-    val totalBlock = 1
+    val totalBlock = 2
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
@@ -111,7 +111,7 @@ fun Study1TrainPhase3(
 
     LaunchedEffect (testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("Tap to start")
+            soundManager.speakOut("Tap to start block " + testBlock)
         }
     }
 
@@ -139,6 +139,7 @@ fun Study1TrainPhase3(
     } else if (testIter == testList.size) {
         testBlock++
         if (testBlock > totalBlock) {
+            closeStudy1Database()
             navController.navigate("study1/train/end/${subject}")
         } else {
             correct = 0
@@ -206,7 +207,7 @@ fun Study1TrainPhase3(
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,
                                 hapticMode = hapticMode,
-                                suppress = suppress,
+                                allow = allowlist,
                                 logData = Study1Phase3Log(
                                     answer = testList[testIter],
                                     iter = testIter,

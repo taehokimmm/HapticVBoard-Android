@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
+import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -115,8 +116,8 @@ fun FreeTypeWithGroup(
     var selectedTabIndex by remember { mutableStateOf(0) }
 
     var allKeys = ('a'..'z').map { it.toString() }
-    val suppressKeys = if(selectedTabIndex in 0..group.size) {
-        allKeys.filterNot {it in group[selectedTabIndex]}
+    val allowKeys = if(selectedTabIndex in 0..group.size) {
+        allKeys.filter {it in group[selectedTabIndex]}
     } else {
         emptyList()
     }
@@ -152,7 +153,7 @@ fun FreeTypeWithGroup(
                     soundManager = soundManager,
                     hapticManager = hapticManager,
                     hapticMode = HapticMode.VOICEPHONEME,
-                    suppress = suppressKeys
+                    allow = allowKeys
                 )
                 AndroidView(modifier = Modifier
                     .fillMaxWidth()

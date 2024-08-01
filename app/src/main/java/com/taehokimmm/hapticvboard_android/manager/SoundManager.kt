@@ -103,6 +103,14 @@ class SoundManager(context: Context) {
         timerTask = object: TimerTask() {
             override fun run() {
                 if (index == words.size) {
+
+
+
+
+
+
+
+
                     timerTask?.cancel()
                     timer?.cancel()
                     timer?.purge()
