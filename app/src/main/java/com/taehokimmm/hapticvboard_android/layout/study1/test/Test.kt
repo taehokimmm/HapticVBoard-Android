@@ -40,9 +40,9 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1Answer
 import com.taehokimmm.hapticvboard_android.database.Study1TestAnswer
 import com.taehokimmm.hapticvboard_android.database.Study1TestLog
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.study1.train.TestDisplay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
-import com.taehokimmm.hapticvboard_android.layout.study1.train.getSuppressGroup
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -64,8 +64,9 @@ fun Study1Test(
 ) {
     val context = LocalContext.current
 
-    val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
+
+    val totalBlock = 1
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
 
@@ -95,7 +96,6 @@ fun Study1Test(
 
                     override fun onDone(utteranceId: String?) {
                         isSpeakingDone = true
-                        Log.e("phase3", "speech done")
                         startTime = System.currentTimeMillis()
                     }
 
@@ -112,9 +112,13 @@ fun Study1Test(
         tts?.speak("Press : "+testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
     }
 
+    LaunchedEffect (testIter) {
+        if (testIter == -1) {
+            soundManager.speakOut("Tap to start")
+        }
+    }
+
     if (testIter == -1) {
-        // Audio Explanation
-        soundManager.speakOut("Tap to start Block " + testBlock)
         // Layout
         Box(
             modifier = Modifier
@@ -140,7 +144,8 @@ fun Study1Test(
     else if (testIter >= testList.size) {
         testBlock++
         testList = allowlist.shuffled()
-        if (testBlock > 3) {
+        if (testBlock > totalBlock) {
+            closeStudy1Database()
             navController.navigate("study1/test/end/${subject}")
         } else {
             testIter = -1
@@ -167,29 +172,32 @@ fun Study1Test(
                         KeyboardLayout(
                             touchEvents = keyboardTouchEvents,
                             onKeyRelease = { key ->
-                                //--- Append Data to Database ---//
-                                val curTime = System.currentTimeMillis()
-                                val data = Study1TestAnswer(
-                                    answer = testList[testIter],
-                                    perceived = key,
-                                    iter = testIter,
-                                    block = testBlock,
-                                    duration = curTime - startTime
-                                )
-                                addStudy1Answer(context, subject, group, data)
-                                // ------------------------------//
-                                Handler(Looper.getMainLooper()).postDelayed(
-                                    {// Speak next target alphabet key
-                                        testIter++
-                                        if (testIter < testList.size) speak()
-                                    },
-                                    200
-                                )
+                                if (allowlist.contains(key)) {
+                                    //--- Append Data to Database ---//
+                                    val curTime = System.currentTimeMillis()
+                                    val data = Study1TestAnswer(
+                                        answer = testList[testIter],
+                                        perceived = key,
+                                        iter = testIter,
+                                        block = testBlock,
+                                        duration = curTime - startTime
+                                    )
+                                    addStudy1Answer(context, subject, group, data)
+                                    // ------------------------------//
+                                    Handler(Looper.getMainLooper()).postDelayed(
+                                        {// Speak next target alphabet key
+                                            testIter++
+                                            if (testIter < testList.size) speak()
+                                        },
+                                        200
+                                    )
+                                    isSpeakingDone = false
+                                }
                             },
                             soundManager = soundManager,
                             hapticManager = hapticManager,
                             hapticMode = hapticMode,
-                            suppress = suppress,
+                            allow = allowlist,
                             logData = Study1TestLog(
                                 answer = answer,
                                 iter = iter,

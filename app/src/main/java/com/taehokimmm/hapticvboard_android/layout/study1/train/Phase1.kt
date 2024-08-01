@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -44,8 +45,8 @@ fun Study1TrainPhase1(
     hapticManager: HapticManager,
     hapticMode: HapticMode
 ) {
-    val suppress = getSuppressGroup(group)
-    var countdown by remember { mutableStateOf(300) }
+    val allowGroup = getAllowGroup(group)
+    var countdown by remember { mutableStateOf(180) }
 
     LaunchedEffect(countdown) {
         while (countdown > 0) {
@@ -72,6 +73,7 @@ fun Study1TrainPhase1(
 
         Button(
             onClick = {
+                closeStudy1Database()
                 navController.navigate("study1/train/phase2/${subject}/${group}")
             }, modifier = Modifier.align(Alignment.TopEnd)
         ) {
@@ -89,7 +91,7 @@ fun Study1TrainPhase1(
                     soundManager = soundManager,
                     hapticManager = hapticManager,
                     hapticMode = HapticMode.VOICEPHONEME,
-                    suppress = suppress
+                    allow = allowGroup
                 )
                 AndroidView(modifier = Modifier
                     .fillMaxWidth()

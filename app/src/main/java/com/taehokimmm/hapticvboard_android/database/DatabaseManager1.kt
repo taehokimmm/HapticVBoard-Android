@@ -4,29 +4,42 @@ import android.content.Context
 import android.os.AsyncTask
 import android.util.Log
 import androidx.room.Room
-import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // INSERT DATA FOR STUDY1
 fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1Dao, data: T) -> Unit) {
-    class SaveData : AsyncTask<Void, Void, Void>() {
-        override fun doInBackground(vararg p0: Void?): Void? {
-            val dao = Study1Database(context, name).getDao()
-            addFunction(dao, data)
-            return null
-        }
-
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
+//    class SaveData : AsyncTask<Void, Void, Void>() {
+//        override fun doInBackground(vararg p0: Void?): Void? {
+//            val dao = Study1Database(context, name).getDao()
+//            addFunction(dao, data)
+//            return null
+//        }
+//
+//        override fun onPostExecute(result: Void?) {
+//            super.onPostExecute(result)
+//        }
+//    }
+//    SaveData().execute()
+    CoroutineScope(Dispatchers.IO).launch {
+        val dao = Study1Database.getInstance(context, name).getDao()
+        addFunction(dao, data)
+        withContext(Dispatchers.Main) {
+            // You can update UI here if needed
         }
     }
-    SaveData().execute()
 }
 
 fun addStudy1Answer(context: Context, subject: String, group: String, data: Study1TestAnswer){
-    addData(context, subject + "_" + group, data
+    addData(context, subject + "_" + group.last(), data
     ) { dao, answer -> dao.addTest(answer) }
 }
 
+fun closeStudy1Database() {
+    Study1Database.closeDatabase()
+}
 fun addStudy1TrainPhase3Answer(context: Context, subject: String, group: String, data: Study1Phase3Answer){
     addData(context, subject + "_" + group, data
     ) { dao, answer -> dao.addTrainPhase3(answer) }

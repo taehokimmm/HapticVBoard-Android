@@ -23,6 +23,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +70,10 @@ fun TrainGroup(
     // Swipe Gesture
     var swipeAmount by remember{mutableStateOf(0f)}
     var swipeStartTime by remember{mutableStateOf(0L)}
+
+    LaunchedEffect(selectedTabIndex) {
+        selectedIndex = 0
+    }
 
     Box(
         modifier = Modifier

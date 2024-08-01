@@ -1,6 +1,9 @@
 package com.taehokimmm.hapticvboard_android.layout.study2
 
 import android.content.Context
+import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.view.MotionEvent
 import android.widget.EditText
 import androidx.compose.foundation.border
@@ -47,6 +50,7 @@ import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.Locale
 
 @Composable
 fun Study2Test(
@@ -76,6 +80,34 @@ fun Study2Test(
     // Keyboard Efficiency
     var keyStrokeNum by remember{mutableStateOf(0)}
 
+    var isSpeakingDone by remember {mutableStateOf(false)}
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    LaunchedEffect(Unit) {
+        // Initiate TTS
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.US
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                        isSpeakingDone = false
+                    }
+
+                    override fun onDone(utteranceId: String?) {
+                        isSpeakingDone = true
+                    }
+
+                    override fun onError(utteranceId: String?) {
+                    }
+                })
+            }
+        }
+    }
+    fun speak(word: String) {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.speak(word, TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+    }
     LaunchedEffect(testIter) {
         if (testIter == 0) {
             startTime = System.currentTimeMillis()
@@ -97,6 +129,11 @@ fun Study2Test(
             inputText = ""
         } else {
             navController!!.navigate("study2/end/$subject")
+        }
+
+        if (testIter < testNumber) {
+            val targetText = testList[testIter]
+            speak(targetText)
         }
     }
 

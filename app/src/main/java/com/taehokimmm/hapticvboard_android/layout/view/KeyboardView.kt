@@ -33,7 +33,7 @@ fun KeyboardLayout(
     soundManager: SoundManager? = null,
     hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
-    suppress: List<String> = emptyList(),
+    allow: List<String> = ('a'..'z').map { it.toString() } + listOf("Space", "Backspace", "Shift", ",", "."),
     logData: Any? = null,
     name: String? = ""
 ) {
@@ -49,7 +49,9 @@ fun KeyboardLayout(
 
     Box(modifier = Modifier
         .fillMaxWidth()
-        .background(Color.LightGray)
+        .background(Color(255,
+            235,
+            205))
         .onGloballyPositioned { coordinates ->
             rootCoordinates = coordinates
         }) {
@@ -64,17 +66,18 @@ fun KeyboardLayout(
             )
             val lastRow = listOf(",", "Space", ".")
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             keys.forEach { rowKeys ->
                 Row {
                     rowKeys.forEach { key ->
                         DrawKey(key = key,
-                            isPressed = activeTouches.values.contains(key) || suppress.contains(key),
+                            isPressed = activeTouches.values.contains(key) || (!(allow.contains(key))),
                             onPositioned = { coordinates ->
                                 handlePositioned(key, coordinates, keyPositions)
                             })
                     }
                 }
+                Spacer(modifier = Modifier.height(9.dp))
             }
 
             Row {
@@ -83,7 +86,7 @@ fun KeyboardLayout(
                 }
                 lastRow.forEach { key ->
                     DrawKey(key = key,
-                        isPressed = activeTouches.values.contains(key),
+                        isPressed = activeTouches.values.contains(key) || (!(allow.contains(key))),
                         onPositioned = { coordinates ->
                             handlePositioned(key, coordinates, keyPositions)
                         })
@@ -98,7 +101,7 @@ fun KeyboardLayout(
             }
 
 
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(66.dp))
         }
     }
 
@@ -116,6 +119,7 @@ fun KeyboardLayout(
             soundManager!!,
             hapticManager!!,
             hapticMode,
+            allow,
             suppress,
             logData,
             context,
@@ -132,8 +136,8 @@ fun DrawKey(
     onPositioned: (LayoutCoordinates) -> Unit,
 ) {
     val width = 36.dp
-    val height = width * 1.5f
-    val textSize = 20.sp
+    val height = 51.dp
+    val textSize = 28.sp
     val spacing = 2.dp
 
     val backgroundColor = when {
@@ -167,7 +171,8 @@ fun DrawKey(
                 else -> key
             },
             fontSize = if (key == "Enter") 18.sp else textSize,
-            color = if (key == "Enter") Color.White else Color.Black
+            color = if (key == "Enter") Color.White else Color.Black,
+
         )
     }
 }
@@ -190,7 +195,7 @@ fun processTouchEvent(
     soundManager: SoundManager,
     hapticManager: HapticManager?,
     hapticMode: HapticMode,
-    suppress: List<String>,
+    allow: List<String>,
     logData: Any?,
     context: Context,
     name: String?
@@ -205,8 +210,10 @@ fun processTouchEvent(
                 }?.key
                 if (key != null) {
                     activeTouches[pointerId] = key
-                    if (!suppress.contains(key))
+                    if (allow.contains(key))
                         hapticManager?.generateHaptic(key, hapticMode)
+                    else if (hapticMode == HapticMode.VOICEPHONEME)
+                        hapticManager?.generateHaptic(key, HapticMode.VOICE)
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
 
                     // Add Log
@@ -249,8 +256,10 @@ fun processTouchEvent(
                         "TouchEvent",
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                     )
-                    if (!suppress.contains(key))
+                    if (allow.contains(key))
                         hapticManager?.generateHaptic(key, hapticMode)
+                    else if (hapticMode == HapticMode.VOICEPHONEME)
+                        hapticManager?.generateHaptic(key, HapticMode.VOICE)
                     activeTouches[pointerId] = key
 
                     // Add Log

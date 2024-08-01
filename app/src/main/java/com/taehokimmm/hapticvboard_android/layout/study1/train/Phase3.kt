@@ -42,6 +42,7 @@ import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Log
 import com.taehokimmm.hapticvboard_android.database.Study1TestLog
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -61,9 +62,9 @@ fun Study1TrainPhase3(
     hapticMode: HapticMode
 ) {
     val context = LocalContext.current
-    val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
 
+    val totalBlock = 3
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
@@ -108,8 +109,13 @@ fun Study1TrainPhase3(
         tts?.speak("Press : "+testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
     }
 
+    LaunchedEffect (testIter) {
+        if (testIter == -1) {
+            soundManager.speakOut("Tap to start block " + testBlock)
+        }
+    }
+
     if (testIter == -1) {
-        soundManager.speakOut("Tap to start Block " + testBlock)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,7 +138,8 @@ fun Study1TrainPhase3(
         }
     } else if (testIter == testList.size) {
         testBlock++
-        if (testBlock >= 3) {
+        if (testBlock > totalBlock) {
+            closeStudy1Database()
             navController.navigate("study1/train/end/${subject}")
         } else {
             correct = 0
@@ -160,46 +167,50 @@ fun Study1TrainPhase3(
                             KeyboardLayout(
                                 touchEvents = keyboardTouchEvents,
                                 onKeyRelease = { key ->
-                                    soundManager.speakOut(key)
+                                    if (allowlist.contains(key)) {
+                                        soundManager.speakOut(key)
 
-                                    val isCorrect = key == testList[testIter]
-                                    if (key == testList[testIter]) {
-                                        correct++
-                                    } else {
-                                        wrongAnswers.add(key[0])
-                                        correctAnswers.add(testList[testIter][0])
+                                        val isCorrect = key == testList[testIter]
+                                        if (key == testList[testIter]) {
+                                            correct++
+                                        } else {
+                                            wrongAnswers.add(key[0])
+                                            correctAnswers.add(testList[testIter][0])
+                                        }
+                                        //--- Append Data to Database ---//
+                                        val curTime = System.currentTimeMillis()
+
+                                        val data = Study1Phase3Answer(
+                                            answer = testList[testIter],
+                                            perceived = key,
+                                            iter = testIter,
+                                            block = testBlock,
+                                            duration = curTime - startTime
+                                        )
+                                        addStudy1TrainPhase3Answer(context, subject, group, data)
+                                        // ------------------------------//
+
+                                        Handler(Looper.getMainLooper()).postDelayed(
+                                            {// Speak next target alphabet key
+                                                soundManager.playSound(isCorrect)
+                                            },500
+                                        )
+
+                                        Handler(Looper.getMainLooper()).postDelayed(
+                                            {// Speak next target alphabet key
+                                                testIter++
+                                                if (testIter < testList.size) speak()
+                                            },
+                                            1500
+                                        )
+                                        isSpeakingDone = false
+
                                     }
-                                    //--- Append Data to Database ---//
-                                    val curTime = System.currentTimeMillis()
-
-                                    val data = Study1Phase3Answer(
-                                        answer = testList[testIter],
-                                        perceived = key,
-                                        iter = testIter,
-                                        block = testBlock,
-                                        duration = curTime - startTime
-                                    )
-                                    addStudy1TrainPhase3Answer(context, subject, group, data)
-                                    // ------------------------------//
-
-                                    Handler(Looper.getMainLooper()).postDelayed(
-                                        {// Speak next target alphabet key
-                                            soundManager.playSound(isCorrect)
-                                        },500
-                                    )
-
-                                    Handler(Looper.getMainLooper()).postDelayed(
-                                        {// Speak next target alphabet key
-                                            testIter++
-                                            if (testIter < testList.size) speak()
-                                        },
-                                        1500
-                                    )
                                 },
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,
                                 hapticMode = hapticMode,
-                                suppress = suppress,
+                                allow = allowlist,
                                 logData = Study1Phase3Log(
                                     answer = testList[testIter],
                                     iter = testIter,
