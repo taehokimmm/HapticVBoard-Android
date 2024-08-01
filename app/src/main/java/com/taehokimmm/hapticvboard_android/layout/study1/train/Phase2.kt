@@ -1,5 +1,8 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.train
 
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,15 +63,15 @@ fun Study1TrainPhase2(
     val context = LocalContext.current
     val allowlist = getAllowGroup(group)
 
-    var isStart by remember {mutableStateOf(false)}
-    var testIter by remember { mutableStateOf(0) }
+    val totalBlock = 1
+    var testIter by remember { mutableStateOf(-1) }
     var testBlock by remember { mutableStateOf(1) }
     var testList by remember { mutableStateOf(allowlist.shuffled()) }
     val testNumber = testList.size
 
     var selectedIndex by remember {mutableStateOf(0)}
     var selectedAnswer by remember {mutableStateOf(-1)}
-    var options by remember { mutableStateOf(generateCandidates(testList[testIter], allowlist)) }
+    var options by remember { mutableStateOf(listOf("")) }
     var isShowAnswer by remember {mutableStateOf(false)}
 
     // Swipe Gesture
@@ -75,19 +80,16 @@ fun Study1TrainPhase2(
 
     fun onConfirm() {
         if (isShowAnswer) {
-            // Move to Next Trial after 1 sec
-            if (testIter < testList.size - 1) {
+            testIter++
+            if (testIter < testList.size) {
                 selectedIndex = 0
                 selectedAnswer = -1
                 options = generateCandidates(
-                    testList[testIter + 1],
+                    testList[testIter],
                     allowlist
                 )
-                testIter++
                 soundManager.speakOut("Find : " +  testList[testIter])
                 isShowAnswer = false
-            } else {
-                navController.navigate("study1/train/phase3/${subject}/${group}")
             }
         } else {
             // Correct Feedback
@@ -109,6 +111,13 @@ fun Study1TrainPhase2(
             )
             addStudy1TrainPhase2Answer(context, subject, group, data)
             // ------------------------------//
+
+            Handler(Looper.getMainLooper()).postDelayed(
+                {// Speak & Haptic Feedback for answer
+                    hapticManager.generateHaptic(targetOption, HapticMode.VOICEPHONEME)
+                },
+                1500
+            )
         }
     }
 
@@ -123,40 +132,78 @@ fun Study1TrainPhase2(
             soundManager.speakOut(options[index])
         }
     }
-    if (!isStart) {
-        soundManager.speakOut("Find : " +  testList[testIter])
-        isStart = true
+
+    LaunchedEffect (testIter) {
+        if (testIter == -1) {
+            soundManager.speakOut("Tap to start")
+        }
     }
     // Identification Test
-    if (testIter < testNumber) {
+    if (testIter == -1) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Button(
+                onClick = {
+                    testIter = 0
+                    options = generateCandidates(
+                        testList[testIter],
+                        allowlist
+                    )
+                    soundManager.speakOut("Find : " +  testList[testIter])
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(corner = CornerSize(0)),
+                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+            ) {
+                Text(text="Tap to Start \n Block : " + testBlock,
+                    fontSize = 20.sp)
+            }
+        }
+    } else if (testIter == testNumber) {
+        testBlock++
+        if (testBlock > totalBlock) {
+            navController.navigate("study1/train/phase3/${subject}/${group}")
+        } else {
+            testList = allowlist.shuffled()
+            testIter = -1
+        }
+    } else if (testIter < testNumber) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onDoubleTap = {onConfirm()},
-                        onTap = {onSelect(selectedIndex)}
+                        onDoubleTap = { onConfirm() },
+                        onTap = { onSelect(selectedIndex) }
                     )
-                }.pointerInput(Unit) {
+                }
+                .pointerInput(Unit) {
                     detectHorizontalDragGestures(
-                        onDragStart = {offset ->
-                            swipeStartTime = System.currentTimeMillis() },
-                        onHorizontalDrag = {change, dragAmount ->
-                            swipeAmount = dragAmount},
+                        onDragStart = { offset ->
+                            swipeStartTime = System.currentTimeMillis()
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            swipeAmount = dragAmount
+                        },
                         onDragEnd = {
                             val time = System.currentTimeMillis() - swipeStartTime
                             val speed = swipeAmount / time * 1000
                             if (swipeAmount > 0 && speed > 0) {
                                 if (selectedIndex < options.size - 1) {
-                                    selectedIndex ++
+                                    selectedIndex++
                                 } else {
                                     selectedIndex = 0
                                 }
                                 onSelect(selectedIndex)
                             } else if (swipeAmount < 0 && speed < 0) {
                                 if (selectedIndex > 0) {
-                                    selectedIndex --
+                                    selectedIndex--
                                 } else {
                                     selectedIndex = options.size - 1
                                 }
@@ -166,7 +213,7 @@ fun Study1TrainPhase2(
                     )
                 }
         ) {
-            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 400.dp)
+            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager)
 
             Button(
                 onClick = {
@@ -198,10 +245,11 @@ fun Study1TrainPhase2(
                                 .align(Alignment.CenterVertically)
                                 .pointerInput(Unit) {
                                     detectTapGestures(
-                                        onTap = {onSelect(selectedIndex)},
-                                        onDoubleTap = {onConfirm()}
+                                        onTap = { onSelect(selectedIndex) },
+                                        onDoubleTap = { onConfirm() }
                                     )
-                                }.background(
+                                }
+                                .background(
                                     if (index == selectedIndex) Color.Blue else Color.White
                                 ),
                             contentAlignment = Alignment.Center
@@ -254,7 +302,7 @@ fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
 }
 
 @Composable
-fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height: Dp = 420.dp) {
+fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height: Dp = 300.dp) {
     Column(
         modifier = Modifier.padding(top = 10.dp)
     ) {
@@ -272,7 +320,9 @@ fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: 
             onClick = {
                 soundManager.speakOut(testLetter.toString())
             },
-            modifier = Modifier.fillMaxWidth().height(height),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
             shape = RoundedCornerShape(corner = CornerSize(0)),
             colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
         ) {

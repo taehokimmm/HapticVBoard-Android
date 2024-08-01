@@ -153,13 +153,24 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                     composable("freeType3") {
                         currentScreen = "freeType3"
                         val group = listOf(
-                            listOf("k", "g", "n", "r", "c", "q", "j", "e", "i"), // "S", "Z"는 둘다 남
-                            listOf("p", "b", "f", "v", "m", "h", "a", "o", "u"),
-                            listOf("t", "d", "s", "z", "l", "x", "w", "y"),
-                            listOf()
+                            listOf("p", "b", "f", "v", "m"),
+                            listOf("t", "d", "s", "z", "l", "x"),
+                            listOf("k", "c", "q", "g", "j", "n", "r", "h")
                         )
                         val name = listOf(
-                            "Up", "Down", "Both", "Other"
+                            "Up", "Both", "Down"
+                        )
+                        TrainGroup(innerPadding, soundManager, hapticManager, group, name)
+                    }
+                    composable("freeType4") {
+                        currentScreen = "freeType4"
+                        val group = listOf(
+                            listOf("e", "i"),
+                            listOf("a", "o", "u"),
+                            listOf("w", "y")
+                        )
+                        val name = listOf(
+                            "Up", "Down", "Both"
                         )
                         TrainGroup(innerPadding, soundManager, hapticManager, group, name)
                     }
@@ -266,9 +277,9 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         val subject = it.arguments?.getString("subject")!!
                         Study2End(subject, navController)
                     }
-                    composable("serial") {
-                        currentScreen = "serial"
-                        //SerialMonitorScreen()
+                    composable("setting") {
+                        currentScreen = "setting"
+                        SettingScreen()
                     }
                 }
             },
@@ -303,11 +314,18 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "freeType2"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Free Type - Location") },
+            NavigationDrawerItem(label = { Text("Free Type - Location (Consonant)") },
                 selected = selectedItem == "freeType3",
                 onClick = {
                     navController.navigate("freeType3")
                     selectedItem = "freeType3"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Free Type - Location (Vowel)") },
+                selected = selectedItem == "freeType4",
+                onClick = {
+                    navController.navigate("freeType4")
+                    selectedItem = "freeType4"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Study 1 Train") },
@@ -331,11 +349,11 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "study2/test"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Serial Monitor") },
-                selected = selectedItem == "serial",
+            NavigationDrawerItem(label = { Text("Setting") },
+                selected = selectedItem == "setting",
                 onClick = {
-                    navController.navigate("serial")
-                    selectedItem = "serial"
+                    navController.navigate("setting")
+                    selectedItem = "setting"
                     onItemClicked()
                 })
         }
@@ -353,7 +371,8 @@ fun DrawTopAppBar(
     val displayText = when (currentScreen) {
         "freeType" -> "Free Type"
         "freeType2" -> "Free Type with Phoneme Group"
-        "freeType3" -> "Free Type with Location Group"
+        "freeType3" -> "Free Type with Location Group - Consonant"
+        "freeType4" -> "Free Type with Location Group - Vowel"
         "train" -> "Train"
         "study1/train/init" -> "Study 1 Train"
         "study1/train/phase1" -> "Phase 1 — Free Play"
@@ -361,7 +380,7 @@ fun DrawTopAppBar(
         "study1/train/phase3" -> "Phase 3 — Typing Test"
         "study1/test/init" -> "Study 1 Test"
         "study2/init" -> "Study 2 Test"
-        "serial" -> "Serial Monitor"
+        "setting" -> "Setting"
         else -> ""
     }
 

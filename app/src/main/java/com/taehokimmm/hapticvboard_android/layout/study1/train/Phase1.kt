@@ -45,7 +45,7 @@ fun Study1TrainPhase1(
     hapticMode: HapticMode
 ) {
     val suppress = getSuppressGroup(group)
-    var countdown by remember { mutableStateOf(300) }
+    var countdown by remember { mutableStateOf(180) }
 
     LaunchedEffect(countdown) {
         while (countdown > 0) {

@@ -23,7 +23,7 @@ fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1
 }
 
 fun addStudy1Answer(context: Context, subject: String, group: String, data: Study1TestAnswer){
-    addData(context, subject + "_" + group, data
+    addData(context, subject + "_" + group.last(), data
     ) { dao, answer -> dao.addTest(answer) }
 }
 

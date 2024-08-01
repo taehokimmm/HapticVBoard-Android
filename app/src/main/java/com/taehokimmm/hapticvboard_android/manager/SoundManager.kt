@@ -1,15 +1,17 @@
 package com.taehokimmm.hapticvboard_android.manager
 
+import android.R
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.media.SoundPool
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
-import com.taehokimmm.hapticvboard_android.R
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
+
 
 class SoundManager(context: Context) {
     val context:Context = context
@@ -29,11 +31,7 @@ class SoundManager(context: Context) {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
 
         // Initialize the sound pool with the defined attributes
-        soundPool =
-            SoundPool.Builder().setMaxStreams(10).setAudioAttributes(audioAttributes).build()
 
-        correctId = soundPool.load(context, R.raw.correct, 1)
-        wrongId = soundPool.load(context, R.raw.wrong, 1)
 
         // Init TTS
         tts = TextToSpeech(context) {
@@ -122,9 +120,14 @@ class SoundManager(context: Context) {
      */
     @Synchronized
     fun playSound(isCorrect: Boolean) {
-        Log.e("Play Sound", isCorrect.toString())
-        var soundId = wrongId
-        if (isCorrect) soundId = correctId
-        soundPool.play(soundId, 0.5f, 0.5f, 1, 0, 1f)
+        var mediaPlayer: MediaPlayer
+        if (isCorrect) {
+            mediaPlayer =
+                MediaPlayer.create(context, com.taehokimmm.hapticvboard_android.R.raw.correct)
+        } else {
+            mediaPlayer =
+                MediaPlayer.create(context, com.taehokimmm.hapticvboard_android.R.raw.wrong)
+        }
+        mediaPlayer.start()
     }
 }

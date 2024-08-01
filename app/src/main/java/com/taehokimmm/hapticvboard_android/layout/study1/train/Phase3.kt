@@ -64,6 +64,7 @@ fun Study1TrainPhase3(
     val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
 
+    val totalBlock = 1
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
@@ -108,8 +109,13 @@ fun Study1TrainPhase3(
         tts?.speak("Press : "+testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
     }
 
+    LaunchedEffect (testIter) {
+        if (testIter == -1) {
+            soundManager.speakOut("Tap to start")
+        }
+    }
+
     if (testIter == -1) {
-        soundManager.speakOut("Tap to start Block " + testBlock)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,7 +138,7 @@ fun Study1TrainPhase3(
         }
     } else if (testIter == testList.size) {
         testBlock++
-        if (testBlock >= 3) {
+        if (testBlock > totalBlock) {
             navController.navigate("study1/train/end/${subject}")
         } else {
             correct = 0

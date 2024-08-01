@@ -66,6 +66,8 @@ fun Study1Test(
 
     val suppress = getSuppressGroup(group)
     val allowlist = getAllowGroup(group)
+
+    val totalBlock = 1
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
 
@@ -95,7 +97,6 @@ fun Study1Test(
 
                     override fun onDone(utteranceId: String?) {
                         isSpeakingDone = true
-                        Log.e("phase3", "speech done")
                         startTime = System.currentTimeMillis()
                     }
 
@@ -112,9 +113,13 @@ fun Study1Test(
         tts?.speak("Press : "+testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
     }
 
+    LaunchedEffect (testIter) {
+        if (testIter == -1) {
+            soundManager.speakOut("Tap to start")
+        }
+    }
+
     if (testIter == -1) {
-        // Audio Explanation
-        soundManager.speakOut("Tap to start Block " + testBlock)
         // Layout
         Box(
             modifier = Modifier
@@ -140,7 +145,7 @@ fun Study1Test(
     else if (testIter >= testList.size) {
         testBlock++
         testList = allowlist.shuffled()
-        if (testBlock > 3) {
+        if (testBlock > totalBlock) {
             navController.navigate("study1/test/end/${subject}")
         } else {
             testIter = -1
