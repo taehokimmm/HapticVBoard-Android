@@ -172,25 +172,27 @@ fun Study1Test(
                         KeyboardLayout(
                             touchEvents = keyboardTouchEvents,
                             onKeyRelease = { key ->
-                                //--- Append Data to Database ---//
-                                val curTime = System.currentTimeMillis()
-                                val data = Study1TestAnswer(
-                                    answer = testList[testIter],
-                                    perceived = key,
-                                    iter = testIter,
-                                    block = testBlock,
-                                    duration = curTime - startTime
-                                )
-                                addStudy1Answer(context, subject, group, data)
-                                // ------------------------------//
-                                Handler(Looper.getMainLooper()).postDelayed(
-                                    {// Speak next target alphabet key
-                                        testIter++
-                                        if (testIter < testList.size) speak()
-                                    },
-                                    200
-                                )
-                                isSpeakingDone = false
+                                if (allowlist.contains(key)) {
+                                    //--- Append Data to Database ---//
+                                    val curTime = System.currentTimeMillis()
+                                    val data = Study1TestAnswer(
+                                        answer = testList[testIter],
+                                        perceived = key,
+                                        iter = testIter,
+                                        block = testBlock,
+                                        duration = curTime - startTime
+                                    )
+                                    addStudy1Answer(context, subject, group, data)
+                                    // ------------------------------//
+                                    Handler(Looper.getMainLooper()).postDelayed(
+                                        {// Speak next target alphabet key
+                                            testIter++
+                                            if (testIter < testList.size) speak()
+                                        },
+                                        200
+                                    )
+                                    isSpeakingDone = false
+                                }
                             },
                             soundManager = soundManager,
                             hapticManager = hapticManager,
