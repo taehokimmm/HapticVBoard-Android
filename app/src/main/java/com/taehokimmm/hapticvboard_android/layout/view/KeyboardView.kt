@@ -33,7 +33,9 @@ fun KeyboardLayout(
     soundManager: SoundManager? = null,
     hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
-    allow: List<String> = ('a'..'z').map { it.toString() } + listOf("Space", "Backspace", "Shift", ",", "."),
+    allow: List<String> = ('a'..'z').map { it.toString() } + listOf(
+        "Space", "Backspace", "Shift", ",", "."
+    ),
     logData: Any? = null,
     name: String? = ""
 ) {
@@ -49,9 +51,11 @@ fun KeyboardLayout(
 
     Box(modifier = Modifier
         .fillMaxWidth()
-        .background(Color(255,
-            235,
-            205))
+        .background(
+            Color(
+                255, 235, 205
+            )
+        )
         .onGloballyPositioned { coordinates ->
             rootCoordinates = coordinates
         }) {
@@ -172,7 +176,7 @@ fun DrawKey(
             fontSize = if (key == "Enter") 18.sp else textSize,
             color = if (key == "Enter") Color.White else Color.Black,
 
-        )
+            )
     }
 }
 
@@ -209,17 +213,23 @@ fun processTouchEvent(
                 }?.key
                 if (key != null) {
                     activeTouches[pointerId] = key
-                    if (allow.contains(key))
-                        hapticManager?.generateHaptic(key, hapticMode)
-                    else if (hapticMode == HapticMode.VOICEPHONEME)
-                        hapticManager?.generateHaptic(key, HapticMode.VOICE)
+                    if (allow.contains(key)) hapticManager?.generateHaptic(key, hapticMode)
+                    else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(
+                        key,
+                        HapticMode.VOICE
+                    )
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
 
                     // Add Log
                     if (name != null && logData != null) {
                         addLog(
-                            context, name, logData, "DOWN", key,
-                            pointerPosition.x, pointerPosition.y
+                            context,
+                            name,
+                            logData,
+                            "DOWN",
+                            key,
+                            pointerPosition.x,
+                            pointerPosition.y
                         )
                     }
                 }
@@ -231,13 +241,14 @@ fun processTouchEvent(
             val key = activeTouches.remove(pointerId)
             if (key != null) {
                 Log.d("TouchEvent", "Key released: $key for pointer $pointerId")
-                onKeyReleased(key)
+                if (key != "Out of Bounds")
+                    onKeyReleased(key)
                 // Add Log
                 if (name != null && logData != null) {
-                    val pointerPosition = Offset(event.getX(event.actionIndex), event.getY(event.actionIndex))
+                    val pointerPosition =
+                        Offset(event.getX(event.actionIndex), event.getY(event.actionIndex))
                     addLog(
-                        context, name, logData, "UP", key,
-                        pointerPosition.x, pointerPosition.y
+                        context, name, logData, "UP", key, pointerPosition.x, pointerPosition.y
                     )
                 }
             }
@@ -265,6 +276,20 @@ fun processTouchEvent(
                     if (name != null && logData != null) {
                         addLog(
                             context, name, logData, "MOVE", key,
+                            pointerPosition.x, pointerPosition.y
+                        )
+                    }
+                } else if (key == null && activeTouches.containsKey(pointerId) && pointerPosition.y < 1533) {
+                    // Key moved out of bounds, need to fix random number 1533
+                    Log.d(
+                        "TouchEvent",
+                        "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
+                    )
+                    activeTouches[pointerId] = "Out of Bounds"
+                    // Add Log
+                    if (name != null && logData != null) {
+                        addLog(
+                            context, name, logData, "MOVE", "Out of Bounds",
                             pointerPosition.x, pointerPosition.y
                         )
                     }
