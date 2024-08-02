@@ -1,20 +1,18 @@
-package com.taehokimmm.hapticvboard_android.layout.study1
+package com.taehokimmm.hapticvboard_android.layout.study1.intro
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import android.view.MotionEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.TabRow
@@ -25,7 +23,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,13 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
-import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
+import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
@@ -56,23 +50,32 @@ fun TrainGroup(
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var selectedIndex by remember { mutableStateOf(0) }
+    var isExplaining by remember {mutableStateOf(false)}
+
+    fun explainKey(key: String) {
+        isExplaining = true
+        hapticManager?.generateHaptic(key,HapticMode.VOICEPHONEME)
+        delay({soundManager?.playPhoneme(key)},700)
+        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1000)
+        delay({isExplaining = false}, 1000)
+    }
 
     fun onSelect(index: Int) {
-        hapticManager?.generateHaptic(
-            group[selectedTabIndex][index],
-            HapticMode.PHONEME
-        )
-        Log.e("Speak Out", " : "+ group[selectedTabIndex][index].toUpperCase())
-        soundManager?.speakOut(group[selectedTabIndex][index].toUpperCase())
+        if (isExplaining) return
+        val key = group[selectedTabIndex][index]
+        explainKey(key)
         selectedIndex = index
     }
 
     // Swipe Gesture
-    var swipeAmount by remember{mutableStateOf(0f)}
-    var swipeStartTime by remember{mutableStateOf(0L)}
+    var horizontalSwipeStartTime by remember{mutableStateOf(0L)}
+    var horizontalSwipeAmount by remember{mutableStateOf(0f)}
+    var verticalSwipeStartTime by remember{mutableStateOf(0L)}
+    var verticalSwipeAmount by remember{mutableStateOf(0f)}
 
     LaunchedEffect(selectedTabIndex) {
         selectedIndex = 0
+        soundManager?.speakOutKor(name[selectedTabIndex])
     }
 
     Box(
@@ -81,28 +84,35 @@ fun TrainGroup(
             .padding(innerPadding)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {onSelect(selectedIndex)}
+                    onTap = {onSelect(selectedIndex)},
+                    onDoubleTap = {
+                        if (isExplaining) return@detectTapGestures
+                        soundManager?.speakOutKor(name[selectedTabIndex])
+                    }
                 )
             }
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
-                    onDragStart = {offset ->
-                        swipeStartTime = System.currentTimeMillis() },
-                    onHorizontalDrag = {change, dragAmount ->
-                        swipeAmount = dragAmount},
+                    onDragStart = { offset ->
+                        horizontalSwipeStartTime = System.currentTimeMillis()
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        horizontalSwipeAmount = dragAmount
+                    },
                     onDragEnd = {
-                        val time = System.currentTimeMillis() - swipeStartTime
-                        val speed = swipeAmount / time * 1000
-                        if (swipeAmount > 0 && speed > 0) {
+                        if (isExplaining) return@detectHorizontalDragGestures
+                        val time = System.currentTimeMillis() - horizontalSwipeStartTime
+                        val speed = horizontalSwipeAmount / time * 1000
+                        if (horizontalSwipeAmount > 1 && speed > 1) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
-                                selectedIndex ++
+                                selectedIndex++
                             } else {
                                 selectedIndex = 0
                             }
                             onSelect(selectedIndex)
-                        } else if (swipeAmount < 0 && speed < 0) {
+                        } else if (horizontalSwipeAmount < -1 && speed < -1) {
                             if (selectedIndex > 0) {
-                                selectedIndex --
+                                selectedIndex--
                             } else {
                                 selectedIndex = group[selectedTabIndex].size - 1
                             }
@@ -110,6 +120,34 @@ fun TrainGroup(
                         }
                     }
                 )
+            }
+            .pointerInput(Unit) {
+                detectVerticalDragGestures (
+                    onDragStart = {offset ->
+                        verticalSwipeStartTime = System.currentTimeMillis() },
+                    onVerticalDrag = {change, dragAmount ->
+                        verticalSwipeAmount = dragAmount},
+                    onDragEnd = {
+                        if (isExplaining) return@detectVerticalDragGestures
+                        val time = System.currentTimeMillis() - verticalSwipeStartTime
+                        val speed = verticalSwipeAmount / time * 1000
+                        if (verticalSwipeAmount > 1 && speed > 1) {
+                            if (selectedTabIndex > 0) {
+                                selectedTabIndex --
+                            } else {
+                                selectedTabIndex = name.size - 1
+                            }
+                        } else if (verticalSwipeAmount < -1 && speed < -1) {
+                            if (selectedTabIndex < name.size - 1) {
+                                selectedTabIndex ++
+                            } else {
+                                selectedTabIndex = 0
+                            }
+                        }
+
+                    }
+                )
+
             }
     ) {
         TabRow(selectedTabIndex = 0, indicator = { tabPositions ->

@@ -54,15 +54,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.taehokimmm.hapticvboard_android.layout.study1.TrainGroup
+import com.taehokimmm.hapticvboard_android.layout.study1.intro.GroupIntro
+import com.taehokimmm.hapticvboard_android.layout.study1.intro.IntroInit
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1Test
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestEnd
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainEnd
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase1
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase2
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase3
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1IdentiQuiz
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2End
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2Init
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2Test
@@ -149,46 +150,13 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "freeType"
                         FreeTypeMode(innerPadding, soundManager, hapticManager, hapticMode)
                     }
-                    composable("freeType2") {
-                        currentScreen = "freeType2"
-                        val group = listOf(
-                            listOf("s", "z", "f", "v", "h"),
-                            listOf("n", "m"),
-                            listOf("p", "t", "k", "c", "q"),
-                            listOf("b", "d", "g", "j"),
-                            listOf("l", "r"),
-                            listOf("a", "e", "i", "o", "u", "w", "y"),
-                            listOf("x")
-                        )
-                        val name = listOf(
-                            "마찰음", "비음", "파열음-strong", "파열음-weak", "설측음", "모음", "others"
-                        )
-                        TrainGroup(innerPadding, soundManager, hapticManager, group, name)
+                    composable("intro/init") {
+                        IntroInit(navController)
                     }
-                    composable("freeType3") {
-                        currentScreen = "freeType3"
-                        val group = listOf(
-                            listOf("p", "b", "f", "v", "m"),
-                            listOf("t", "d", "s", "z", "l", "x"),
-                            listOf("k", "c", "q", "g", "j", "n", "r", "h")
-
-                        )
-                        val name = listOf(
-                            "Up", "Both", "Down"
-                        )
-                        TrainGroup(innerPadding, soundManager, hapticManager, group, name)
-                    }
-                    composable("freeType4") {
-                        currentScreen = "freeType4"
-                        val group = listOf(
-                            listOf("e", "i"),
-                            listOf("a", "o", "u"),
-                            listOf("w", "y")
-                        )
-                        val name = listOf(
-                            "Up", "Down", "Both"
-                        )
-                        TrainGroup(innerPadding, soundManager, hapticManager, group, name)
+                    composable("intro/intro/{Category}/{Group}") {
+                        val category = it.arguments?.getString("Category")!!
+                        val group = it.arguments?.getString("Group")!!
+                        GroupIntro(innerPadding, soundManager, hapticManager, category, group)
                     }
                     composable("study1/train/init") {
                         currentScreen = "study1/train/init"
@@ -198,7 +166,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study1/train/phase1"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
-                        Study1TrainPhase1(
+                        Study1IdentiQuiz(
                             innerPadding,
                             subject,
                             group,
@@ -212,7 +180,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study1/train/phase2"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
-                        Study1TrainPhase2(
+                        Study1FreePlay(
                             innerPadding,
                             subject,
                             group,
@@ -226,7 +194,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study1/train/phase3"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
-                        Study1TrainPhase3(
+                        Study1TypingQuiz(
                             innerPadding,
                             subject,
                             group,
@@ -323,25 +291,11 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "freeType"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Free Type - Phoneme") },
-                selected = selectedItem == "freeType2",
+            NavigationDrawerItem(label = { Text("Introduction") },
+                selected = selectedItem == "intro/init",
                 onClick = {
-                    navController.navigate("freeType2")
-                    selectedItem = "freeType2"
-                    onItemClicked()
-                })
-            NavigationDrawerItem(label = { Text("Free Type - Location (Consonant)") },
-                selected = selectedItem == "freeType3",
-                onClick = {
-                    navController.navigate("freeType3")
-                    selectedItem = "freeType3"
-                    onItemClicked()
-                })
-            NavigationDrawerItem(label = { Text("Free Type - Location (Vowel)") },
-                selected = selectedItem == "freeType4",
-                onClick = {
-                    navController.navigate("freeType4")
-                    selectedItem = "freeType4"
+                    navController.navigate("intro/init")
+                    selectedItem = "intro/init"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Study 1 Train") },
@@ -386,14 +340,13 @@ fun DrawTopAppBar(
 ) {
     val displayText = when (currentScreen) {
         "freeType" -> "Free Type"
-        "freeType2" -> "Free Type with Phoneme Group"
-        "freeType3" -> "Free Type with Location Group - Consonant"
-        "freeType4" -> "Free Type with Location Group - Vowel"
+        "intro/init" -> "Introduction"
+        "intro/intro/init" -> "Introduction"
         "train" -> "Train"
         "study1/train/init" -> "Study 1 Train"
-        "study1/train/phase1" -> "Phase 1 — Free Play"
-        "study1/train/phase2" -> "Phase 2 — Identification Test"
-        "study1/train/phase3" -> "Phase 3 — Typing Test"
+        "study1/train/phase1" -> "Identification Quiz"
+        "study1/train/phase2" -> "Free Play"
+        "study1/train/phase3" -> "Typing Quiz"
         "study1/test/init" -> "Study 1 Test"
         "study2/init" -> "Study 2 Test"
         "setting" -> "Setting"

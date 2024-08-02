@@ -1,6 +1,5 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.train
 
-import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,9 +33,9 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import kotlinx.coroutines.delay
 
 
-// PHASE 1 : FREE PLAY
+// PHASE 2 : FREE PLAY
 @Composable
-fun Study1TrainPhase1(
+fun Study1FreePlay(
     innerPadding: PaddingValues,
     subject: String,
     group: String,
@@ -46,14 +45,11 @@ fun Study1TrainPhase1(
     hapticMode: HapticMode
 ) {
     val allowGroup = getAllowGroup(group)
-    var countdown by remember { mutableStateOf(180) }
+    var countdown by remember { mutableStateOf(0) }
 
     LaunchedEffect(countdown) {
-        while (countdown > 0) {
-            delay(1000L)
-            countdown--
-        }
-        navController.navigate("study1/train/phase2/${subject}/${group}")
+        delay(1000L)
+        countdown++
     }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
@@ -74,7 +70,7 @@ fun Study1TrainPhase1(
         Button(
             onClick = {
                 closeStudy1Database()
-                navController.navigate("study1/train/phase2/${subject}/${group}")
+                navController.navigate("study1/train/phase3/${subject}/${group}")
             }, modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Text("Skip")

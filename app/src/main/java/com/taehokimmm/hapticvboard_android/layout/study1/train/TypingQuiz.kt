@@ -1,11 +1,8 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.train
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +38,6 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Log
-import com.taehokimmm.hapticvboard_android.database.Study1TestLog
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
@@ -52,7 +48,7 @@ import java.util.Locale
 
 // Phase 3 : Typing Test
 @Composable
-fun Study1TrainPhase3(
+fun Study1TypingQuiz(
     innerPadding: PaddingValues,
     subject: String,
     group: String,
@@ -190,13 +186,13 @@ fun Study1TrainPhase3(
                                         addStudy1TrainPhase3Answer(context, subject, group, data)
                                         // ------------------------------//
 
-                                        Handler(Looper.getMainLooper()).postDelayed(
+                                        delay(
                                             {// Speak next target alphabet key
                                                 soundManager.playSound(isCorrect)
                                             },500
                                         )
 
-                                        Handler(Looper.getMainLooper()).postDelayed(
+                                        delay(
                                             {// Speak next target alphabet key
                                                 testIter++
                                                 if (testIter < testList.size) speak()
