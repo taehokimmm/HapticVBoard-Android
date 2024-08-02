@@ -50,14 +50,18 @@ fun TrainGroup(
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var selectedIndex by remember { mutableStateOf(0) }
+    var isExplaining by remember {mutableStateOf(false)}
 
     fun explainKey(key: String) {
+        isExplaining = true
         hapticManager?.generateHaptic(key,HapticMode.VOICEPHONEME)
         delay({soundManager?.playPhoneme(key)},700)
         delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1000)
+        delay({isExplaining = false}, 1000)
     }
 
     fun onSelect(index: Int) {
+        if (isExplaining) return
         val key = group[selectedTabIndex][index]
         explainKey(key)
         selectedIndex = index
@@ -82,6 +86,7 @@ fun TrainGroup(
                 detectTapGestures(
                     onTap = {onSelect(selectedIndex)},
                     onDoubleTap = {
+                        if (isExplaining) return@detectTapGestures
                         soundManager?.speakOutKor(name[selectedTabIndex])
                     }
                 )
@@ -95,6 +100,7 @@ fun TrainGroup(
                         horizontalSwipeAmount = dragAmount
                     },
                     onDragEnd = {
+                        if (isExplaining) return@detectHorizontalDragGestures
                         val time = System.currentTimeMillis() - horizontalSwipeStartTime
                         val speed = horizontalSwipeAmount / time * 1000
                         if (horizontalSwipeAmount > 1 && speed > 1) {
@@ -122,6 +128,7 @@ fun TrainGroup(
                     onVerticalDrag = {change, dragAmount ->
                         verticalSwipeAmount = dragAmount},
                     onDragEnd = {
+                        if (isExplaining) return@detectVerticalDragGestures
                         val time = System.currentTimeMillis() - verticalSwipeStartTime
                         val speed = verticalSwipeAmount / time * 1000
                         if (verticalSwipeAmount > 1 && speed > 1) {

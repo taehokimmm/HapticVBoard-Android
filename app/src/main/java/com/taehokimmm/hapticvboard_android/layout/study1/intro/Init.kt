@@ -43,7 +43,7 @@ fun IntroInit(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf("") }
 
     var options = listOf("A", "B", "C", "D")
-    var selectedOption by remember { mutableStateOf("") }
+    var selectedOption by remember { mutableStateOf(setOf("")) }
 
 
     var categories = listOf("phoneme", "location")
@@ -89,17 +89,15 @@ fun IntroInit(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Column {
-                    options.forEach{option -> (
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                RadioButton(
-                                    selected = selectedOption == option,
-                                    onClick = { selectedOption = option }
-                                )
-                                Text(text = option)
-                            }
-                            )}
-                }
+                    options.forEach{option ->
+                        CheckboxWithLabel(
+                            checked = selectedOption.contains(option),
+                            onCheckedChange = {
+                                if (it) selectedOption = selectedOption.plus(option)
+                                else selectedOption = selectedOption.minus(option)},
+                            label = option
+                        )
+                    }
             }
 
             if (errorMessage.isNotEmpty()) {
@@ -121,7 +119,7 @@ fun IntroInit(navController: NavHostController) {
                             "Please select a test group"
 
                         else -> {
-                            navController.navigate("intro/intro/${selectedCategory}/${selectedOption}")
+                            navController.navigate("intro/intro/${selectedCategory}/${selectedOption.joinToString("")}")
                         }
                     }
                 }, modifier = Modifier

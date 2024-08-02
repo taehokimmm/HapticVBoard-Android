@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.intro
 
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
@@ -39,7 +40,6 @@ fun GroupIntro(
         )
         names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
     }
-
     val allowGroup = getAllowGroup(group)
 
     val filteredPhonemeGroups = phonemeGroups.map { phonemes ->
