@@ -49,15 +49,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.taehokimmm.hapticvboard_android.layout.study1.intro.GroupIntro
 import com.taehokimmm.hapticvboard_android.layout.study1.intro.IntroInit
-import com.taehokimmm.hapticvboard_android.layout.study1.intro.TrainGroup
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1Test
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestEnd
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainEnd
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase1
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase2
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainPhase3
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1IdentiQuiz
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2End
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2Init
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2Test
@@ -148,12 +147,11 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study1/train/init"
                         Study1TrainInit(navController)
                     }
-
                     composable("study1/train/phase1/{subject}/{Group}") {
                         currentScreen = "study1/train/phase1"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
-                        Study1TrainPhase1(
+                        Study1IdentiQuiz(
                             innerPadding,
                             subject,
                             group,
@@ -167,7 +165,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study1/train/phase2"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
-                        Study1TrainPhase2(
+                        Study1FreePlay(
                             innerPadding,
                             subject,
                             group,
@@ -181,7 +179,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study1/train/phase3"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
-                        Study1TrainPhase3(
+                        Study1TypingQuiz(
                             innerPadding,
                             subject,
                             group,
@@ -327,12 +325,13 @@ fun DrawTopAppBar(
 ) {
     val displayText = when (currentScreen) {
         "freeType" -> "Free Type"
-        "intro/init" -> "Free Type with Phoneme Group"
+        "intro/init" -> "Introduction"
+        "intro/intro/init" -> "Introduction"
         "train" -> "Train"
         "study1/train/init" -> "Study 1 Train"
-        "study1/train/phase1" -> "Phase 1 — Free Play"
-        "study1/train/phase2" -> "Phase 2 — Identification Test"
-        "study1/train/phase3" -> "Phase 3 — Typing Test"
+        "study1/train/phase1" -> "Identification Quiz"
+        "study1/train/phase2" -> "Free Play"
+        "study1/train/phase3" -> "Typing Quiz"
         "study1/test/init" -> "Study 1 Test"
         "study2/init" -> "Study 2 Test"
         "setting" -> "Setting"

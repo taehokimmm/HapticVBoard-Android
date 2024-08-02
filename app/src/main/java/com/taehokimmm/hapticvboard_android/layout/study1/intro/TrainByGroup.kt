@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
@@ -50,28 +51,15 @@ fun TrainGroup(
     var selectedTabIndex by remember { mutableStateOf(0) }
     var selectedIndex by remember { mutableStateOf(0) }
 
+    fun explainKey(key: String) {
+        hapticManager?.generateHaptic(key,HapticMode.VOICEPHONEME)
+        delay({soundManager?.playPhoneme(key)},700)
+        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1000)
+    }
+
     fun onSelect(index: Int) {
         val key = group[selectedTabIndex][index]
-        hapticManager?.generateHaptic(
-            key,
-            HapticMode.VOICEPHONEME
-        )
-        Handler(Looper.getMainLooper()).postDelayed(
-            {// Speak & Haptic Feedback for answer
-                soundManager?.playPhoneme(key)
-            },
-            700
-        )
-        Handler(Looper.getMainLooper()).postDelayed(
-            {// Speak & Haptic Feedback for answer
-                hapticManager?.generateHaptic(
-                    key,
-                    HapticMode.PHONEME
-                )
-            },
-            1000
-        )
-
+        explainKey(key)
         selectedIndex = index
     }
 

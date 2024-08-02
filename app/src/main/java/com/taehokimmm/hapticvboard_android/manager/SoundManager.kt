@@ -135,6 +135,7 @@ class SoundManager(context: Context) {
             mediaPlayer =
                 MediaPlayer.create(context, R.raw.wrong)
         }
+        Log.e("play sound", isCorrect.toString())
         mediaPlayer.start()
     }
 
@@ -172,5 +173,22 @@ class SoundManager(context: Context) {
         mediaPlayer =
             keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
         mediaPlayer.start()
+    }
+
+    @Synchronized
+    fun playLocation(key: String) {
+        val phonemeGroups = listOf(
+            listOf("p", "b", "f", "v", "m", "e", "i"),
+            listOf("k", "c", "q", "g", "n", "r", "h", "a", "o", "u"),
+            listOf("t", "d", "s", "z", "l", "x", "j"),
+            listOf("w"),
+            listOf("y")
+        )
+        val names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
+        phonemeGroups.forEachIndexed{index, group ->
+            if (group.contains(key)) {
+                speakOutKor(names[index])
+            }
+        }
     }
 }

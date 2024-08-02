@@ -52,7 +52,7 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 // PHASE 2 : Identification Test
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun Study1TrainPhase2(
+fun Study1IdentiQuiz(
     innerPadding: PaddingValues,
     subject: String,
     group: String,
@@ -74,12 +74,33 @@ fun Study1TrainPhase2(
     var selectedAnswer by remember {mutableStateOf(-1)}
     var options by remember { mutableStateOf(listOf("")) }
     var isShowAnswer by remember {mutableStateOf(false)}
+    var isExplaining by remember {mutableStateOf(false)}
 
     // Swipe Gesture
     var swipeAmount by remember{mutableStateOf(0f)}
     var swipeStartTime by remember{mutableStateOf(0L)}
 
+    fun explainKey(key: String, delay: Long = 0) {
+        isExplaining = true
+        // Phoneme
+        delay({hapticManager?.generateHaptic(key,HapticMode.VOICE)},delay+0)
+        delay({hapticManager?.generateHaptic(key,HapticMode.PHONEME)},delay+200)
+        // Phoneme
+        delay({soundManager?.playPhoneme(key)}, delay+1000)
+        delay({hapticManager?.generateHaptic(key,HapticMode.PHONEME)},delay+1200)
+        // Location
+        delay({soundManager?.playLocation(key)},delay+2000)
+        delay({
+            hapticManager?.generateHaptic(
+                key,
+                HapticMode.PHONEME
+            )
+        }, delay+2200)
+        delay({isExplaining = false}, delay+2200)
+    }
+
     fun onConfirm() {
+        if (isExplaining) return
         if (isShowAnswer) {
             testIter++
             if (testIter < testList.size) {
@@ -102,7 +123,6 @@ fun Study1TrainPhase2(
             // Deliver the answer feedback
             isShowAnswer = true
 
-
             //--- Append Data to Database ---//
             val data = Study1Phase2Answer(
                 answer = targetOption,
@@ -110,29 +130,25 @@ fun Study1TrainPhase2(
                 iter = testIter,
                 block = testBlock
             )
-            Log.d("database", group)
             addStudy1TrainPhase2Answer(context, subject, group, data)
             // ------------------------------//
+            explainKey(targetOption, 500)
 
-            Handler(Looper.getMainLooper()).postDelayed(
-                {// Speak & Haptic Feedback for answer
-                    hapticManager.generateHaptic(targetOption, HapticMode.VOICEPHONEME)
-                },
-                1500
-            )
         }
     }
 
+
     fun onSelect(index: Int) {
-        hapticManager.generateHaptic(
-            options[index],
-            HapticMode.PHONEME
-        )
+        if (isExplaining) return
         selectedIndex = index
 
         if (isShowAnswer) {
-            soundManager.speakOut(options[index])
+            explainKey(testList[testIter])
         } else {
+            hapticManager.generateHaptic(
+                options[index],
+                HapticMode.PHONEME
+            )
             soundManager.speakOut((index+1).toString())
         }
     }
@@ -176,7 +192,7 @@ fun Study1TrainPhase2(
         testBlock++
         if (testBlock > totalBlock) {
             closeStudy1Database()
-            navController.navigate("study1/train/phase3/${subject}/${group}")
+            navController.navigate("study1/train/phase2/${subject}/${group}")
         } else {
             testList = allowlist.shuffled()
             testIter = -1
@@ -201,6 +217,8 @@ fun Study1TrainPhase2(
                             swipeAmount = dragAmount
                         },
                         onDragEnd = {
+                            if (isExplaining || isShowAnswer) return@detectHorizontalDragGestures
+
                             val time = System.currentTimeMillis() - swipeStartTime
                             val speed = swipeAmount / time * 1000
                             if (swipeAmount > 0 && speed > 0) {
@@ -227,7 +245,7 @@ fun Study1TrainPhase2(
             Button(
                 onClick = {
                     closeStudy1Database()
-                    navController.navigate("study1/train/phase3/${subject}/${group}")
+                    navController.navigate("study1/train/phase2/${subject}/${group}")
                 },
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {
@@ -341,4 +359,14 @@ fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: 
             )
         }
     }
+}
+
+
+fun delay(function: () -> Unit, delayMillis: Long) {
+    Handler(Looper.getMainLooper()).postDelayed(
+        {// Speak & Haptic Feedback for answer
+            function()
+        },
+        delayMillis
+    )
 }
