@@ -18,24 +18,26 @@ fun GroupIntro(
     var names = listOf("")
     if (category == "phoneme") {
         phonemeGroups = listOf(
-            listOf("s", "z", "f", "v", "h"),
+            listOf("s", "z", "f", "v", "h", "j"),
             listOf("n", "m"),
             listOf("p", "t", "k", "c", "q"),
-            listOf("b", "d", "g", "j"),
+            listOf("b", "d", "g"),
             listOf("l", "r"),
             listOf("x"),
             listOf("a", "e", "i", "o", "u", "w", "y")
         )
         names = listOf(
-                "마찰음", "비음", "파열음-strong", "파열음-weak", "설측음", "others", "모음"
+                "마찰음", "비음", "강한 파열음", "약한 파열음", "설측음", "합성음", "모음"
         )
     } else if(category == "location") {
         phonemeGroups = listOf(
             listOf("p", "b", "f", "v", "m", "e", "i"),
-            listOf("t", "d", "s", "z", "l", "x", "w", "y"),
-            listOf("k", "c", "q", "g", "j", "n", "r", "h", "a", "o", "u")
+            listOf("k", "c", "q", "g", "n", "r", "h", "a", "o", "u"),
+            listOf("t", "d", "s", "z", "l", "x", "j"),
+            listOf("w"),
+            listOf("y")
         )
-        names = listOf("Up", "Both", "Down")
+        names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
     }
 
     val allowGroup = getAllowGroup(group)

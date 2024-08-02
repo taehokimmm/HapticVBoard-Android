@@ -1,6 +1,5 @@
 package com.taehokimmm.hapticvboard_android.manager
 
-import android.R
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
@@ -11,13 +10,14 @@ import android.util.Log
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
-
+import com.taehokimmm.hapticvboard_android.R as R
 
 class SoundManager(context: Context) {
     val context:Context = context
     var timer: Timer? = null
     var timerTask: TimerTask? = null
     private lateinit var tts: TextToSpeech
+    private lateinit var ttsKor: TextToSpeech
 
     private lateinit var soundPool: SoundPool
     var correctId: Int = 0
@@ -48,18 +48,21 @@ class SoundManager(context: Context) {
                 Log.e("TTS", "Initialization Failed!")
             }
         }
-        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(s: String) {
-                Log.e("phase3", "on start")
-            }
 
-            override fun onDone(s: String) {
-                Log.e("phase3", "on done")
-            }
+        ttsKor = TextToSpeech(context) {
+            if (it === TextToSpeech.SUCCESS) {
+                // Set TTS Language
+                val result = ttsKor.setLanguage(Locale.KOREAN)
 
-            override fun onError(s: String) {
+                if (result == TextToSpeech.LANG_NOT_SUPPORTED || result == TextToSpeech.LANG_MISSING_DATA) {
+                    Log.e("TTS", "This Language is not supported")
+                } else {
+                    Log.e("TTS", "SUCCESS")
+                }
+            } else {
+                Log.e("TTS", "Initialization Failed!")
             }
-        })
+        }
     }
 
     /**
@@ -69,6 +72,10 @@ class SoundManager(context: Context) {
      */
     fun speakOut(text: String) {
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
+
+    fun speakOutKor(text: String) {
+        ttsKor.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
 
@@ -103,14 +110,6 @@ class SoundManager(context: Context) {
         timerTask = object: TimerTask() {
             override fun run() {
                 if (index == words.size) {
-
-
-
-
-
-
-
-
                     timerTask?.cancel()
                     timer?.cancel()
                     timer?.purge()
@@ -131,11 +130,47 @@ class SoundManager(context: Context) {
         var mediaPlayer: MediaPlayer
         if (isCorrect) {
             mediaPlayer =
-                MediaPlayer.create(context, com.taehokimmm.hapticvboard_android.R.raw.correct)
+                MediaPlayer.create(context, R.raw.correct)
         } else {
             mediaPlayer =
-                MediaPlayer.create(context, com.taehokimmm.hapticvboard_android.R.raw.wrong)
+                MediaPlayer.create(context, R.raw.wrong)
         }
+        mediaPlayer.start()
+    }
+
+    @Synchronized
+    fun playPhoneme(key: String) {
+        var keyToResource: Map<String, Int> = mapOf(
+            "a" to R.raw.phoneme_a,
+            "b" to R.raw.phoneme_b,
+            "c" to R.raw.phoneme_k,
+            "d" to R.raw.phoneme_d,
+            "e" to R.raw.phoneme_e,
+            "f" to R.raw.phoneme_f,
+            "g" to R.raw.phoneme_g,
+            "h" to R.raw.phoneme_h,
+            "i" to R.raw.phoneme_i,
+            "j" to R.raw.phoneme_j,
+            "k" to R.raw.phoneme_k,
+            "l" to R.raw.phoneme_l,
+            "m" to R.raw.phoneme_m,
+            "n" to R.raw.phoneme_n,
+            "o" to R.raw.phoneme_o,
+            "p" to R.raw.phoneme_p,
+            "q" to R.raw.phoneme_q,
+            "r" to R.raw.phoneme_r,
+            "s" to R.raw.phoneme_s,
+            "t" to R.raw.phoneme_t,
+            "u" to R.raw.phoneme_u,
+            "v" to R.raw.phoneme_v,
+            "w" to R.raw.phoneme_w,
+            "x" to R.raw.phoneme_x,
+            "y" to R.raw.phoneme_y,
+            "z" to R.raw.phoneme_z
+        )
+        var mediaPlayer: MediaPlayer
+        mediaPlayer =
+            keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
         mediaPlayer.start()
     }
 }

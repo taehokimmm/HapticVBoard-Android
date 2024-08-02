@@ -1,5 +1,7 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.intro
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -49,11 +51,27 @@ fun TrainGroup(
     var selectedIndex by remember { mutableStateOf(0) }
 
     fun onSelect(index: Int) {
+        val key = group[selectedTabIndex][index]
         hapticManager?.generateHaptic(
-            group[selectedTabIndex][index],
-            HapticMode.PHONEME
+            key,
+            HapticMode.VOICEPHONEME
         )
-        soundManager?.speakOut(group[selectedTabIndex][index].toUpperCase())
+        Handler(Looper.getMainLooper()).postDelayed(
+            {// Speak & Haptic Feedback for answer
+                soundManager?.playPhoneme(key)
+            },
+            700
+        )
+        Handler(Looper.getMainLooper()).postDelayed(
+            {// Speak & Haptic Feedback for answer
+                hapticManager?.generateHaptic(
+                    key,
+                    HapticMode.PHONEME
+                )
+            },
+            1000
+        )
+
         selectedIndex = index
     }
 
@@ -65,6 +83,7 @@ fun TrainGroup(
 
     LaunchedEffect(selectedTabIndex) {
         selectedIndex = 0
+        soundManager?.speakOutKor(name[selectedTabIndex])
     }
 
     Box(
@@ -73,7 +92,10 @@ fun TrainGroup(
             .padding(innerPadding)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {onSelect(selectedIndex)}
+                    onTap = {onSelect(selectedIndex)},
+                    onDoubleTap = {
+                        soundManager?.speakOutKor(name[selectedTabIndex])
+                    }
                 )
             }
             .pointerInput(Unit) {
@@ -87,15 +109,14 @@ fun TrainGroup(
                     onDragEnd = {
                         val time = System.currentTimeMillis() - horizontalSwipeStartTime
                         val speed = horizontalSwipeAmount / time * 1000
-                        Log.e("Drag", "hori" + horizontalSwipeAmount + "speed : " + speed)
-                        if (horizontalSwipeAmount > 1 && speed > 0) {
+                        if (horizontalSwipeAmount > 1 && speed > 1) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
                                 selectedIndex++
                             } else {
                                 selectedIndex = 0
                             }
                             onSelect(selectedIndex)
-                        } else if (horizontalSwipeAmount < -1 && speed < 0) {
+                        } else if (horizontalSwipeAmount < -1 && speed < -1) {
                             if (selectedIndex > 0) {
                                 selectedIndex--
                             } else {
@@ -115,20 +136,20 @@ fun TrainGroup(
                     onDragEnd = {
                         val time = System.currentTimeMillis() - verticalSwipeStartTime
                         val speed = verticalSwipeAmount / time * 1000
-                        Log.e("Drag", "vertical" + verticalSwipeAmount + "speed : " + speed)
-                        if (verticalSwipeAmount > 1 && speed > 0) {
+                        if (verticalSwipeAmount > 1 && speed > 1) {
                             if (selectedTabIndex > 0) {
                                 selectedTabIndex --
                             } else {
                                 selectedTabIndex = name.size - 1
                             }
-                        } else if (verticalSwipeAmount < -1 && speed < 0) {
+                        } else if (verticalSwipeAmount < -1 && speed < -1) {
                             if (selectedTabIndex < name.size - 1) {
                                 selectedTabIndex ++
                             } else {
                                 selectedTabIndex = 0
                             }
                         }
+
                     }
                 )
 
