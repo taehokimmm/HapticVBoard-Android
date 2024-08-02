@@ -156,14 +156,14 @@ fun Study2Init(navController: NavHostController) {
             }
 
 
-            Button(onClick = {
-                resetData(context, testSubjectIdentifier, selectedOption)
-            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
-            )
-            {
-                Text("DELETE DATABASE",
-                    color = Color.White)
-            }
+//            Button(onClick = {
+//                resetData(context, testSubjectIdentifier, selectedOption)
+//            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
+//            )
+//            {
+//                Text("DELETE DATABASE",
+//                    color = Color.White)
+//            }
         }
     }
 }

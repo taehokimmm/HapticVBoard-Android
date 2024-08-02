@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +40,6 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase3Log
-import com.taehokimmm.hapticvboard_android.database.Study1TestLog
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
