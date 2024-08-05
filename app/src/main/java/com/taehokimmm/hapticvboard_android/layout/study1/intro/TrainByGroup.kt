@@ -144,10 +144,8 @@ fun TrainGroup(
                                 selectedTabIndex = 0
                             }
                         }
-
                     }
                 )
-
             }
     ) {
         TabRow(selectedTabIndex = 0, indicator = { tabPositions ->

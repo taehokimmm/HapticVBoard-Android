@@ -14,6 +14,7 @@ class HapticManager(context: Context) {
 
     @Synchronized
     fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE){
+        Log.e("touchevent", key)
         if (hapticMode == HapticMode.NONE) return
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
@@ -32,7 +33,7 @@ class HapticManager(context: Context) {
         }
 
         // Haptic Tick for Special Keys
-        if (key == "Backspace" || key == "Space") {
+        if (key == "Backspace" || key == "Space" || key == "Replay") {
             generateVibration(key)
             return
         }
@@ -84,9 +85,11 @@ class HapticManager(context: Context) {
 
                 var vibrate: VibrationEffect? = null
                 if (key == "Backspace") {
-                    vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)
+                    vibrate = VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE)
                 } else if(key == "Space"){
-                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                    vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)
+                } else if(key == "Replay"){
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
                 } else {
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
                 }

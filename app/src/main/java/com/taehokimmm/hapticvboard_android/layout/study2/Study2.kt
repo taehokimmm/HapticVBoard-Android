@@ -4,9 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.EditText
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,7 +79,11 @@ fun Study2Test(
     val testNumber = 5
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableIntStateOf(-1) }
-    val phrases = readTxtFile(context, R.raw.phrases)
+    var testWords by remember { mutableStateOf(listOf("")) }
+    var testWordCnt by remember { mutableIntStateOf(-1) }
+
+    //val phrases = readTxtFile(context, R.raw.phrases)
+    val phrases = readTxtFile(context, R.raw.words)
     var testList by remember { mutableStateOf(listOf("")) }
 
     // WPM
@@ -88,6 +96,33 @@ fun Study2Test(
 
     // Keyboard Efficiency
     var keyStrokeNum by remember{mutableStateOf(0)}
+
+
+    fun onConfirm(): Boolean {
+        if (testWordCnt < testWords.size - 1) {
+            testWordCnt ++
+            soundManager.speakWord(testWords[testWordCnt])
+            return false
+        } else {
+//                wordCount = inputText.split("\\s+".toRegex()).size
+//                val targetText = testList[testIter]
+//                val wpm = calculateWPM(startTime, endTime, wordCount)
+//                val iki = calculateIKI(keystrokeTimestamps)
+//                val uer = calculateUER(targetText, inputText)
+//                var ke = keyboardEfficiency(inputText, keyStrokeNum)
+//                val data = Study2Metric(
+//                    testIter,  wpm, iki, uer, ke, targetText, inputText
+//                )
+//                addStudy2Metric(context, subject, hapticMode, data)
+//                startTime = System.currentTimeMillis()
+//                keystrokeTimestamps.clear()
+//                keyStrokeNum = 0
+//
+            testIter++
+            inputText = ""
+            return true
+        }
+    }
 
     var isSpeakingDone by remember {mutableStateOf(false)}
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
@@ -108,6 +143,7 @@ fun Study2Test(
                     override fun onError(utteranceId: String?) {
                     }
                 })
+                tts?.setSpeechRate(0.75f)
             }
         }
     }
@@ -119,31 +155,17 @@ fun Study2Test(
         tts?.speak(word, TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
     }
 
-    fun onNext() {
-        return
-        wordCount = inputText.split("\\s+".toRegex()).size
-        val targetText = testList[testIter]
-        val wpm = calculateWPM(startTime, endTime, wordCount)
-        val iki = calculateIKI(keystrokeTimestamps)
-        val uer = calculateUER(targetText, inputText)
-        var ke = keyboardEfficiency(inputText, keyStrokeNum)
-        val data = Study2Metric(
-            testIter,  wpm, iki, uer, ke, targetText, inputText
-        )
-        addStudy2Metric(context, subject, hapticMode, data)
-        startTime = System.currentTimeMillis()
-        keystrokeTimestamps.clear()
-        keyStrokeNum = 0
-        inputText = ""
-    }
-
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             soundManager.speakOut("Tap to start Block " + testBlock)
             testList = phrases.slice(testBlock * testNumber .. (testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
-
+            val targetText = testList[testIter]
+            //speak(targetText)
+            testWords = targetText.split(" ")
+            testWordCnt = -1
+            onConfirm()
         } else {
             testBlock++
             if (testBlock > totalBlock) {
@@ -152,11 +174,6 @@ fun Study2Test(
             } else {
                 testIter = -1
             }
-        }
-
-        if (testIter >= 0 && testIter < testNumber) {
-            val targetText = testList[testIter]
-            speak(targetText)
         }
     }
 
@@ -229,14 +246,25 @@ fun Study2Test(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
+                            var isEnd = false
+                            if (key == "Space") {
+                                if (inputText.last() != ' ') {
+                                    isEnd = onConfirm()
+                                } else {
+                                    soundManager.speakWord(testWords[testWordCnt])
+                                }
+                            } else if (key == "Replay") {
+                                // Replay word
+                                soundManager.speakWord(testWords[testWordCnt])
+                            }
+
+                            if (isEnd) return@KeyboardLayout
                             inputText = when (key) {
                                 "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                                 "Space" -> "$inputText "
                                 "Shift" -> inputText
-                                "Enter" -> {
+                                "Replay" -> {
                                     endTime = System.currentTimeMillis()
-                                    onNext()
-                                    testIter++
                                     inputText
                                 }
                                 else -> {

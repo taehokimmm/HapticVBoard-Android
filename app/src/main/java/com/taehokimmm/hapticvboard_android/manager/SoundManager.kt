@@ -7,6 +7,7 @@ import android.media.SoundPool
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
@@ -83,21 +84,18 @@ class SoundManager(context: Context) {
      * Speak out the input word first, then each letter
      */
     fun speakWord(word: String){
-        speakOut(word)
-        var index = 0
-        timerTask = object: TimerTask() {
-            override fun run() {
-                if (index == word.length) {
-                    timerTask?.cancel()
-                    timer?.cancel()
-                    timer?.purge()
-                    return
+        tts.setSpeechRate(0.5f)
+        tts.speak(word, TextToSpeech.QUEUE_ADD, null, null)
+
+        tts.setSpeechRate(1f)
+        delay(
+            {
+                for (index in 0 until word.length) {
+                    tts.speak(word[index].toString(), TextToSpeech.QUEUE_ADD, null, null)
                 }
-                speakOut(word[index++].toString())
-            }
-        }
-        timer = Timer()
-        timer?.schedule(timerTask, 0, 300)
+            },
+            500
+        )
     }
 
     /**
