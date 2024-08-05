@@ -66,6 +66,7 @@ import java.util.Locale
 fun Study2Test(
     innerPadding: PaddingValues,
     subject: String,
+    isPractice: Boolean,
     navController: NavHostController?,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
@@ -76,15 +77,31 @@ fun Study2Test(
 
     val context = LocalContext.current
 
-    val totalBlock = 4
-    val testNumber = 5
-    var testBlock by remember { mutableStateOf(1) }
+    val totalBlock = when(isPractice) {
+        true -> 1
+        false -> 4
+    }
+    val testNumber = when (isPractice) {
+        true -> 4
+        false -> 5
+    }
+    var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
     var testWords by remember { mutableStateOf(listOf("")) }
     var testWordCnt by remember { mutableIntStateOf(-1) }
 
-    //val phrases = readTxtFile(context, R.raw.phrases)
-    val phrases = readTxtFile(context, R.raw.words)
+
+    var phrases = when (isPractice) {
+        true -> readTxtFile(context, R.raw.practice_phrase)
+        false -> readTxtFile(context, R.raw.phrase40)
+    }
+
+    if (hapticMode == HapticMode.VOICE) {
+        phrases = phrases.slice(0..totalBlock * testNumber - 1)
+    } else {
+        phrases = phrases.slice(totalBlock * testNumber .. phrases.size)
+    }
+
     var testList by remember { mutableStateOf(listOf("")) }
 
     // WPM
@@ -122,7 +139,7 @@ fun Study2Test(
         }
     }
 
-    fun speakWord(word: String){
+    fun speak(word: String){
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
@@ -131,20 +148,20 @@ fun Study2Test(
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
 
         tts?.setSpeechRate(1f)
-        delay(
-            {
-                for (index in 0 until word.length) {
-                    tts?.speak(word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId")
-                }
-            },
-            500
-        )
+//        delay(
+//            {
+//                for (index in 0 until word.length) {
+//                    tts?.speak(word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId")
+//                }
+//            },
+//            500
+//        )
     }
 
     fun onConfirm(): Boolean {
         if (testWordCnt < testWords.size - 1) {
             testWordCnt ++
-            speakWord(testWords[testWordCnt])
+            speak(testWords[testWordCnt])
             return false
         } else {
 //                wordCount = inputText.split("\\s+".toRegex()).size
@@ -170,17 +187,17 @@ fun Study2Test(
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("Tap to start Block " + testBlock)
+            soundManager.speakOut("Tap to start Block " + (testBlock + 1).toString())
             testList = phrases.slice(testBlock * testNumber .. (testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
             val targetText = testList[testIter]
-            //speak(targetText)
+            speak(targetText)
             testWords = targetText.split(" ")
             testWordCnt = -1
             onConfirm()
         } else {
             testBlock++
-            if (testBlock > totalBlock) {
+            if (testBlock >= totalBlock) {
                 //closeStudy2Database()
                 navController!!.navigate("study2/end/$subject")
             } else {
@@ -207,7 +224,7 @@ fun Study2Test(
                 shape = RoundedCornerShape(corner = CornerSize(0)),
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {
-                Text(text="Tap to Start \n Block : " + testBlock,
+                Text(text="Tap to Start \n Block : " + (testBlock + 1).toString(),
                     fontSize = 20.sp)
             }
         }
@@ -264,11 +281,11 @@ fun Study2Test(
                                     if (inputText.last() != ' ') {
                                         isEnd = onConfirm()
                                     } else {
-                                        speakWord(testWords[testWordCnt])
+                                        speak(testWords[testWordCnt])
                                     }
                                 } else if (key == "Replay") {
                                     // Replay word
-                                    speakWord(testWords[testWordCnt])
+                                    speak(testWords[testWordCnt])
                                 }
 
                                 if (isEnd) return@KeyboardLayout

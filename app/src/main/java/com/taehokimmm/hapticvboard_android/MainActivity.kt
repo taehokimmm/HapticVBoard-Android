@@ -240,18 +240,20 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study2/init"
                         Study2Init(navController)
                     }
-                    composable("study2/{subject}/{feedback}") {
+                    composable("study2/{subject}/{feedback}/{isPractice}") {
                         currentScreen = "study2/test"
                         val subject = it.arguments?.getString("subject")!!
                         val feedback = it.arguments?.getString("feedback")!!
+                        val isPractice = it.arguments?.getString("isPractice")!!.toBoolean()
                         var hapticMode = HapticMode.NONE
                         if (feedback == "audio") hapticMode = HapticMode.VOICE
                         else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
-                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
+//                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
 
                         Study2Test(
                             innerPadding,
                             subject,
+                            isPractice,
                             navController,
                             soundManager!!,
                             hapticManager!!,

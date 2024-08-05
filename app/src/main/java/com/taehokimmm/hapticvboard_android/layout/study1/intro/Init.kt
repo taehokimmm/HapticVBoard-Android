@@ -45,7 +45,6 @@ fun IntroInit(navController: NavHostController) {
     var options = listOf("A", "B", "C", "D")
     var selectedOption by remember { mutableStateOf(setOf("")) }
 
-
     var categories = listOf("phoneme", "location")
     var selectedCategory by remember { mutableStateOf("phoneme") }
 
