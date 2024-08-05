@@ -56,7 +56,7 @@ class HapticManager(context: Context) {
             'p' to "p",
             'q' to "k",
             'r' to "r",
-            's' to "ss",
+            's' to "s",
             't' to "t",
             'u' to "u",
             'v' to "v",

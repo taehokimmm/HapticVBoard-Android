@@ -42,8 +42,6 @@ import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 fun Study2Init(navController: NavHostController) {
     var context = LocalContext.current
     var testSubjectIdentifier by remember { mutableStateOf("test") }
-    var testQuestions by remember { mutableIntStateOf(10) }
-    var testQuestionString by remember { mutableStateOf("10") }
     var errorMessage by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()
@@ -101,36 +99,6 @@ fun Study2Init(navController: NavHostController) {
                 }
             }
 
-            // Number of questions
-            TextField(
-                value = testQuestionString,
-                onValueChange = {
-                    testQuestionString = it
-                    testQuestions = it.toIntOrNull() ?: 10
-                },
-                maxLines = 1,
-                label = { Text(text = "Number of Questions", fontSize = 16.sp) },
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .fillMaxWidth()
-                    .focusRequester(questionsFocusRequester)
-                    .onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                            testQuestionString = ""
-                        }
-                        if (!focusState.isFocused && testQuestionString.isEmpty()) {
-                            testQuestions = 10
-                            testQuestionString = testQuestions.toString()
-                        }
-                    },
-                keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-            )
-
             if (errorMessage.isNotEmpty()) {
                 Text(
                     text = errorMessage,
@@ -141,8 +109,8 @@ fun Study2Init(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    if (testSubjectIdentifier.isNotEmpty() && testQuestions > 0) {
-                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions/$selectedOption")
+                    if (testSubjectIdentifier.isNotEmpty()) {
+                        navController.navigate("study2/$testSubjectIdentifier/$selectedOption")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     } else {

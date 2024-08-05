@@ -1,6 +1,10 @@
 package com.taehokimmm.hapticvboard_android
 
 import android.os.Bundle
+
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -40,9 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -112,6 +120,17 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                     Text("Ignore")
                 }
             })
+    }
+
+    val context = LocalContext.current
+    val window = (context as? Activity)?.window
+    window?.let {
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+
+        insetsController.apply {
+            hide(WindowInsetsCompat.Type.navigationBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
     }
 
     ModalNavigationDrawer(
@@ -221,11 +240,10 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study2/init"
                         Study2Init(navController)
                     }
-                    composable("study2/{subject}/{questions}/{feedback}") {
+                    composable("study2/{subject}/{feedback}") {
                         currentScreen = "study2/test"
                         val subject = it.arguments?.getString("subject")!!
                         val feedback = it.arguments?.getString("feedback")!!
-                        val questions = it.arguments?.getString("questions")!!.toInt()
                         var hapticMode = HapticMode.NONE
                         if (feedback == "audio") hapticMode = HapticMode.VOICE
                         else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
@@ -234,7 +252,6 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         Study2Test(
                             innerPadding,
                             subject,
-                            questions,
                             navController,
                             soundManager!!,
                             hapticManager!!,
