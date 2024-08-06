@@ -90,18 +90,6 @@ fun Study2Test(
     var testWords by remember { mutableStateOf(listOf("")) }
     var testWordCnt by remember { mutableIntStateOf(-1) }
 
-
-    var phrases = when (isPractice) {
-        true -> readTxtFile(context, R.raw.practice_phrase)
-        false -> readTxtFile(context, R.raw.phrase40)
-    }
-
-    if (hapticMode == HapticMode.VOICE) {
-        phrases = phrases.slice(0..totalBlock * testNumber - 1)
-    } else {
-        phrases = phrases.slice(totalBlock * testNumber .. phrases.size)
-    }
-
     var testList by remember { mutableStateOf(listOf("")) }
 
     // WPM
@@ -117,7 +105,20 @@ fun Study2Test(
 
     var isSpeakingDone by remember {mutableStateOf(false)}
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var phrases by remember { mutableStateOf(listOf("")) }
     LaunchedEffect(Unit) {
+
+        var phrases1 = when (isPractice) {
+            true -> readTxtFile(context, R.raw.practice_phrase)
+            false -> readTxtFile(context, R.raw.phrase40)
+        }
+        if (hapticMode == HapticMode.VOICE) {
+            phrases = phrases1.slice(0..totalBlock * testNumber - 1)
+        } else {
+            phrases = phrases1.slice(totalBlock * testNumber .. phrases1.size - 1)
+        }
+
+
         // Initiate TTS
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -148,14 +149,30 @@ fun Study2Test(
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
 
         tts?.setSpeechRate(1f)
-//        delay(
-//            {
-//                for (index in 0 until word.length) {
-//                    tts?.speak(word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId")
-//                }
-//            },
-//            500
-//        )
+        delay(
+            {
+                for (index in 0 until word.length) {
+                    tts?.speak(word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId")
+                }
+            },
+            500
+        )
+    }
+
+    fun addLogging() {
+        wordCount = inputText.split("\\s+".toRegex()).size
+        val targetText = testList[testIter]
+        val wpm = calculateWPM(startTime, endTime, wordCount)
+        val iki = calculateIKI(keystrokeTimestamps)
+        val uer = calculateUER(targetText, inputText)
+        var ke = keyboardEfficiency(inputText, keyStrokeNum)
+        val data = Study2Metric(
+            testBlock, testIter, wpm, iki, uer, ke, targetText, inputText
+        )
+        addStudy2Metric(context, subject, hapticMode, data)
+        startTime = System.currentTimeMillis()
+        keystrokeTimestamps.clear()
+        keyStrokeNum = 0
     }
 
     fun onConfirm(): Boolean {
@@ -164,20 +181,7 @@ fun Study2Test(
             speak(testWords[testWordCnt])
             return false
         } else {
-//                wordCount = inputText.split("\\s+".toRegex()).size
-//                val targetText = testList[testIter]
-//                val wpm = calculateWPM(startTime, endTime, wordCount)
-//                val iki = calculateIKI(keystrokeTimestamps)
-//                val uer = calculateUER(targetText, inputText)
-//                var ke = keyboardEfficiency(inputText, keyStrokeNum)
-//                val data = Study2Metric(
-//                    testIter,  wpm, iki, uer, ke, targetText, inputText
-//                )
-//                addStudy2Metric(context, subject, hapticMode, data)
-//                startTime = System.currentTimeMillis()
-//                keystrokeTimestamps.clear()
-//                keyStrokeNum = 0
-//
+            if (!isPractice) addLogging()
             testIter++
             inputText = ""
             return true
@@ -271,8 +275,7 @@ fun Study2Test(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                if (isSpeakingDone) {
-                    Box {
+                Box {
                         KeyboardLayout(
                             touchEvents = keyboardTouchEvents,
                             onKeyRelease = { key ->
@@ -321,7 +324,6 @@ fun Study2Test(
                                 }
                             })
                     }
-                }
             }
         }
     }

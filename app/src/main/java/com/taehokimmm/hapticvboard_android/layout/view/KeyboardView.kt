@@ -272,8 +272,13 @@ fun processTouchEvent(
                     )
                     if (allow.contains(key))
                         hapticManager?.generateHaptic(key, hapticMode)
-                    else if (hapticMode == HapticMode.VOICEPHONEME)
-                        hapticManager?.generateHaptic(key, HapticMode.VOICE)
+                    else {
+                        if (hapticMode == HapticMode.VOICEPHONEME)
+                            hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
+                        else
+                            hapticManager?.generateHaptic(key, HapticMode.TICK)
+                    }
+
                     activeTouches[pointerId] = key
 
                     // Add Log

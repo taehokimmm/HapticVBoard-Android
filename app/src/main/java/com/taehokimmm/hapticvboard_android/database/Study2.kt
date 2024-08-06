@@ -24,6 +24,7 @@ data class TouchMetric(
 
 @Entity(tableName = "study2Metric")
 data class Study2Metric(
+    val block: Int,
     val iteration: Int,
     val wpm: Double,
     val iki: Double,

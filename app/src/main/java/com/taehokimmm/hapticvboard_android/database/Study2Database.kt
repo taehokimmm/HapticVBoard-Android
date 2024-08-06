@@ -27,5 +27,14 @@ abstract class Study2Database : RoomDatabase() {
             Study2Database::class.java,
             name
         ).build()
+
+        fun closeDatabase() {
+            instance?.apply {
+                if (isOpen) {
+                    close()
+                }
+                instance = null
+            }
+        }
     }
 }

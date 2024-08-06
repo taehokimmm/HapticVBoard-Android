@@ -17,17 +17,6 @@ abstract class Study1Database : RoomDatabase() {
         @Volatile private var INSTANCE: Study1Database? = null
         private val LOCK = Any()
 
-//        operator fun invoke(context: Context, name:String) = instance ?: synchronized(LOCK){
-//            instance ?: buildDatabase(context, name).also{
-//                instance = it
-//            }
-//        }
-//
-//        private fun buildDatabase(context: Context, name:String) = Room.databaseBuilder(
-//            context.applicationContext,
-//            Study1Database::class.java,
-//            name
-//        ).build()
         fun getInstance(context: Context, name: String): Study1Database {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(

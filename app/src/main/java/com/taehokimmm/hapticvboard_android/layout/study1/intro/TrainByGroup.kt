@@ -54,10 +54,10 @@ fun TrainGroup(
 
     fun explainKey(key: String) {
         isExplaining = true
-        hapticManager?.generateHaptic(key,HapticMode.VOICEPHONEME)
-        delay({soundManager?.playPhoneme(key)},700)
-        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1000)
-        delay({isExplaining = false}, 1000)
+        hapticManager?.generateHaptic(key,HapticMode.VOICE)
+        delay({soundManager?.playPhoneme(key)},1000)
+        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },2000)
+        delay({isExplaining = false}, 1400)
     }
 
     fun onSelect(index: Int) {
@@ -68,10 +68,10 @@ fun TrainGroup(
     }
 
     // Swipe Gesture
-    var horizontalSwipeStartTime by remember{mutableStateOf(0L)}
-    var horizontalSwipeAmount by remember{mutableStateOf(0f)}
-    var verticalSwipeStartTime by remember{mutableStateOf(0L)}
-    var verticalSwipeAmount by remember{mutableStateOf(0f)}
+    var horizontalSwipeStart by remember{mutableStateOf(0f)}
+    var horizontalSwipeEnd by remember{mutableStateOf(0f)}
+    var verticalSwipeStart by remember{mutableStateOf(0f)}
+    var verticalSwipeEnd by remember{mutableStateOf(0f)}
 
     LaunchedEffect(selectedTabIndex) {
         selectedIndex = 0
@@ -94,23 +94,22 @@ fun TrainGroup(
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onDragStart = { offset ->
-                        horizontalSwipeStartTime = System.currentTimeMillis()
+                        horizontalSwipeStart = offset.x
                     },
                     onHorizontalDrag = { change, dragAmount ->
-                        horizontalSwipeAmount = dragAmount
+                        horizontalSwipeEnd = change.position.x
                     },
                     onDragEnd = {
                         if (isExplaining) return@detectHorizontalDragGestures
-                        val time = System.currentTimeMillis() - horizontalSwipeStartTime
-                        val speed = horizontalSwipeAmount / time * 1000
-                        if (horizontalSwipeAmount > 1 && speed > 1) {
+                        val horizontalSwipeAmount  = horizontalSwipeEnd - horizontalSwipeStart
+                        if (horizontalSwipeAmount > 1) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
                                 selectedIndex++
                             } else {
                                 selectedIndex = 0
                             }
                             onSelect(selectedIndex)
-                        } else if (horizontalSwipeAmount < -1 && speed < -1) {
+                        } else if (horizontalSwipeAmount < -1) {
                             if (selectedIndex > 0) {
                                 selectedIndex--
                             } else {
@@ -124,20 +123,19 @@ fun TrainGroup(
             .pointerInput(Unit) {
                 detectVerticalDragGestures (
                     onDragStart = {offset ->
-                        verticalSwipeStartTime = System.currentTimeMillis() },
+                        verticalSwipeStart = offset.y },
                     onVerticalDrag = {change, dragAmount ->
-                        verticalSwipeAmount = dragAmount},
+                        verticalSwipeEnd = change.position.y},
                     onDragEnd = {
                         if (isExplaining) return@detectVerticalDragGestures
-                        val time = System.currentTimeMillis() - verticalSwipeStartTime
-                        val speed = verticalSwipeAmount / time * 1000
-                        if (verticalSwipeAmount > 1 && speed > 1) {
+                        val verticalSwipeAmount = verticalSwipeEnd - verticalSwipeStart
+                        if (verticalSwipeAmount > 1) {
                             if (selectedTabIndex > 0) {
                                 selectedTabIndex --
                             } else {
                                 selectedTabIndex = name.size - 1
                             }
-                        } else if (verticalSwipeAmount < -1 && speed < -1) {
+                        } else if (verticalSwipeAmount < -1) {
                             if (selectedTabIndex < name.size - 1) {
                                 selectedTabIndex ++
                             } else {
