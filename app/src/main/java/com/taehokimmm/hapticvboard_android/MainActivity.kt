@@ -4,6 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Bundle
+
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -236,20 +240,20 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study2/init"
                         Study2Init(navController)
                     }
-                    composable("study2/{subject}/{questions}/{feedback}") {
+                    composable("study2/{subject}/{feedback}/{isPractice}") {
                         currentScreen = "study2/test"
                         val subject = it.arguments?.getString("subject")!!
                         val feedback = it.arguments?.getString("feedback")!!
-                        val questions = it.arguments?.getString("questions")!!.toInt()
+                        val isPractice = it.arguments?.getString("isPractice")!!.toBoolean()
                         var hapticMode = HapticMode.NONE
                         if (feedback == "audio") hapticMode = HapticMode.VOICE
                         else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
-                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
+//                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
 
                         Study2Test(
                             innerPadding,
                             subject,
-                            questions,
+                            isPractice,
                             navController,
                             soundManager!!,
                             hapticManager!!,

@@ -42,15 +42,13 @@ import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 fun Study2Init(navController: NavHostController) {
     var context = LocalContext.current
     var testSubjectIdentifier by remember { mutableStateOf("test") }
-    var testQuestions by remember { mutableIntStateOf(10) }
-    var testQuestionString by remember { mutableStateOf("10") }
     var errorMessage by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var options = listOf("audio", "phoneme", "vibration")
+    var options = listOf("audio", "phoneme")
     var selectedOption by remember { mutableStateOf("audio") }
 
 
@@ -60,6 +58,10 @@ fun Study2Init(navController: NavHostController) {
     }
     for(i in 1 until 5) {
         subjects += listOf("Pilot" + i)
+    }
+
+    var isPractice by remember {
+        mutableStateOf(false)
     }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -101,35 +103,23 @@ fun Study2Init(navController: NavHostController) {
                 }
             }
 
-            // Number of questions
-            TextField(
-                value = testQuestionString,
-                onValueChange = {
-                    testQuestionString = it
-                    testQuestions = it.toIntOrNull() ?: 10
-                },
-                maxLines = 1,
-                label = { Text(text = "Number of Questions", fontSize = 16.sp) },
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .fillMaxWidth()
-                    .focusRequester(questionsFocusRequester)
-                    .onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                            testQuestionString = ""
-                        }
-                        if (!focusState.isFocused && testQuestionString.isEmpty()) {
-                            testQuestions = 10
-                            testQuestionString = testQuestions.toString()
-                        }
-                    },
-                keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Session",
+                fontSize = 16.sp
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CheckboxWithLabel(
+                    checked = isPractice,
+                    onCheckedChange = { isPractice = it },
+                    label = "Is Practice Session?"
+                )
+            }
 
             if (errorMessage.isNotEmpty()) {
                 Text(
@@ -141,8 +131,8 @@ fun Study2Init(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    if (testSubjectIdentifier.isNotEmpty() && testQuestions > 0) {
-                        navController.navigate("study2/$testSubjectIdentifier/$testQuestions/$selectedOption")
+                    if (testSubjectIdentifier.isNotEmpty()) {
+                        navController.navigate("study2/$testSubjectIdentifier/$selectedOption/$isPractice")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     } else {

@@ -34,7 +34,7 @@ fun KeyboardLayout(
     hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
     allow: List<String> = ('a'..'z').map { it.toString() } + listOf(
-        "Space", "Backspace", "Shift", ",", "."
+        "Space", "Backspace", "Replay"
     ),
     logData: Any? = null,
     name: String? = ""
@@ -68,7 +68,7 @@ fun KeyboardLayout(
                 listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
                 listOf("Shift", "z", "x", "c", "v", "b", "n", "m", "Backspace"),
             )
-            val lastRow = listOf(",", "Space", ".")
+            val lastRow = listOf("Space")
 
             Spacer(modifier = Modifier.height(20.dp))
             keys.forEach { rowKeys ->
@@ -96,16 +96,16 @@ fun KeyboardLayout(
                         })
                 }
                 if (enterKeyVisibility) {
-                    DrawKey(key = "Enter",
-                        isPressed = activeTouches.values.contains("Enter"),
+                    DrawKey(key = "Replay",
+                        isPressed = activeTouches.values.contains("Replay"),
                         onPositioned = { coordinates ->
-                            handlePositioned("Enter", coordinates, keyPositions)
+                            handlePositioned("Replay", coordinates, keyPositions)
                         })
                 }
             }
 
 
-            Spacer(modifier = Modifier.height(66.dp))
+            Spacer(modifier = Modifier.height(15.dp))
         }
     }
 
@@ -145,7 +145,7 @@ fun DrawKey(
 
     val backgroundColor = when {
         isPressed -> Color.Gray
-        key == "Enter" -> Color(0xFF006AFF)
+        key == "Replay" -> Color(0xFF006AFF)
         else -> Color.White
     }
 
@@ -155,11 +155,15 @@ fun DrawKey(
             .clip(RoundedCornerShape(5.dp))
             .size(
                 when (key) {
-                    "Space" -> width * 5 + spacing * 8
-                    "Shift", "Backspace", "Enter" -> width * 1.5f
+                    "Space" -> width * 6 + spacing * 8
+                    "Replay" -> width * 2.5f
+                    "Shift", "Backspace", "Replay" -> width * 1.5f
                     else -> width
-                }, height
-            )
+                },
+                when (key) {
+                    "Space", "Replay" -> height * 2f
+                    else -> height
+                })
             .background(backgroundColor)
             .onGloballyPositioned { coordinates ->
                 onPositioned(coordinates)
@@ -168,13 +172,13 @@ fun DrawKey(
         Text(
             text = when (key) {
                 "Backspace" -> "⌫"
-                "Enter" -> "next"
+                "Replay" -> "Replay"
                 "Shift" -> "⇧"
                 "Space" -> " "
                 else -> key
             },
-            fontSize = if (key == "Enter") 18.sp else textSize,
-            color = if (key == "Enter") Color.White else Color.Black,
+            fontSize = if (key == "Replay") 18.sp else textSize,
+            color = if (key == "Replay") Color.White else Color.Black,
 
             )
     }
@@ -268,8 +272,13 @@ fun processTouchEvent(
                     )
                     if (allow.contains(key))
                         hapticManager?.generateHaptic(key, hapticMode)
-                    else if (hapticMode == HapticMode.VOICEPHONEME)
-                        hapticManager?.generateHaptic(key, HapticMode.VOICE)
+                    else {
+                        if (hapticMode == HapticMode.VOICEPHONEME)
+                            hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
+                        else
+                            hapticManager?.generateHaptic(key, HapticMode.TICK)
+                    }
+
                     activeTouches[pointerId] = key
 
                     // Add Log
