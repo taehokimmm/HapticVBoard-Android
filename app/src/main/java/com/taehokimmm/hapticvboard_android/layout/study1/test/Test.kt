@@ -194,15 +194,15 @@ fun Study1Test(
                         ),
                         name = subject + "_" + group.last()
                     )
-                }
-                AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
-                    MultiTouchView(context).apply {
-                        onMultiTouchEvent = { event ->
-                            keyboardTouchEvents.clear()
-                            keyboardTouchEvents.add(event)
+                    AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                        MultiTouchView(context).apply {
+                            onMultiTouchEvent = { event ->
+                                keyboardTouchEvents.clear()
+                                keyboardTouchEvents.add(event)
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         }
         timer.schedule(timerTask, 0, 100)
