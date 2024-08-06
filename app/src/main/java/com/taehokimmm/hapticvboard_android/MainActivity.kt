@@ -1,5 +1,8 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Bundle
 
 import android.app.Activity
@@ -122,15 +125,12 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
             })
     }
 
-    val context = LocalContext.current
-    val window = (context as? Activity)?.window
-    window?.let {
-        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+    val window = LocalContext.current.findActivity()?.window!!
+    val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
-        insetsController.apply {
-            hide(WindowInsetsCompat.Type.navigationBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
+    insetsController.apply {
+        hide(WindowInsetsCompat.Type.navigationBars())
+        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
     ModalNavigationDrawer(
@@ -406,6 +406,16 @@ fun DrawTopAppBar(
             }
         })
     }
+}
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) {
+            return context
+        }
+        context = context.baseContext
+    }
+    return null
 }
 
 @Preview
