@@ -157,7 +157,7 @@ fun DrawKey(
                 when (key) {
                     "Space" -> width * 6 + spacing * 8
                     "Replay" -> width * 2.5f
-                    "Shift", "Backspace", "Replay" -> width * 1.5f
+                    "Shift", "Backspace", -> width * 1.5f
                     else -> width
                 },
                 when (key) {
@@ -232,6 +232,26 @@ fun processTouchEvent(
                             logData,
                             "DOWN",
                             key,
+                            pointerPosition.x,
+                            pointerPosition.y
+                        )
+                    }
+                }
+                else if (pointerPosition.y < 1533) {
+                    // Key pressed out of bounds
+                    Log.d(
+                        "TouchEvent",
+                        "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
+                    )
+                    activeTouches[pointerId] = "Out of Bounds"
+                    // Add Log
+                    if (name != null && logData != null) {
+                        addLog(
+                            context,
+                            name,
+                            logData,
+                            "DOWN",
+                            "Out of Bounds",
                             pointerPosition.x,
                             pointerPosition.y
                         )

@@ -25,53 +25,55 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
-import com.taehokimmm.hapticvboard_android.database.resetData
 
 @Composable
 fun SettingScreen(
 ) {
     val context = LocalContext.current
-    var inputText by remember {mutableStateOf("")}
-    Box(modifier = Modifier
-        .fillMaxSize()
+    var inputText by remember { mutableStateOf("") }
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier.align(Alignment.CenterStart),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            AndroidView(
-                modifier = Modifier.fillMaxWidth(),
-                factory = { ctx ->
-                    EditText(ctx).apply {
-                        hint = "Enter text here"
-                        textSize = 20f
-                        isFocusable = true
-                        isCursorVisible = true
-                        isPressed = true
-                        // Add a text change listener to update the inputText state and log it
-                        addTextChangedListener(object : TextWatcher {
-                            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            AndroidView(modifier = Modifier.fillMaxWidth(), factory = { ctx ->
+                EditText(ctx).apply {
+                    hint = "Enter text here"
+                    textSize = 20f
+                    isFocusable = true
+                    isCursorVisible = true
+                    isPressed = true
+                    // Add a text change listener to update the inputText state and log it
+                    addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(
+                            s: CharSequence?, start: Int, count: Int, after: Int
+                        ) {
+                        }
 
-                            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                                inputText = s.toString()
-                                Log.d("Setting", inputText)
-                            }
+                        override fun onTextChanged(
+                            s: CharSequence?, start: Int, before: Int, count: Int
+                        ) {
+                            inputText = s.toString()
+                            Log.d("Setting", inputText)
+                        }
 
-                            override fun afterTextChanged(s: Editable?) {}
-                        })
-                    }
+                        override fun afterTextChanged(s: Editable?) {}
+                    })
                 }
-            )
+            })
 
-            Button(onClick = {
-                Log.d("Setting", inputText)
-                deleteDatabaseByName(context, inputText)
-            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
-            )
-            {
-                Text("DELETE DATABASE",
-                    color = Color.White)
+            Button(
+                onClick = {
+                    Log.d("Setting", inputText)
+                    deleteDatabaseByName(context, inputText)
+                }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
+            ) {
+                Text(
+                    "DELETE DATABASE", color = Color.White
+                )
             }
         }
     }
