@@ -4,12 +4,9 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import android.view.MotionEvent
 import android.widget.EditText
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -38,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,7 +48,6 @@ import com.taehokimmm.hapticvboard_android.calculateUER
 import com.taehokimmm.hapticvboard_android.calculateWPM
 import com.taehokimmm.hapticvboard_android.database.Study2Metric
 import com.taehokimmm.hapticvboard_android.database.addStudy2Metric
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.keyboardEfficiency
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager

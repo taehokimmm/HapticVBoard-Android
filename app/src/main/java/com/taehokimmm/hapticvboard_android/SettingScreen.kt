@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
-import com.taehokimmm.hapticvboard_android.database.resetData
 
 @Composable
 fun SettingScreen(
