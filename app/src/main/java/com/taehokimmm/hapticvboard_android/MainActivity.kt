@@ -404,6 +404,7 @@ fun DrawTopAppBar(
         })
     }
 }
+
 fun Context.findActivity(): Activity? {
     var context = this
     while (context is ContextWrapper) {

@@ -237,6 +237,26 @@ fun processTouchEvent(
                         )
                     }
                 }
+                else if (pointerPosition.y < 1533) {
+                    // Key pressed out of bounds
+                    Log.d(
+                        "TouchEvent",
+                        "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
+                    )
+                    activeTouches[pointerId] = "Out of Bounds"
+                    // Add Log
+                    if (name != null && logData != null) {
+                        addLog(
+                            context,
+                            name,
+                            logData,
+                            "DOWN",
+                            "Out of Bounds",
+                            pointerPosition.x,
+                            pointerPosition.y
+                        )
+                    }
+                }
             }
         }
 

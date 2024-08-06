@@ -77,7 +77,7 @@ fun Study2Test(
 
     val context = LocalContext.current
 
-    val totalBlock = when(isPractice) {
+    val totalBlock = when (isPractice) {
         true -> 1
         false -> 4
     }
@@ -101,9 +101,9 @@ fun Study2Test(
     val keystrokeTimestamps = remember { mutableStateListOf<Long>() }
 
     // Keyboard Efficiency
-    var keyStrokeNum by remember{mutableStateOf(0)}
+    var keyStrokeNum by remember { mutableStateOf(0) }
 
-    var isSpeakingDone by remember {mutableStateOf(false)}
+    var isSpeakingDone by remember { mutableStateOf(false) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var phrases by remember { mutableStateOf(listOf("")) }
     LaunchedEffect(Unit) {
@@ -115,7 +115,7 @@ fun Study2Test(
         if (hapticMode == HapticMode.VOICE) {
             phrases = phrases1.slice(0..totalBlock * testNumber - 1)
         } else {
-            phrases = phrases1.slice(totalBlock * testNumber .. phrases1.size - 1)
+            phrases = phrases1.slice(totalBlock * testNumber..phrases1.size - 1)
         }
 
 
@@ -140,7 +140,7 @@ fun Study2Test(
         }
     }
 
-    fun speak(word: String){
+    fun speak(word: String) {
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
@@ -152,10 +152,11 @@ fun Study2Test(
         delay(
             {
                 for (index in 0 until word.length) {
-                    tts?.speak(word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId")
+                    tts?.speak(
+                        word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId"
+                    )
                 }
-            },
-            500
+            }, 500
         )
     }
 
@@ -177,7 +178,7 @@ fun Study2Test(
 
     fun onConfirm(): Boolean {
         if (testWordCnt < testWords.size - 1) {
-            testWordCnt ++
+            testWordCnt++
             speak(testWords[testWordCnt])
             return false
         } else {
@@ -192,7 +193,7 @@ fun Study2Test(
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             soundManager.speakOut("Tap to start Block " + (testBlock + 1).toString())
-            testList = phrases.slice(testBlock * testNumber .. (testBlock + 1) * testNumber - 1)
+            testList = phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
             val targetText = testList[testIter]
             speak(targetText)
@@ -228,8 +229,9 @@ fun Study2Test(
                 shape = RoundedCornerShape(corner = CornerSize(0)),
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {
-                Text(text="Tap to Start \n Block : " + (testBlock + 1).toString(),
-                    fontSize = 20.sp)
+                Text(
+                    text = "Tap to Start \n Block : " + (testBlock + 1).toString(), fontSize = 20.sp
+                )
             }
         }
     } else if (testIter < testList.size) {
@@ -251,80 +253,74 @@ fun Study2Test(
                         .heightIn(min = 30.dp, max = 200.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    AndroidView(
-                        modifier = Modifier.fillMaxWidth(),
-                        factory = { ctx ->
-                            EditText(ctx).apply {
-                                hint = "Enter text here"
-                                textSize = 20f
-                                showSoftInputOnFocus = false
-                                setText(inputText)
-                                setSelection(inputText.length)
-                                isFocusable = true
-                                isCursorVisible = true
-                                isPressed=true
-                            }
-                        },
-                        update = { editText ->
-                            if (editText.text.toString() != inputText) {
-                                editText.setText(inputText)
-                                editText.setSelection(inputText.length)
-                            }
+                    AndroidView(modifier = Modifier.fillMaxWidth(), factory = { ctx ->
+                        EditText(ctx).apply {
+                            hint = "Enter text here"
+                            textSize = 20f
+                            showSoftInputOnFocus = false
+                            setText(inputText)
+                            setSelection(inputText.length)
+                            isFocusable = true
+                            isCursorVisible = true
+                            isPressed = true
                         }
-                    )
+                    }, update = { editText ->
+                        if (editText.text.toString() != inputText) {
+                            editText.setText(inputText)
+                            editText.setSelection(inputText.length)
+                        }
+                    })
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Box {
-                        KeyboardLayout(
-                            touchEvents = keyboardTouchEvents,
-                            onKeyRelease = { key ->
-                                var isEnd = false
-                                if (key == "Space") {
-                                    if (inputText.last() != ' ') {
-                                        isEnd = onConfirm()
-                                    } else {
-                                        speak(testWords[testWordCnt])
-                                    }
-                                } else if (key == "Replay") {
-                                    // Replay word
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyRelease = { key ->
+                            var isEnd = false
+                            if (key == "Space") {
+                                if (inputText.last() != ' ') {
+                                    isEnd = onConfirm()
+                                } else {
                                     speak(testWords[testWordCnt])
                                 }
+                            } else if (key == "Replay") {
+                                // Replay word
+                                speak(testWords[testWordCnt])
+                            }
 
-                                if (isEnd) return@KeyboardLayout
-                                inputText = when (key) {
-                                    "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
-                                    "Space" -> "$inputText "
-                                    "Shift" -> inputText
-                                    "Replay" -> {
-                                        endTime = System.currentTimeMillis()
-                                        inputText
-                                    }
-                                    else -> {
-                                        inputText + key
-                                    }
+                            if (isEnd) return@KeyboardLayout
+                            inputText = when (key) {
+                                "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                                "Space" -> "$inputText "
+                                "Shift" -> inputText
+                                "Replay" -> {
+                                    endTime = System.currentTimeMillis()
+                                    inputText
                                 }
-                                keystrokeTimestamps += System.currentTimeMillis()
-                                keyStrokeNum += 1
-                            },
-                            enterKeyVisibility = true,
-                            soundManager = soundManager,
-                            hapticManager = hapticManager,
-                            hapticMode = hapticMode
-                        )
-                        AndroidView(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp),
-                            factory = { context ->
-                                MultiTouchView(context).apply {
-                                    onMultiTouchEvent = { event ->
-                                        keyboardTouchEvents.clear()
-                                        keyboardTouchEvents.add(event)
-                                    }
+
+                                else -> {
+                                    inputText + key
                                 }
-                            })
-                    }
+                            }
+                            keystrokeTimestamps += System.currentTimeMillis()
+                            keyStrokeNum += 1
+                        },
+                        enterKeyVisibility = true,
+                        soundManager = soundManager,
+                        hapticManager = hapticManager,
+                        hapticMode = hapticMode
+                    )
+                }
             }
+            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                MultiTouchView(context).apply {
+                    onMultiTouchEvent = { event ->
+                        keyboardTouchEvents.clear()
+                        keyboardTouchEvents.add(event)
+                    }
+                }
+            })
         }
     }
 }

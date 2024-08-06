@@ -72,34 +72,29 @@ fun FreeTypeMode(
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
-            Box {
-                KeyboardLayout(
-                    touchEvents = keyboardTouchEvents,
-                    onKeyRelease = { key ->
-                        inputText = when (key) {
-                            "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
-                            "Space" -> "$inputText "
-                            "Shift" -> inputText
-                            else -> inputText + key
-                        }
-                    },
-                    soundManager = soundManager,
-                    hapticManager = hapticManager,
-                    hapticMode = HapticMode.VOICEPHONEME
-                )
-                AndroidView(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                    factory = { context ->
-                        MultiTouchView(context).apply {
-                            onMultiTouchEvent = { event ->
-                                keyboardTouchEvents.clear()
-                                keyboardTouchEvents.add(event)
-                            }
-                        }
-                    })
-            }
+            KeyboardLayout(
+                touchEvents = keyboardTouchEvents,
+                onKeyRelease = { key ->
+                    inputText = when (key) {
+                        "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                        "Space" -> "$inputText "
+                        "Shift" -> inputText
+                        else -> inputText + key
+                    }
+                },
+                soundManager = soundManager,
+                hapticManager = hapticManager,
+                hapticMode = HapticMode.VOICEPHONEME
+            )
         }
+        AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+            MultiTouchView(context).apply {
+                onMultiTouchEvent = { event ->
+                    keyboardTouchEvents.clear()
+                    keyboardTouchEvents.add(event)
+                }
+            }
+        })
     }
 }
 
@@ -116,8 +111,8 @@ fun FreeTypeWithGroup(
     var selectedTabIndex by remember { mutableStateOf(0) }
 
     var allKeys = ('a'..'z').map { it.toString() }
-    val allowKeys = if(selectedTabIndex in 0..group.size) {
-        allKeys.filter {it in group[selectedTabIndex]}
+    val allowKeys = if (selectedTabIndex in 0..group.size) {
+        allKeys.filter { it in group[selectedTabIndex] }
     } else {
         emptyList()
     }
@@ -155,17 +150,14 @@ fun FreeTypeWithGroup(
                     hapticMode = HapticMode.VOICEPHONEME,
                     allow = allowKeys
                 )
-                AndroidView(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                    factory = { context ->
-                        MultiTouchView(context).apply {
-                            onMultiTouchEvent = { event ->
-                                keyboardTouchEvents.clear()
-                                keyboardTouchEvents.add(event)
-                            }
+                AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                    MultiTouchView(context).apply {
+                        onMultiTouchEvent = { event ->
+                            keyboardTouchEvents.clear()
+                            keyboardTouchEvents.add(event)
                         }
-                    })
+                    }
+                })
             }
         }
     }
