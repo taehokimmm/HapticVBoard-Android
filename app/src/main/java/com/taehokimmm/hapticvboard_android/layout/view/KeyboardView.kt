@@ -157,7 +157,7 @@ fun DrawKey(
                 when (key) {
                     "Space" -> width * 6 + spacing * 8
                     "Replay" -> width * 2.5f
-                    "Shift", "Backspace", "Replay" -> width * 1.5f
+                    "Shift", "Backspace", -> width * 1.5f
                     else -> width
                 },
                 when (key) {
