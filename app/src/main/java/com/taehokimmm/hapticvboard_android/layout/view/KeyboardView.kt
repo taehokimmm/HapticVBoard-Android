@@ -28,6 +28,7 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 @Composable
 fun KeyboardLayout(
     touchEvents: List<MotionEvent>,
+    onKeyPress: ((String) -> Unit)? = null,
     onKeyRelease: (String) -> Unit,
     enterKeyVisibility: Boolean = false,
     soundManager: SoundManager? = null,
@@ -119,6 +120,7 @@ fun KeyboardLayout(
             event,
             keyPositions.value,
             activeTouches,
+            onKeyPress,
             onKeyRelease,
             soundManager!!,
             hapticManager!!,
@@ -198,6 +200,7 @@ fun processTouchEvent(
     event: MotionEvent,
     keyPositions: Map<String, LayoutCoordinates>,
     activeTouches: MutableMap<Int, String>,
+    onKeyPressed: ((String) -> Unit)?,
     onKeyReleased: (String) -> Unit,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
@@ -223,7 +226,8 @@ fun processTouchEvent(
                         HapticMode.VOICE
                     )
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
-
+                    if (onKeyPressed != null)
+                        onKeyPressed(key)
                     // Add Log
                     if (name != null && logData != null) {
                         addLog(
@@ -265,7 +269,9 @@ fun processTouchEvent(
                 val key = keyPositions.entries.find { (_, coordinates) ->
                     isPointerOverKey(coordinates, pointerPosition)
                 }?.key
+                Log.d("Touch Event", "MOVE " + key)
                 if (key != null && activeTouches[pointerId] != key) {
+
                     Log.d(
                         "TouchEvent",
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
@@ -279,15 +285,23 @@ fun processTouchEvent(
                             hapticManager?.generateHaptic(key, HapticMode.TICK)
                     }
 
-                    activeTouches[pointerId] = key
 
                     // Add Log
                     if (name != null && logData != null) {
                         addLog(
-                            context, name, logData, "MOVE", key,
+                            context, name, logData,
+                            if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
+                            key,
                             pointerPosition.x, pointerPosition.y
                         )
                     }
+
+                    if (activeTouches[pointerId] == null) {
+                        if (onKeyPressed != null)
+                            onKeyPressed(key)
+                    }
+
+                    activeTouches[pointerId] = key
                 } else if (key == null && activeTouches.containsKey(pointerId) && pointerPosition.y < 1533) {
                     // Key moved out of bounds, need to fix random number 1533
                     Log.d(

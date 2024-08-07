@@ -1,10 +1,16 @@
 package com.taehokimmm.hapticvboard_android.manager
 
 import android.content.Context
-import android.util.Log
+import android.media.AudioTrack
+import android.media.MediaPlayer
+import android.media.audiofx.HapticGenerator
+import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
+import androidx.annotation.RequiresApi
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.R
 
 
 class HapticManager(context: Context) {
@@ -13,8 +19,7 @@ class HapticManager(context: Context) {
     private val soundManager: SoundManager = SoundManager(context)
 
     @Synchronized
-    fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE){
-        Log.e("touchevent", key)
+    fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE) {
         if (hapticMode == HapticMode.NONE) return
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
@@ -108,4 +113,6 @@ class HapticManager(context: Context) {
     fun isOpen(): Boolean {
         return serialManager.isOpen()
     }
+
+
 }

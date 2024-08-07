@@ -77,26 +77,22 @@ fun Study1IdentiQuiz(
     var isExplaining by remember {mutableStateOf(false)}
 
     // Swipe Gesture
-    var swipeAmount by remember{mutableStateOf(0f)}
-    var swipeStartTime by remember{mutableStateOf(0L)}
+    var horizontalDragStart by remember {mutableStateOf(0f)}
+    var horizontalDragEnd by remember {mutableStateOf(0f)}
 
     fun explainKey(key: String, delay: Long = 0) {
         isExplaining = true
         // Phoneme
         delay({hapticManager?.generateHaptic(key,HapticMode.VOICE)},delay+0)
-        delay({hapticManager?.generateHaptic(key,HapticMode.PHONEME)},delay+200)
         // Phoneme
-        delay({soundManager?.playPhoneme(key)}, delay+1000)
-        delay({hapticManager?.generateHaptic(key,HapticMode.PHONEME)},delay+1200)
-        // Location
-        delay({soundManager?.playLocation(key)},delay+2000)
+        delay({soundManager?.playPhoneme(key)}, delay+700)
         delay({
             hapticManager?.generateHaptic(
                 key,
                 HapticMode.PHONEME
             )
-        }, delay+2200)
-        delay({isExplaining = false}, delay+2200)
+        }, delay+1500)
+        delay({isExplaining = false}, delay+2500)
     }
 
     fun onConfirm() {
@@ -145,11 +141,16 @@ fun Study1IdentiQuiz(
         if (isShowAnswer) {
             explainKey(testList[testIter])
         } else {
-            hapticManager.generateHaptic(
-                options[index],
-                HapticMode.PHONEME
-            )
             soundManager.speakOut((index+1).toString())
+            delay(
+                {
+                    hapticManager.generateHaptic(
+                        options[index],
+                        HapticMode.PHONEME
+                    )
+
+                }, 900
+            )
         }
     }
 
@@ -211,24 +212,23 @@ fun Study1IdentiQuiz(
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
                         onDragStart = { offset ->
-                            swipeStartTime = System.currentTimeMillis()
+                            horizontalDragStart = offset.x
                         },
                         onHorizontalDrag = { change, dragAmount ->
-                            swipeAmount = dragAmount
+                            horizontalDragEnd = change.position.x
                         },
                         onDragEnd = {
                             if (isExplaining || isShowAnswer) return@detectHorizontalDragGestures
 
-                            val time = System.currentTimeMillis() - swipeStartTime
-                            val speed = swipeAmount / time * 1000
-                            if (swipeAmount > 0 && speed > 0) {
+                            val swipeAmount = horizontalDragEnd - horizontalDragStart
+                            if (swipeAmount > 1) {
                                 if (selectedIndex < options.size - 1) {
                                     selectedIndex++
                                 } else {
                                     selectedIndex = 0
                                 }
                                 onSelect(selectedIndex)
-                            } else if (swipeAmount < 0 && speed < 0) {
+                            } else if (swipeAmount < -1) {
                                 if (selectedIndex > 0) {
                                     selectedIndex--
                                 } else {

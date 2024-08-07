@@ -4,6 +4,7 @@ import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -89,20 +90,22 @@ fun Study1FreePlay(
                     hapticMode = HapticMode.VOICEPHONEME,
                     allow = allowGroup
                 )
-                AndroidView(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                    factory = { context ->
-                        MultiTouchView(context).apply {
-                            onMultiTouchEvent = { event ->
-                                keyboardTouchEvents.clear()
-                                keyboardTouchEvents.add(event)
-                            }
-                        }
-                    })
+
             }
         }
     }
+
+    AndroidView(modifier = Modifier
+        .fillMaxWidth()
+        .fillMaxHeight(),
+        factory = { context ->
+            MultiTouchView(context).apply {
+                onMultiTouchEvent = { event ->
+                    keyboardTouchEvents.clear()
+                    keyboardTouchEvents.add(event)
+                }
+            }
+        })
 }
 
 fun getSuppressGroup(group: String): List<String> {

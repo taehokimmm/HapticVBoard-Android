@@ -214,20 +214,23 @@ fun Study1TypingQuiz(
                                 ),
                                 name = subject + "_" + group.last()
                             )
-                            AndroidView(modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp),
-                                factory = { context ->
-                                    MultiTouchView(context).apply {
-                                        onMultiTouchEvent = { event ->
-                                            keyboardTouchEvents.clear()
-                                            keyboardTouchEvents.add(event)
-                                        }
-                                    }
-                            })
                         }
                 }
             }
+        }
+
+        if (isSpeakingDone) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize().fillMaxHeight(),
+                factory = { context ->
+                    MultiTouchView(context).apply {
+                        onMultiTouchEvent = { event ->
+                            keyboardTouchEvents.clear()
+                            keyboardTouchEvents.add(event)
+                        }
+                    }
+                }
+            )
         }
     }
 }

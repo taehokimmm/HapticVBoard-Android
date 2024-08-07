@@ -3,32 +3,28 @@ package com.taehokimmm.hapticvboard_android.database
 import android.content.Context
 import android.os.AsyncTask
 import com.taehokimmm.hapticvboard_android.HapticMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // INSERT DATA FOR STUDY2
 fun <T : Any> addData2(context: Context, name:String, data:T, addFunction: (dao: Study2Dao, data: T) -> Unit) {
-    class SaveData : AsyncTask<Void, Void, Void>() {
-        override fun doInBackground(vararg p0: Void?): Void? {
-            val dao = Study2Database(context, name).getDao()
-            addFunction(dao, data)
-            return null
-        }
-
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
+    CoroutineScope(Dispatchers.IO).launch {
+        val dao = Study2Database.getInstance(context, name).getDao()
+        addFunction(dao, data)
+        withContext(Dispatchers.Main) {
+            // You can update UI here if needed
         }
     }
-    SaveData().execute()
 }
-fun addStudy2Metric(context: Context, subject: String, hapticMode: HapticMode, data: Study2Metric){
-    var name = subject + "_"
-    when(hapticMode) {
-        HapticMode.TICK -> name += "vibration"
-        HapticMode.PHONEME -> name += "phoneme"
-        HapticMode.VOICE -> name += "audio"
-        else -> name += ""
-    }
+fun addStudy2Metric(context: Context, name: String, data: Study2Metric){
     addData2(context, name, data) { dao, answer -> dao.add2Metric(answer) }
-    closeStudy2Database()
+}
+
+fun addStudy2Log(context: Context, name: String, data: Study2TestLog){
+    addData2(context, name, data
+    ) { dao, answer -> dao.addLog(answer) }
 }
 
 fun closeStudy2Database() {

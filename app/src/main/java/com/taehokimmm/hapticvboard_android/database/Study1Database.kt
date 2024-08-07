@@ -15,7 +15,6 @@ abstract class Study1Database : RoomDatabase() {
 
     companion object{
         @Volatile private var INSTANCE: Study1Database? = null
-        private val LOCK = Any()
 
         fun getInstance(context: Context, name: String): Study1Database {
             return INSTANCE ?: synchronized(this) {

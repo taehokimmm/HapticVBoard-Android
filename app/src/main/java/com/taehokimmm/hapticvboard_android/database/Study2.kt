@@ -27,7 +27,7 @@ data class Study2Metric(
     val block: Int,
     val iteration: Int,
     val wpm: Double,
-    val iki: Double,
+    val pressDuration: Double,
     val uer: Double,
     val keyEff: Double,
     val target: String,
@@ -36,4 +36,22 @@ data class Study2Metric(
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0
+}
+
+
+@Entity("study2Log")
+data class Study2TestLog(
+    val block: Int,
+    val iteration: Int,
+    val targetText: String,
+    val inputText: String,
+    var state: String = "", // DOWN, UP, MOVE
+    var touchedKey: String = "",
+    var x : Float = 0.0f,
+    var y : Float = 0.0f,
+    var timestamp: Long = System.currentTimeMillis(),
+    var date: String = System.currentTimeMillis().toFormattedDateString()
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id : Int = 0
 }
