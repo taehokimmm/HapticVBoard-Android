@@ -7,4 +7,7 @@ import androidx.room.Insert
 interface Study2Dao {
     @Insert
     fun add2Metric(data: Study2Metric)
+
+    @Insert
+    fun addLog(data: Study2TestLog)
 }

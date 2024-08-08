@@ -72,3 +72,7 @@ fun keyboardEfficiency(inputText: String, keyStrokeNum: Int): Double {
     val charNum = inputText.length
     return charNum.toDouble() / keyStrokeNum.toDouble()
 }
+
+fun calculatePressDuration(pressDurations: List<Long>): Double {
+    return pressDurations.average()
+}

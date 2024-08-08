@@ -39,6 +39,13 @@ fun GroupIntro(
             listOf("y")
         )
         names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
+
+//        phonemeGroups = listOf(
+//            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
+//            listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
+//            listOf("z", "x", "c", "v", "b", "n", "m")
+//        )
+//        names = listOf("위", "위아래", "아래")
     }
     val allowGroup = getAllowGroup(group)
 

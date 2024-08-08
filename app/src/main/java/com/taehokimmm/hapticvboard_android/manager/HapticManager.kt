@@ -1,10 +1,16 @@
 package com.taehokimmm.hapticvboard_android.manager
 
 import android.content.Context
-import android.util.Log
+import android.media.AudioTrack
+import android.media.MediaPlayer
+import android.media.audiofx.HapticGenerator
+import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
+import androidx.annotation.RequiresApi
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.R
 
 
 class HapticManager(context: Context) {
@@ -13,8 +19,7 @@ class HapticManager(context: Context) {
     private val soundManager: SoundManager = SoundManager(context)
 
     @Synchronized
-    fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE){
-        Log.e("touchevent", key)
+    fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE) {
         if (hapticMode == HapticMode.NONE) return
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
@@ -31,43 +36,12 @@ class HapticManager(context: Context) {
             generateVibration(key)
             return
         }
-
         // Haptic Tick for Special Keys
         if (key == "Backspace" || key == "Space" || key == "Replay") {
             generateVibration(key)
             return
         }
-        // Provide Phoneme Feedback
-        val keyToResourceMap = mapOf(
-            'a' to "a",
-            'b' to "b",
-            'c' to "k",
-            'd' to "d",
-            'e' to "e",
-            'f' to "f",
-            'g' to "g",
-            'h' to "hh",
-            'i' to "i",
-            'j' to "j",
-            'k' to "k",
-            'l' to "l",
-            'm' to "m",
-            'n' to "n",
-            'o' to "o",
-            'p' to "p",
-            'q' to "k",
-            'r' to "r",
-            's' to "s",
-            't' to "t",
-            'u' to "u",
-            'v' to "v",
-            'w' to "w",
-            'x' to "ks",
-            'y' to "y",
-            'z' to "z",
-        )
-
-        val formattedKey = keyToResourceMap[key[0]]?.uppercase()?.padEnd(8)
+        val formattedKey = key[0]?.uppercase()?.padEnd(8)
 
         if (formattedKey == null) {
             Log.d("HapticFeedback", "No haptic found for key: $key, skipping...")
@@ -108,4 +82,6 @@ class HapticManager(context: Context) {
     fun isOpen(): Boolean {
         return serialManager.isOpen()
     }
+
+
 }

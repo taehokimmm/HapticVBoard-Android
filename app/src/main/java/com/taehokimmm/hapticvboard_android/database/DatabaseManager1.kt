@@ -12,18 +12,6 @@ import java.io.File
 
 // INSERT DATA FOR STUDY1
 fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1Dao, data: T) -> Unit) {
-//    class SaveData : AsyncTask<Void, Void, Void>() {
-//        override fun doInBackground(vararg p0: Void?): Void? {
-//            val dao = Study1Database(context, name).getDao()
-//            addFunction(dao, data)
-//            return null
-//        }
-//
-//        override fun onPostExecute(result: Void?) {
-//            super.onPostExecute(result)
-//        }
-//    }
-//    SaveData().execute()
     CoroutineScope(Dispatchers.IO).launch {
         val dao = Study1Database.getInstance(context, name).getDao()
         addFunction(dao, data)
@@ -41,6 +29,7 @@ fun addStudy1Answer(context: Context, subject: String, group: String, data: Stud
 fun closeStudy1Database() {
     Study1Database.closeDatabase()
 }
+
 fun addStudy1TrainPhase3Answer(context: Context, subject: String, group: String, data: Study1Phase3Answer){
     addData(context, subject + "_" + group, data
     ) { dao, answer -> dao.addTrainPhase3(answer) }
@@ -82,6 +71,15 @@ fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touc
             data.timestamp = System.currentTimeMillis()
             data.date = System.currentTimeMillis().toFormattedDateString()
             addStudy1Phase3Log(context, name, data)
+        }
+        is Study2TestLog -> {
+            data.x = x
+            data.y = y
+            data.state = state
+            data.touchedKey = touchedKey
+            data.timestamp = System.currentTimeMillis()
+            data.date = System.currentTimeMillis().toFormattedDateString()
+            addStudy2Log(context, name, data)
         }
         else -> {
             // Handle unknown type

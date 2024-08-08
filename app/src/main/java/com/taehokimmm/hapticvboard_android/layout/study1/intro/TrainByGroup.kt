@@ -55,9 +55,9 @@ fun TrainGroup(
     fun explainKey(key: String) {
         isExplaining = true
         hapticManager?.generateHaptic(key,HapticMode.VOICE)
-        delay({soundManager?.playPhoneme(key)},1000)
-        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },2000)
-        delay({isExplaining = false}, 1400)
+        delay({soundManager?.playPhoneme(key)},700)
+        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500)
+        delay({isExplaining = false}, 1500)
     }
 
     fun onSelect(index: Int) {
