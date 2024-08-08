@@ -36,7 +36,7 @@ import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 @Composable
 fun Study1TrainInit(navController: NavHostController) {
     var context = LocalContext.current
-    var testSubjectIdentifier by remember { mutableStateOf("test") }
+    var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
     var options = listOf("A", "B", "C", "D")

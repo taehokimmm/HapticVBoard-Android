@@ -377,7 +377,6 @@ fun Study2Test(
                                     // Replay word
                                     speak(testWords[testWordCnt])
                                 }
-                                
                                 if (isEnd) return@KeyboardLayout
 
                                 inputText = when (key) {

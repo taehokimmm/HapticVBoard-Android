@@ -41,7 +41,7 @@ import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 @Composable
 fun Study2Init(navController: NavHostController) {
     var context = LocalContext.current
-    var testSubjectIdentifier by remember { mutableStateOf("test") }
+    var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()

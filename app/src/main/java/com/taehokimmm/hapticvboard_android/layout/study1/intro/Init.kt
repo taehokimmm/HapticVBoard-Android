@@ -39,7 +39,7 @@ import com.taehokimmm.hapticvboard_android.database.resetData
 @Composable
 fun IntroInit(navController: NavHostController) {
     val context = LocalContext.current
-    var testSubjectIdentifier by remember { mutableStateOf("test") }
+    var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
     var options = listOf("A", "B", "C", "D")
