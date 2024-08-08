@@ -7,11 +7,9 @@ import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
@@ -76,7 +73,7 @@ fun Study1TypingQuiz(
     val correctAnswers = remember { mutableStateListOf<Char>() }
 
     var startTime by remember { mutableStateOf(0L) }
-    var isSpeakingDone by remember {mutableStateOf(false)}
+    var isSpeakingDone by remember { mutableStateOf(false) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     LaunchedEffect(Unit) {
         // Initiate TTS
@@ -102,10 +99,10 @@ fun Study1TypingQuiz(
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-        tts?.speak("Press : "+testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+        tts?.speak("Press : " + testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
     }
 
-    LaunchedEffect (testIter) {
+    LaunchedEffect(testIter) {
         if (testIter == -1) {
             soundManager.speakOut("Tap to start block " + testBlock)
         }
@@ -128,8 +125,9 @@ fun Study1TypingQuiz(
                 shape = RoundedCornerShape(corner = CornerSize(0)),
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {
-                Text(text="Tap to Start \n Block : " + testBlock,
-                    fontSize = 20.sp)
+                Text(
+                    text = "Tap to Start \n Block : " + testBlock, fontSize = 20.sp
+                )
             }
         }
     } else if (testIter == testList.size) {
@@ -145,88 +143,76 @@ fun Study1TypingQuiz(
             testIter = -1
         }
     } else {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
             TestDisplay(testIter, testList.size, testList[testIter][0], soundManager)
 
-                Column(
-                    modifier = Modifier.align(Alignment.BottomStart),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            if (isSpeakingDone) {
+                Box(
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
                 ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Box {
-                        if (isSpeakingDone) {
-                            KeyboardLayout(
-                                touchEvents = keyboardTouchEvents,
-                                onKeyRelease = { key ->
-                                    if (allowlist.contains(key)) {
-                                        soundManager.speakOut(key)
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyRelease = { key ->
+                            if (allowlist.contains(key)) {
+                                soundManager.speakOut(key)
 
-                                        val isCorrect = key == testList[testIter]
-                                        if (key == testList[testIter]) {
-                                            correct++
-                                        } else {
-                                            wrongAnswers.add(key[0])
-                                            correctAnswers.add(testList[testIter][0])
-                                        }
-                                        //--- Append Data to Database ---//
-                                        val curTime = System.currentTimeMillis()
-
-                                        val data = Study1Phase3Answer(
-                                            answer = testList[testIter],
-                                            perceived = key,
-                                            iter = testIter,
-                                            block = testBlock,
-                                            duration = curTime - startTime
-                                        )
-                                        addStudy1TrainPhase3Answer(context, subject, group, data)
-                                        // ------------------------------//
-
-                                        delay(
-                                            {// Speak next target alphabet key
-                                                soundManager.playSound(isCorrect)
-                                            },500
-                                        )
-
-                                        delay(
-                                            {// Speak next target alphabet key
-                                                testIter++
-                                                if (testIter < testList.size) speak()
-                                            },
-                                            1500
-                                        )
-                                        isSpeakingDone = false
-
-                                    }
-                                },
-                                soundManager = soundManager,
-                                hapticManager = hapticManager,
-                                hapticMode = hapticMode,
-                                allow = allowlist,
-                                logData = Study1Phase3Log(
-                                    answer = testList[testIter],
-                                    iter = testIter,
-                                    block = testBlock
-                                ),
-                                name = subject + "_" + group.last()
-                            )
-
-                            AndroidView(
-                                modifier = Modifier.fillMaxSize().fillMaxHeight(),
-                                factory = { context ->
-                                    MultiTouchView(context).apply {
-                                        onMultiTouchEvent = { event ->
-                                            keyboardTouchEvents.clear()
-                                            keyboardTouchEvents.add(event)
-                                        }
-                                    }
+                                val isCorrect = key == testList[testIter]
+                                if (key == testList[testIter]) {
+                                    correct++
+                                } else {
+                                    wrongAnswers.add(key[0])
+                                    correctAnswers.add(testList[testIter][0])
                                 }
-                            )
+                                //--- Append Data to Database ---//
+                                val curTime = System.currentTimeMillis()
+
+                                val data = Study1Phase3Answer(
+                                    answer = testList[testIter],
+                                    perceived = key,
+                                    iter = testIter,
+                                    block = testBlock,
+                                    duration = curTime - startTime
+                                )
+                                addStudy1TrainPhase3Answer(context, subject, group, data)
+                                // ------------------------------//
+
+                                delay(
+                                    {// Speak next target alphabet key
+                                        soundManager.playSound(isCorrect)
+                                    }, 500
+                                )
+
+                                delay(
+                                    {// Speak next target alphabet key
+                                        testIter++
+                                        if (testIter < testList.size) speak()
+                                    }, 1500
+                                )
+                                isSpeakingDone = false
+
+                            }
+                        },
+                        soundManager = soundManager,
+                        hapticManager = hapticManager,
+                        hapticMode = hapticMode,
+                        allow = allowlist,
+                        logData = Study1Phase3Log(
+                            answer = testList[testIter], iter = testIter, block = testBlock
+                        ),
+                        name = subject + "_" + group.last()
+                    )
+                    AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                        MultiTouchView(context).apply {
+                            onMultiTouchEvent = { event ->
+                                keyboardTouchEvents.clear()
+                                keyboardTouchEvents.add(event)
+                            }
                         }
+                    })
                 }
             }
         }

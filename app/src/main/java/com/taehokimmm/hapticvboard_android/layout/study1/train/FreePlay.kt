@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -21,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
@@ -54,57 +52,51 @@ fun Study1FreePlay(
     }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
     ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // Show countdown (MM:SS)
+            Text(
+                text = "%02d:%02d".format(countdown / 60, countdown % 60),
+                fontSize = 30.sp,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
 
-        // Show countdown (MM:SS)
-        Text(
-            text = "%02d:%02d".format(countdown / 60, countdown % 60),
-            fontSize = 30.sp,
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
-
-        Button(
-            onClick = {
-                closeStudy1Database()
-                navController.navigate("study1/train/phase3/${subject}/${group}")
-            }, modifier = Modifier.align(Alignment.TopEnd)
-        ) {
-            Text("Skip")
-        }
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.align(Alignment.BottomStart)
-        ) {
-            Box {
-                KeyboardLayout(
-                    touchEvents = keyboardTouchEvents,
-                    onKeyRelease = { },
-                    soundManager = soundManager,
-                    hapticManager = hapticManager,
-                    hapticMode = HapticMode.VOICEPHONEME,
-                    allow = allowGroup
-                )
-                AndroidView(modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                    factory = { context ->
-                        MultiTouchView(context).apply {
-                            onMultiTouchEvent = { event ->
-                                keyboardTouchEvents.clear()
-                                keyboardTouchEvents.add(event)
-                            }
-                        } })
-
+            Button(
+                onClick = {
+                    closeStudy1Database()
+                    navController.navigate("study1/train/phase3/${subject}/${group}")
+                }, modifier = Modifier.align(Alignment.TopEnd)
+            ) {
+                Text("Skip")
             }
         }
-    }
+        Box(
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
+        ) {
+            KeyboardLayout(
+                touchEvents = keyboardTouchEvents,
+                onKeyRelease = { },
+                soundManager = soundManager,
+                hapticManager = hapticManager,
+                hapticMode = HapticMode.VOICEPHONEME,
+                allow = allowGroup
+            )
 
+            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                MultiTouchView(context).apply {
+                    onMultiTouchEvent = { event ->
+                        keyboardTouchEvents.clear()
+                        keyboardTouchEvents.add(event)
+                    }
+                }
+            })
+        }
+    }
 }
 
 fun getSuppressGroup(group: String): List<String> {
