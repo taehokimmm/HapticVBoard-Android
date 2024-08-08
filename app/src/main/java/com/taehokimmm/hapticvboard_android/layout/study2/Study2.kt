@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.EditText
 import androidx.compose.foundation.border
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -268,33 +270,15 @@ fun Study2Test(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .pointerInput(Unit) {
-                        detectTapGestures(
-                            onDoubleTap = {
-                                if (!isTypingMode) {
-                                    isTypingMode = true
-                                    testWordCnt = -1
-                                    onConfirm()
-                                }
-                            },
-                            onTap = {
-                                if (!isTypingMode) {
-                                    speakWord(testWords[testWordCnt])
-                                }
-                            }
-                        )
-                    }
-                    .pointerInput(Unit) {
                         detectHorizontalDragGestures(
                             onDragStart = { offset ->
-                                if (isTypingMode) return@detectHorizontalDragGestures
+                                Log.d("Study2", "on horizontal drag start")
                                 horizontalDragStart = offset.x
                             },
                             onHorizontalDrag = { change, dragAmount ->
-                                if (isTypingMode) return@detectHorizontalDragGestures
                                 horizontalDragEnd = change.position.x
                             },
                             onDragEnd = {
-                                if (isTypingMode) return@detectHorizontalDragGestures
                                 val amount = horizontalDragEnd - horizontalDragStart
                                 if (amount > 1) {
                                     if (testWordCnt < testWords.size - 1)
@@ -310,22 +294,32 @@ fun Study2Test(
                     .pointerInput(Unit) {
                         detectVerticalDragGestures(
                             onDragStart = { offset ->
-
-                                if (isTypingMode) return@detectVerticalDragGestures
+                                Log.d("Study2", "on vertical drag start")
                                 verticalDragStart = offset.y
                             },
                             onVerticalDrag = { change, dragAmount ->
-                                if (isTypingMode) return@detectVerticalDragGestures
                                 verticalDragEnd = change.position.y
 
                             },
                             onDragEnd = {
-
-                                if (isTypingMode) return@detectVerticalDragGestures
                                 val amount = verticalDragEnd - verticalDragStart
                                 if (amount < -1) {
                                     speak(testList[testIter])
                                 }
+                            }
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = {
+                                Log.d("Study2", "on double tap")
+                                isTypingMode = true
+                                testWordCnt = -1
+                                onConfirm()
+                            },
+                            onTap = {
+                                Log.d("Study2", "on double tap")
+                                speakWord(testWords[testWordCnt])
                             }
                         )
                     }
@@ -370,7 +364,6 @@ fun Study2Test(
                             touchEvents = keyboardTouchEvents,
                             onKeyPress = { key ->
                                 pressStartTime = System.currentTimeMillis()
-                                Log.d("Study 2", "Key Press" + pressStartTime)
                             },
                             onKeyRelease = { key ->
                                 var isEnd = false
@@ -402,7 +395,6 @@ fun Study2Test(
                                 if (key != "Replay") {
                                     val curTime = System.currentTimeMillis()
                                     val pressDur = curTime - pressStartTime
-                                    Log.d("Study 2", (pressDur).toString())
                                     pressDurations += pressDur
                                     keystrokeTimestamps += curTime
                                     keyStrokeNum += 1
@@ -434,14 +426,14 @@ fun Study2Test(
                     }
                 }
             }
-            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
-                MultiTouchView(context).apply {
-                    onMultiTouchEvent = { event ->
-                        keyboardTouchEvents.clear()
-                        keyboardTouchEvents.add(event)
-                    }
-                }
-            })
+//            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+//                MultiTouchView(context).apply {
+//                    onMultiTouchEvent = { event ->
+//                        keyboardTouchEvents.clear()
+//                        keyboardTouchEvents.add(event)
+//                    }
+//                }
+//            })
         }
         if (isTypingMode) {
             AndroidView(
