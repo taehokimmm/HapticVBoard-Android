@@ -82,7 +82,7 @@ fun Study1IdentiQuiz(
 
     fun explainKey(key: String, delay: Long = 0) {
         isExplaining = true
-        // Phoneme
+        // Word
         delay({hapticManager?.generateHaptic(key,HapticMode.VOICE)},delay+0)
         // Phoneme
         delay({soundManager?.playPhoneme(key)}, delay+700)
@@ -129,10 +129,8 @@ fun Study1IdentiQuiz(
             addStudy1TrainPhase2Answer(context, subject, group, data)
             // ------------------------------//
             explainKey(targetOption, 500)
-
         }
     }
-
 
     fun onSelect(index: Int) {
         if (isExplaining) return

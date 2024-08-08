@@ -36,43 +36,12 @@ class HapticManager(context: Context) {
             generateVibration(key)
             return
         }
-
         // Haptic Tick for Special Keys
         if (key == "Backspace" || key == "Space" || key == "Replay") {
             generateVibration(key)
             return
         }
-        // Provide Phoneme Feedback
-        val keyToResourceMap = mapOf(
-            'a' to "a",
-            'b' to "b",
-            'c' to "k",
-            'd' to "d",
-            'e' to "e",
-            'f' to "f",
-            'g' to "g",
-            'h' to "hh",
-            'i' to "i",
-            'j' to "j",
-            'k' to "k",
-            'l' to "l",
-            'm' to "m",
-            'n' to "n",
-            'o' to "o",
-            'p' to "p",
-            'q' to "k",
-            'r' to "r",
-            's' to "s",
-            't' to "t",
-            'u' to "u",
-            'v' to "v",
-            'w' to "w",
-            'x' to "ks",
-            'y' to "y",
-            'z' to "z",
-        )
-
-        val formattedKey = keyToResourceMap[key[0]]?.uppercase()?.padEnd(8)
+        val formattedKey = key[0]?.uppercase()?.padEnd(8)
 
         if (formattedKey == null) {
             Log.d("HapticFeedback", "No haptic found for key: $key, skipping...")

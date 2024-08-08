@@ -90,22 +90,21 @@ fun Study1FreePlay(
                     hapticMode = HapticMode.VOICEPHONEME,
                     allow = allowGroup
                 )
+                AndroidView(modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                    factory = { context ->
+                        MultiTouchView(context).apply {
+                            onMultiTouchEvent = { event ->
+                                keyboardTouchEvents.clear()
+                                keyboardTouchEvents.add(event)
+                            }
+                        } })
 
             }
         }
     }
 
-    AndroidView(modifier = Modifier
-        .fillMaxWidth()
-        .fillMaxHeight(),
-        factory = { context ->
-            MultiTouchView(context).apply {
-                onMultiTouchEvent = { event ->
-                    keyboardTouchEvents.clear()
-                    keyboardTouchEvents.add(event)
-                }
-            }
-        })
 }
 
 fun getSuppressGroup(group: String): List<String> {

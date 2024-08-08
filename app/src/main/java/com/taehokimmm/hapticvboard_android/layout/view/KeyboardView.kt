@@ -211,7 +211,7 @@ fun processTouchEvent(
     name: String?
 ) {
     when (event.actionMasked) {
-        MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+        MotionEvent.ACTION_DOWN-> {
             for (i in 0 until event.pointerCount) {
                 val pointerId = event.getPointerId(i)
                 val pointerPosition = Offset(event.getX(i), event.getY(i))
@@ -244,13 +244,23 @@ fun processTouchEvent(
             }
         }
 
-        MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+        MotionEvent.ACTION_UP -> {
             val pointerId = event.getPointerId(event.actionIndex)
             val key = activeTouches.remove(pointerId)
             if (key != null) {
-                Log.d("TouchEvent", "Key released: $key for pointer $pointerId")
-                if (key != "Out of Bounds")
+                if (key != "Out of Bounds") {
                     onKeyReleased(key)
+
+                    if (allow.contains(key))
+                        hapticManager?.generateHaptic(key, hapticMode)
+                    else {
+                        if (hapticMode == HapticMode.VOICEPHONEME)
+                            hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
+                        else
+                            hapticManager?.generateHaptic(key, HapticMode.TICK)
+                    }
+                }
+
                 // Add Log
                 if (name != null && logData != null) {
                     val pointerPosition =
