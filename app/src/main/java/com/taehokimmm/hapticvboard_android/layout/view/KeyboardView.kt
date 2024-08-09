@@ -339,7 +339,7 @@ fun processTouchEvent(
                         "TouchEvent",
                         "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
                     )
-                    if (activeTouches[pointerId] != "Out of Bounds")
+                    if (activeTouches[pointerId] != "Out of Bounds" && activeTouches[pointerId] != null)
                         hapticManager!!.generateVibration("Replay")
                     activeTouches[pointerId] = "Out of Bounds"
                     // Add Log
