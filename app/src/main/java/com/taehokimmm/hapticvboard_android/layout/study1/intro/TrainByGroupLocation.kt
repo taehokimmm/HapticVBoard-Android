@@ -167,7 +167,7 @@ fun TrainGroupLocation(
                     ) {
 
                         //val boxSize = maxWidth / subgroup.size - 20.dp // Adjust the padding here as needed
-                        val boxSize = if (subgroup.size <= 3) 130.dp else 100.dp
+                        val boxSize = if (subgroup.size <= 3) 130.dp else 90.dp
                         FlowRow(
                             horizontalArrangement = Arrangement.Center,
                             verticalArrangement = Arrangement.Center,
@@ -176,7 +176,7 @@ fun TrainGroupLocation(
                             subgroup.forEachIndexed { index, alphabet ->
                                 Box (
                                     modifier = Modifier
-                                        .size(boxSize, boxSize)
+                                        .size(boxSize, 150.dp)
                                         .padding(0.dp)
                                         .align(Alignment.CenterVertically)
                                         .background(
