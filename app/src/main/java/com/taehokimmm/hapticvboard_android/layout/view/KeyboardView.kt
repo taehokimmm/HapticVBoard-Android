@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.view.MotionEvent
-import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -82,7 +81,7 @@ fun KeyboardLayout(
                             })
                     }
                 }
-                Spacer(modifier = Modifier.height(9.dp))
+                Spacer(modifier = Modifier.height(0.dp))
             }
 
             Row {
@@ -140,10 +139,10 @@ fun DrawKey(
     isPressed: Boolean,
     onPositioned: (LayoutCoordinates) -> Unit,
 ) {
-    val width = 36.dp
-    val height = 51.dp
+    val width = 41.dp
+    val height = 63.dp
     val textSize = 28.sp
-    val spacing = 2.dp
+    val spacing = 0.dp
 
     val backgroundColor = when {
         isPressed -> Color.Gray
@@ -154,7 +153,7 @@ fun DrawKey(
     Box(
         modifier = Modifier
             .padding(spacing)
-            .clip(RoundedCornerShape(5.dp))
+            .border(1.dp, Color.Black)
             .size(
                 when (key) {
                     "Space" -> width * 6 + spacing * 8
@@ -314,7 +313,10 @@ fun processTouchEvent(
                         else
                             hapticManager?.generateHaptic(key, HapticMode.TICK)
                     }
-
+                    
+                    if (activeTouches[pointerId] == "Out of Bounds")
+                        hapticManager!!.generateVibration("Replay")
+                    activeTouches[pointerId] = key
 
                     // Add Log
                     if (name != null && logData != null) {
@@ -338,6 +340,8 @@ fun processTouchEvent(
                         "TouchEvent",
                         "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
                     )
+                    if (activeTouches[pointerId] != "Out of Bounds")
+                        hapticManager!!.generateVibration("Replay")
                     activeTouches[pointerId] = "Out of Bounds"
                     // Add Log
                     if (name != null && logData != null) {
