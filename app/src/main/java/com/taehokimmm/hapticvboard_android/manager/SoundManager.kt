@@ -23,6 +23,7 @@ class SoundManager(context: Context) {
     private lateinit var soundPool: SoundPool
     var correctId: Int = 0
     var wrongId: Int = 0
+    lateinit var mediaPlayer: MediaPlayer
 
     init {
 
@@ -125,7 +126,6 @@ class SoundManager(context: Context) {
      */
     @Synchronized
     fun playSound(isCorrect: Boolean) {
-        var mediaPlayer: MediaPlayer
         if (isCorrect) {
             mediaPlayer =
                 MediaPlayer.create(context, R.raw.correct)
@@ -133,7 +133,6 @@ class SoundManager(context: Context) {
             mediaPlayer =
                 MediaPlayer.create(context, R.raw.wrong)
         }
-        Log.e("play sound", isCorrect.toString())
         mediaPlayer.start()
     }
 
@@ -167,7 +166,6 @@ class SoundManager(context: Context) {
             "y" to R.raw.phoneme_y,
             "z" to R.raw.phoneme_z
         )
-        var mediaPlayer: MediaPlayer
         mediaPlayer =
             keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
         mediaPlayer.start()
