@@ -349,18 +349,15 @@ fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: 
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
-            onClick = {
-                soundManager.speakOut(testLetter.toString())
-            },
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(height),
-            shape = RoundedCornerShape(corner = CornerSize(0)),
-            colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+                .height(height)
+                .align(Alignment.CenterHorizontally),
+            contentAlignment = Alignment.Center
         ) {
             Text(
-                text = testLetter.uppercase(), fontSize = 60.sp, fontWeight = FontWeight.Bold
+                text = testLetter.uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold
             )
         }
     }

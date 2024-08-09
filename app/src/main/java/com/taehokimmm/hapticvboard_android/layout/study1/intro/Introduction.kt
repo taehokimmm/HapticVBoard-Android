@@ -45,7 +45,7 @@ fun GroupIntro(
             listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
             listOf("z", "x", "c", "v", "b", "n", "m")
         )
-        names = listOf("위", "중간", "아래")
+        names = listOf("1행", "2행", "3행")
     }
     val allowGroup = getAllowGroup(group)
 
