@@ -50,6 +50,7 @@ fun FreeTypeMode(
             .fillMaxSize()
             .padding(innerPadding)
     ) {
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.align(Alignment.BottomStart)

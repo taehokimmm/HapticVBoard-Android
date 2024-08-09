@@ -4,9 +4,13 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.EditText
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,10 +49,13 @@ import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.R
 import com.taehokimmm.hapticvboard_android.calculateIKI
+import com.taehokimmm.hapticvboard_android.calculatePressDuration
 import com.taehokimmm.hapticvboard_android.calculateUER
 import com.taehokimmm.hapticvboard_android.calculateWPM
 import com.taehokimmm.hapticvboard_android.database.Study2Metric
+import com.taehokimmm.hapticvboard_android.database.Study2TestLog
 import com.taehokimmm.hapticvboard_android.database.addStudy2Metric
+import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.keyboardEfficiency
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -66,6 +74,12 @@ fun Study2Test(
     hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
+    val name = subject + "_" + when(hapticMode) {
+        HapticMode.TICK -> "vibration"
+        HapticMode.PHONEME -> "phoneme"
+        HapticMode.VOICE -> "audio"
+        else -> ""
+    }
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
@@ -94,12 +108,22 @@ fun Study2Test(
     // IKI
     val keystrokeTimestamps = remember { mutableStateListOf<Long>() }
 
+    // Press Duration
+    var pressDurations by remember{mutableStateOf(listOf(0L))}
+    var pressStartTime by remember{mutableLongStateOf(0)}
+
     // Keyboard Efficiency
     var keyStrokeNum by remember { mutableStateOf(0) }
 
     var isSpeakingDone by remember { mutableStateOf(false) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var phrases by remember { mutableStateOf(listOf("")) }
+
+    var isTypingMode by remember {mutableStateOf(false)}
+    var horizontalDragStart by remember {mutableStateOf(0f)}
+    var horizontalDragEnd by remember {mutableStateOf(0f)}
+    var verticalDragStart by remember {mutableStateOf(0f)}
+    var verticalDragEnd by remember {mutableStateOf(0f)}
     LaunchedEffect(Unit) {
 
         var phrases1 = when (isPractice) {
@@ -129,7 +153,6 @@ fun Study2Test(
                     override fun onError(utteranceId: String?) {
                     }
                 })
-                tts?.setSpeechRate(0.75f)
             }
         }
     }
@@ -139,10 +162,17 @@ fun Study2Test(
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
 
-        tts?.setSpeechRate(0.5f)
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
 
-        tts?.setSpeechRate(1f)
+    }
+
+    fun speakWord(word: String) {
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+
+        tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
+
+        if (word.length == 1) return
         delay(
             {
                 for (index in 0 until word.length) {
@@ -158,13 +188,14 @@ fun Study2Test(
         wordCount = inputText.split("\\s+".toRegex()).size
         val targetText = testList[testIter]
         val wpm = calculateWPM(startTime, endTime, wordCount)
-        val iki = calculateIKI(keystrokeTimestamps)
+        //val iki = calculateIKI(keystrokeTimestamps)
+        val pd = calculatePressDuration(pressDurations)
         val uer = calculateUER(targetText, inputText)
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = Study2Metric(
-            testBlock, testIter, wpm, iki, uer, ke, targetText, inputText
+            testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
         )
-        addStudy2Metric(context, subject, hapticMode, data)
+        addStudy2Metric(context, name, data)
         startTime = System.currentTimeMillis()
         keystrokeTimestamps.clear()
         keyStrokeNum = 0
@@ -192,12 +223,12 @@ fun Study2Test(
             val targetText = testList[testIter]
             speak(targetText)
             testWords = targetText.split(" ")
-            testWordCnt = -1
-            onConfirm()
+            testWordCnt = 0
+            isTypingMode = false
         } else {
             testBlock++
             if (testBlock >= totalBlock) {
-                //closeStudy2Database()
+                closeStudy2Database()
                 navController!!.navigate("study2/end/$subject")
             } else {
                 testIter = -1
@@ -230,9 +261,69 @@ fun Study2Test(
         }
     } else if (testIter < testList.size) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = when(isTypingMode) {
+                true -> Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+
+                false -> Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragStart = { offset ->
+                                Log.d("Study2", "on horizontal drag start")
+                                horizontalDragStart = offset.x
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                horizontalDragEnd = change.position.x
+                            },
+                            onDragEnd = {
+                                val amount = horizontalDragEnd - horizontalDragStart
+                                if (amount > 1) {
+                                    if (testWordCnt < testWords.size - 1)
+                                        testWordCnt++
+                                } else if (amount < -1) {
+                                    if (testWordCnt > 0)
+                                        testWordCnt--
+                                }
+                                speakWord(testWords[testWordCnt])
+                            }
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures(
+                            onDragStart = { offset ->
+                                Log.d("Study2", "on vertical drag start")
+                                verticalDragStart = offset.y
+                            },
+                            onVerticalDrag = { change, dragAmount ->
+                                verticalDragEnd = change.position.y
+
+                            },
+                            onDragEnd = {
+                                val amount = verticalDragEnd - verticalDragStart
+                                if (amount < -1) {
+                                    speak(testList[testIter])
+                                }
+                            }
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = {
+                                Log.d("Study2", "on double tap")
+                                isTypingMode = true
+                                testWordCnt = -1
+                                onConfirm()
+                            },
+                            onTap = {
+                                Log.d("Study2", "on double tap")
+                                speakWord(testWords[testWordCnt])
+                            }
+                        )
+                    }
+            }
         ) {
             TextDisplay(testIter, testNumber, testList[testIter])
             Column(
@@ -267,54 +358,95 @@ fun Study2Test(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Box {
-                    KeyboardLayout(
-                        touchEvents = keyboardTouchEvents,
-                        onKeyRelease = { key ->
-                            var isEnd = false
-                            if (key == "Space") {
-                                if (inputText.last() != ' ') {
-                                    isEnd = onConfirm()
-                                } else {
+                if (isTypingMode) {
+                    Box {
+                        KeyboardLayout(
+                            touchEvents = keyboardTouchEvents,
+                            onKeyPress = { key ->
+                                pressStartTime = System.currentTimeMillis()
+                            },
+                            onKeyRelease = { key ->
+                                var isEnd = false
+                                if (key == "Space") {
+                                    if (inputText.last() != ' ') {
+                                        isEnd = onConfirm()
+                                    } else {
+                                        speak(testWords[testWordCnt])
+                                    }
+                                } else if (key == "Replay") {
+                                    // Replay word
                                     speak(testWords[testWordCnt])
                                 }
-                            } else if (key == "Replay") {
-                                // Replay word
-                                speak(testWords[testWordCnt])
-                            }
+                                
+                                if (isEnd) return@KeyboardLayout
 
-                            if (isEnd) return@KeyboardLayout
-                            inputText = when (key) {
-                                "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
-                                "Space" -> "$inputText "
-                                "Shift" -> inputText
-                                "Replay" -> {
-                                    endTime = System.currentTimeMillis()
-                                    inputText
+                                inputText = when (key) {
+                                    "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                                    "Space" -> "$inputText "
+                                    "Shift" -> inputText
+                                    "Replay" -> {
+                                        endTime = System.currentTimeMillis()
+                                        inputText
+                                    }
+                                    else -> {
+                                        inputText + key
+                                    }
                                 }
-
-                                else -> {
-                                    inputText + key
+                                if (key != "Replay") {
+                                    val curTime = System.currentTimeMillis()
+                                    val pressDur = curTime - pressStartTime
+                                    pressDurations += pressDur
+                                    keystrokeTimestamps += curTime
+                                    keyStrokeNum += 1
                                 }
-                            }
-                            keystrokeTimestamps += System.currentTimeMillis()
-                            keyStrokeNum += 1
-                        },
-                        enterKeyVisibility = true,
-                        soundManager = soundManager,
-                        hapticManager = hapticManager,
-                        hapticMode = hapticMode
-                    )
-                }
-            }
-            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
-                MultiTouchView(context).apply {
-                    onMultiTouchEvent = { event ->
-                        keyboardTouchEvents.clear()
-                        keyboardTouchEvents.add(event)
+                            },
+                            enterKeyVisibility = true,
+                            soundManager = soundManager,
+                            hapticManager = hapticManager,
+                            hapticMode = hapticMode,
+                            logData = Study2TestLog(
+                                iteration = testIter,
+                                block = testBlock,
+                                targetText = testList[testIter],
+                                inputText = inputText
+                            ),
+                            name = name
+                        )
+//                        AndroidView(modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(300.dp),
+//                            factory = { context ->
+//                                MultiTouchView(context).apply {
+//                                    onMultiTouchEvent = { event ->
+//                                        keyboardTouchEvents.clear()
+//                                        keyboardTouchEvents.add(event)
+//                                    }
+//                                }
+//                            })
                     }
                 }
-            })
+            }
+//            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+//                MultiTouchView(context).apply {
+//                    onMultiTouchEvent = { event ->
+//                        keyboardTouchEvents.clear()
+//                        keyboardTouchEvents.add(event)
+//                    }
+//                }
+//            })
+        }
+        if (isTypingMode) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize().fillMaxHeight(),
+                factory = { context ->
+                    MultiTouchView(context).apply {
+                        onMultiTouchEvent = { event ->
+                            keyboardTouchEvents.clear()
+                            keyboardTouchEvents.add(event)
+                        }
+                    }
+                }
+            )
         }
     }
 }

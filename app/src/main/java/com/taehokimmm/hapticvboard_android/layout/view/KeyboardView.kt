@@ -27,6 +27,7 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 @Composable
 fun KeyboardLayout(
     touchEvents: List<MotionEvent>,
+    onKeyPress: ((String) -> Unit)? = null,
     onKeyRelease: (String) -> Unit,
     enterKeyVisibility: Boolean = false,
     soundManager: SoundManager? = null,
@@ -118,6 +119,7 @@ fun KeyboardLayout(
             event,
             keyPositions.value,
             activeTouches,
+            onKeyPress,
             onKeyRelease,
             soundManager!!,
             hapticManager!!,
@@ -197,6 +199,7 @@ fun processTouchEvent(
     event: MotionEvent,
     keyPositions: Map<String, LayoutCoordinates>,
     activeTouches: MutableMap<Int, String>,
+    onKeyPressed: ((String) -> Unit)?,
     onKeyReleased: (String) -> Unit,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
@@ -207,7 +210,7 @@ fun processTouchEvent(
     name: String?
 ) {
     when (event.actionMasked) {
-        MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+        MotionEvent.ACTION_DOWN-> {
             for (i in 0 until event.pointerCount) {
                 val pointerId = event.getPointerId(i)
                 val pointerPosition = Offset(event.getX(i), event.getY(i))
@@ -222,7 +225,8 @@ fun processTouchEvent(
                         HapticMode.VOICE
                     )
                     Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
-
+                    if (onKeyPressed != null)
+                        onKeyPressed(key)
                     // Add Log
                     if (name != null && logData != null) {
                         addLog(
@@ -259,13 +263,23 @@ fun processTouchEvent(
             }
         }
 
-        MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+        MotionEvent.ACTION_UP -> {
             val pointerId = event.getPointerId(event.actionIndex)
             val key = activeTouches.remove(pointerId)
             if (key != null) {
-                Log.d("TouchEvent", "Key released: $key for pointer $pointerId")
-                if (key != "Out of Bounds")
+                if (key != "Out of Bounds") {
                     onKeyReleased(key)
+
+                    if (allow.contains(key))
+                        hapticManager?.generateHaptic(key, hapticMode)
+                    else {
+                        if (hapticMode == HapticMode.VOICEPHONEME)
+                            hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
+                        else
+                            hapticManager?.generateHaptic(key, HapticMode.TICK)
+                    }
+                }
+
                 // Add Log
                 if (name != null && logData != null) {
                     val pointerPosition =
@@ -284,7 +298,9 @@ fun processTouchEvent(
                 val key = keyPositions.entries.find { (_, coordinates) ->
                     isPointerOverKey(coordinates, pointerPosition)
                 }?.key
+                Log.d("Touch Event", "MOVE " + key)
                 if (key != null && activeTouches[pointerId] != key) {
+
                     Log.d(
                         "TouchEvent",
                         "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
@@ -297,7 +313,7 @@ fun processTouchEvent(
                         else
                             hapticManager?.generateHaptic(key, HapticMode.TICK)
                     }
-
+                    
                     if (activeTouches[pointerId] == "Out of Bounds")
                         hapticManager!!.generateVibration("Replay")
                     activeTouches[pointerId] = key
@@ -305,10 +321,19 @@ fun processTouchEvent(
                     // Add Log
                     if (name != null && logData != null) {
                         addLog(
-                            context, name, logData, "MOVE", key,
+                            context, name, logData,
+                            if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
+                            key,
                             pointerPosition.x, pointerPosition.y
                         )
                     }
+
+                    if (activeTouches[pointerId] == null) {
+                        if (onKeyPressed != null)
+                            onKeyPressed(key)
+                    }
+
+                    activeTouches[pointerId] = key
                 } else if (key == null && activeTouches.containsKey(pointerId) && pointerPosition.y < 1533) {
                     // Key moved out of bounds, need to fix random number 1533
                     Log.d(

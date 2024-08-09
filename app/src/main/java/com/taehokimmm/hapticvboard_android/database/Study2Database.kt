@@ -6,34 +6,33 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Study2Metric::class],
+    entities = [Study2Metric::class, Study2TestLog::class],
     version = 1
 )
 abstract class Study2Database : RoomDatabase() {
     abstract fun getDao() : Study2Dao
 
     companion object{
-        @Volatile private var instance: Study2Database? = null
-        private val LOCK = Any()
+        @Volatile private var INSTANCE: Study2Database? = null
 
-        operator fun invoke(context: Context, name:String) = instance ?: synchronized(LOCK){
-            instance ?: buildDatabase(context, name).also{
-                instance = it
+        fun getInstance(context: Context, name: String): Study2Database {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    Study2Database::class.java,
+                    name
+                ).build()
+                INSTANCE = instance
+                instance
             }
         }
 
-        private fun buildDatabase(context: Context, name:String) = Room.databaseBuilder(
-            context.applicationContext,
-            Study2Database::class.java,
-            name
-        ).build()
-
         fun closeDatabase() {
-            instance?.apply {
+            INSTANCE?.apply {
                 if (isOpen) {
                     close()
                 }
-                instance = null
+                INSTANCE = null
             }
         }
     }
