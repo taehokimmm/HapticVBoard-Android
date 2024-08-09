@@ -56,7 +56,7 @@ fun TrainGroupLocation(
 
     fun explainKey(key: String) {
         isExplaining = true
-        hapticManager?.generateHaptic(key,HapticMode.VOICE)
+        soundManager?.speakOutChar(key)
         delay({soundManager?.playPhoneme(key)},700)
         delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500)
         delay({isExplaining = false}, 1500)

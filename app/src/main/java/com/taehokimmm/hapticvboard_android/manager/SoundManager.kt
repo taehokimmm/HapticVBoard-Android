@@ -1,17 +1,21 @@
 package com.taehokimmm.hapticvboard_android.manager
 
+import android.R.attr.text
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
+import android.os.Bundle
+import android.os.Environment
 import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import com.taehokimmm.hapticvboard_android.R
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
+import java.io.File
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
-import com.taehokimmm.hapticvboard_android.R as R
+
 
 class SoundManager(context: Context) {
     val context:Context = context
@@ -23,7 +27,7 @@ class SoundManager(context: Context) {
     private lateinit var soundPool: SoundPool
     var correctId: Int = 0
     var wrongId: Int = 0
-    lateinit var mediaPlayer: MediaPlayer
+    private var mediaPlayer: MediaPlayer? = null
 
     init {
 
@@ -53,6 +57,21 @@ class SoundManager(context: Context) {
 
         ttsKor = TextToSpeech(context) {
             if (it === TextToSpeech.SUCCESS) {
+
+                // Export TTS to wav file
+//                for (letter in 'a' .. 'z') {
+//                    // Output file
+//                    val outputFile: File = File(
+//                        context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+//                        "tts_" + letter +".wav")
+//                    // Synthesizing to file
+//                    val params = Bundle()
+//                    params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "tts1")
+//                    ttsKor.synthesizeToFile(letter.toString(), params, outputFile, "tts1")
+//
+//                }
+
+
                 // Set TTS Language
                 val result = ttsKor.setLanguage(Locale.KOREAN)
 
@@ -66,18 +85,69 @@ class SoundManager(context: Context) {
             }
         }
     }
+    fun playMediaPlayer() {
+        mediaPlayer?.setOnCompletionListener {
+            releaseMediaPlayer()  // Release the MediaPlayer once the sound has finished playing
+        }
 
+        // Start playback
+        mediaPlayer?.start()
+    }
+    fun releaseMediaPlayer() {
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
     /**
      * Speak out the input text
      *
      * @param text The text for which to play the sound.
      */
+
+    fun speakOutKeyboard(key: String) {
+        tts.setSpeechRate(2F)
+        tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
     fun speakOut(text: String) {
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
     fun speakOutKor(text: String) {
         ttsKor.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
+
+    fun speakOutChar(key: String) {
+        var keyToResource: Map<String, Int> = mapOf(
+            "a" to R.raw.tts_a,
+            "b" to R.raw.tts_b,
+            "c" to R.raw.tts_k,
+            "d" to R.raw.tts_d,
+            "e" to R.raw.tts_e,
+            "f" to R.raw.tts_f,
+            "g" to R.raw.tts_g,
+            "h" to R.raw.tts_h,
+            "i" to R.raw.tts_i,
+            "j" to R.raw.tts_j,
+            "k" to R.raw.tts_k,
+            "l" to R.raw.tts_l,
+            "m" to R.raw.tts_m,
+            "n" to R.raw.tts_n,
+            "o" to R.raw.tts_o,
+            "p" to R.raw.tts_p,
+            "q" to R.raw.tts_q,
+            "r" to R.raw.tts_r,
+            "s" to R.raw.tts_s,
+            "t" to R.raw.tts_t,
+            "u" to R.raw.tts_u,
+            "v" to R.raw.tts_v,
+            "w" to R.raw.tts_w,
+            "x" to R.raw.tts_x,
+            "y" to R.raw.tts_y,
+            "z" to R.raw.tts_z
+        )
+        releaseMediaPlayer()
+        mediaPlayer =
+            keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
+        playMediaPlayer()
     }
 
 
@@ -126,14 +196,17 @@ class SoundManager(context: Context) {
      */
     @Synchronized
     fun playSound(isCorrect: Boolean) {
+        releaseMediaPlayer()
         if (isCorrect) {
+            releaseMediaPlayer()
             mediaPlayer =
                 MediaPlayer.create(context, R.raw.correct)
         } else {
+            releaseMediaPlayer()
             mediaPlayer =
                 MediaPlayer.create(context, R.raw.wrong)
         }
-        mediaPlayer.start()
+        playMediaPlayer()
     }
 
     @Synchronized
@@ -166,9 +239,10 @@ class SoundManager(context: Context) {
             "y" to R.raw.phoneme_y,
             "z" to R.raw.phoneme_z
         )
+        releaseMediaPlayer()
         mediaPlayer =
             keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
-        mediaPlayer.start()
+        playMediaPlayer()
     }
 
     @Synchronized

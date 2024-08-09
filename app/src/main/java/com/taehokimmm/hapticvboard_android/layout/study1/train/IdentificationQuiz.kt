@@ -84,7 +84,7 @@ fun Study1IdentiQuiz(
     fun explainKey(key: String, delay: Long = 0) {
         isExplaining = true
         // Word
-        delay({hapticManager?.generateHaptic(key,HapticMode.VOICE)},delay+0)
+        delay({soundManager?.speakOutChar(key)},delay+0)
         // Phoneme
         delay({soundManager?.playPhoneme(key)}, delay+700)
         delay({
@@ -98,7 +98,7 @@ fun Study1IdentiQuiz(
 
     fun speakNextWord() {
         delay({
-            soundManager.speakOut(testList[testIter])
+            soundManager.speakOutChar(testList[testIter])
         }, 500)
     }
 

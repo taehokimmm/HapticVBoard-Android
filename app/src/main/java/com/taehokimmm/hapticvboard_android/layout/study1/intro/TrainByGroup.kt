@@ -52,18 +52,18 @@ fun TrainGroup(
     var selectedIndex by remember { mutableStateOf(0) }
     var isExplaining by remember {mutableStateOf(false)}
 
-    fun explainKey(key: String) {
+    fun explainKey(key: String, delay: Long) {
         isExplaining = true
-        hapticManager?.generateHaptic(key,HapticMode.VOICE)
-        delay({soundManager?.playPhoneme(key)},700)
-        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500)
-        delay({isExplaining = false}, 1500)
+        delay({soundManager?.speakOutChar(key)}, delay)
+        delay({soundManager?.playPhoneme(key)},800+delay)
+        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1600+delay)
+        delay({isExplaining = false}, 1600+delay)
     }
 
-    fun onSelect(index: Int) {
+    fun onSelect(index: Int, delay: Long = 0) {
         if (isExplaining) return
         val key = group[selectedTabIndex][index]
-        explainKey(key)
+        explainKey(key, delay)
         selectedIndex = index
     }
 
@@ -78,9 +78,7 @@ fun TrainGroup(
     LaunchedEffect(selectedTabIndex) {
         selectedIndex = 0
         soundManager?.speakOutKor(name[selectedTabIndex])
-        delay({
-            onSelect(0)
-        }, 1000)
+        onSelect(selectedIndex, 1000)
     }
 
     Box(
@@ -107,7 +105,7 @@ fun TrainGroup(
                     onDragEnd = {
                         if (isExplaining) return@detectHorizontalDragGestures
                         val horizontalSwipeAmount  = horizontalSwipeEnd - horizontalSwipeStart
-                        Log.d("Swipe AMOUNT", horizontalSwipeAmount.toString() + " _ " + swipeThreshold)
+
                         if (horizontalSwipeAmount > swipeThreshold) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
                                 selectedIndex++
@@ -135,7 +133,7 @@ fun TrainGroup(
                     onDragEnd = {
                         if (isExplaining) return@detectVerticalDragGestures
                         val verticalSwipeAmount = verticalSwipeEnd - verticalSwipeStart
-                        Log.d("Swipe AMOUNT", verticalSwipeAmount.toString() + " _ " + swipeThreshold)
+
                         if (verticalSwipeAmount < -swipeThreshold) {
                             if (selectedTabIndex > 0) {
                                 selectedTabIndex --

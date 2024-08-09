@@ -96,16 +96,12 @@ fun Study1TypingQuiz(
             }
         }
     }
-    
-    fun speakNextWord() {
-    }
 
     fun speak() {
         isSpeakingDone = false
-        val params = Bundle()
-        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        soundManager.speakOutChar(testList[testIter])
         delay({
-            tts?.speak(testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+            isSpeakingDone = true
         }, 500)
     }
 
