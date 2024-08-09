@@ -226,7 +226,7 @@ fun Study1IdentiQuiz(
                             if (isExplaining || isShowAnswer) return@detectHorizontalDragGestures
 
                             val swipeAmount = horizontalDragEnd - horizontalDragStart
-                            Log.d("Swipe AMOUNT", swipeAmount.toString() + " _ " + swipeThreshold)
+
                             if (swipeAmount > swipeThreshold) {
                                 if (selectedIndex < options.size - 1) {
                                     selectedIndex++
@@ -331,7 +331,7 @@ fun getAllowGroup(group: String): List<String> {
 fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
     var group = listOf(key)
     var others = allowGroup.filterNot{it == key}
-    group += others.shuffled().slice(0..2)
+    group += others.shuffled().slice(0..3)
     return group.shuffled()
 }
 
