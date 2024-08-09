@@ -31,14 +31,14 @@ fun GroupIntro(
                 "마찰음", "비음", "강한 파열음", "약한 파열음", "설측음", "합성음", "모음"
         )
     } else if(category == "location") {
-        phonemeGroups = listOf(
-            listOf("p", "b", "f", "v", "m", "e", "i"),
-            listOf("k", "c", "q", "g", "n", "r", "h", "a", "o", "u"),
-            listOf("t", "d", "s", "z", "l", "x", "j"),
-            listOf("w"),
-            listOf("y")
-        )
-        names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
+//        phonemeGroups = listOf(
+//            listOf("p", "b", "f", "v", "m", "e", "i"),
+//            listOf("k", "c", "q", "g", "n", "r", "h", "a", "o", "u"),
+//            listOf("t", "d", "s", "z", "l", "x", "j"),
+//            listOf("w"),
+//            listOf("y")
+//        )
+//        names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
 
 //        phonemeGroups = listOf(
 //            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),

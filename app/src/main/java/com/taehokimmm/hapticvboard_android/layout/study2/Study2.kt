@@ -78,6 +78,7 @@ fun Study2Test(
         HapticMode.TICK -> "vibration"
         HapticMode.PHONEME -> "phoneme"
         HapticMode.VOICE -> "audio"
+        HapticMode.VOICEPHONEME -> "voicephoneme"
         else -> ""
     }
     var inputText by remember { mutableStateOf("") }
@@ -185,6 +186,7 @@ fun Study2Test(
     }
 
     fun addLogging() {
+        endTime = System.currentTimeMillis()
         wordCount = inputText.split("\\s+".toRegex()).size
         val targetText = testList[testIter]
         val wpm = calculateWPM(startTime, endTime, wordCount)
@@ -196,6 +198,9 @@ fun Study2Test(
             testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
         )
         addStudy2Metric(context, name, data)
+    }
+
+    fun initMetric() {
         startTime = System.currentTimeMillis()
         keystrokeTimestamps.clear()
         keyStrokeNum = 0
@@ -280,10 +285,10 @@ fun Study2Test(
                             },
                             onDragEnd = {
                                 val amount = horizontalDragEnd - horizontalDragStart
-                                if (amount > 1) {
+                                if (amount > 5) {
                                     if (testWordCnt < testWords.size - 1)
                                         testWordCnt++
-                                } else if (amount < -1) {
+                                } else if (amount < -5) {
                                     if (testWordCnt > 0)
                                         testWordCnt--
                                 }
@@ -303,7 +308,7 @@ fun Study2Test(
                             },
                             onDragEnd = {
                                 val amount = verticalDragEnd - verticalDragStart
-                                if (amount < -1) {
+                                if (amount < -5) {
                                     speak(testList[testIter])
                                 }
                             }
@@ -312,10 +317,15 @@ fun Study2Test(
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = {
-                                Log.d("Study2", "on double tap")
                                 isTypingMode = true
                                 testWordCnt = -1
-                                onConfirm()
+                                tts?.stop()
+                                soundManager.playSound(true)
+                                delay(
+                                    {
+                                        initMetric()
+                                        onConfirm()
+                                    }, 500)
                             },
                             onTap = {
                                 Log.d("Study2", "on double tap")
@@ -384,7 +394,6 @@ fun Study2Test(
                                     "Space" -> "$inputText "
                                     "Shift" -> inputText
                                     "Replay" -> {
-                                        endTime = System.currentTimeMillis()
                                         inputText
                                     }
                                     else -> {

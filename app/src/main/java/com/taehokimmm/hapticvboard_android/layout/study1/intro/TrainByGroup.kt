@@ -102,14 +102,14 @@ fun TrainGroup(
                     onDragEnd = {
                         if (isExplaining) return@detectHorizontalDragGestures
                         val horizontalSwipeAmount  = horizontalSwipeEnd - horizontalSwipeStart
-                        if (horizontalSwipeAmount > 1) {
+                        if (horizontalSwipeAmount > 5) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
                                 selectedIndex++
                             } else {
                                 selectedIndex = 0
                             }
                             onSelect(selectedIndex)
-                        } else if (horizontalSwipeAmount < -1) {
+                        } else if (horizontalSwipeAmount < -5) {
                             if (selectedIndex > 0) {
                                 selectedIndex--
                             } else {
@@ -129,13 +129,13 @@ fun TrainGroup(
                     onDragEnd = {
                         if (isExplaining) return@detectVerticalDragGestures
                         val verticalSwipeAmount = verticalSwipeEnd - verticalSwipeStart
-                        if (verticalSwipeAmount > 1) {
+                        if (verticalSwipeAmount > 5) {
                             if (selectedTabIndex > 0) {
                                 selectedTabIndex --
                             } else {
                                 selectedTabIndex = name.size - 1
                             }
-                        } else if (verticalSwipeAmount < -1) {
+                        } else if (verticalSwipeAmount < -5) {
                             if (selectedTabIndex < name.size - 1) {
                                 selectedTabIndex ++
                             } else {

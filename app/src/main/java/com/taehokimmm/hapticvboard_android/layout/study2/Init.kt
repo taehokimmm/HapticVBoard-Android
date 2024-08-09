@@ -33,6 +33,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
+import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.database.resetData
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
@@ -48,7 +50,7 @@ fun Study2Init(navController: NavHostController) {
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var options = listOf("audio", "phoneme")
+    var options = listOf("audio", "phoneme", "audiophoneme")
     var selectedOption by remember { mutableStateOf("audio") }
 
 
@@ -131,6 +133,7 @@ fun Study2Init(navController: NavHostController) {
 
             Button(
                 onClick = {
+                    closeStudy2Database()
                     if (testSubjectIdentifier.isNotEmpty()) {
                         navController.navigate("study2/$testSubjectIdentifier/$selectedOption/$isPractice")
                     } else if (testSubjectIdentifier.isEmpty()) {

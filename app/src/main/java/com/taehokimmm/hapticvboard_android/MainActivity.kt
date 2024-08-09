@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Bundle
+import android.util.Log
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -152,9 +153,11 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         FreeTypeMode(innerPadding, soundManager, hapticManager, hapticMode)
                     }
                     composable("intro/init") {
+                        currentScreen = "intro/init"
                         IntroInit(navController)
                     }
                     composable("intro/intro/{Category}/{Group}") {
+                        currentScreen = "intro/intro/"
                         val category = it.arguments?.getString("Category")!!
                         val group = it.arguments?.getString("Group")!!
                         GroupIntro(innerPadding, soundManager, hapticManager, category, group)
@@ -245,6 +248,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         var hapticMode = HapticMode.NONE
                         if (feedback == "audio") hapticMode = HapticMode.VOICE
                         else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
+                        else if(feedback == "audiophoneme") hapticMode = HapticMode.VOICEPHONEME
 //                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
 
                         Study2Test(
@@ -353,7 +357,7 @@ fun DrawTopAppBar(
         "setting" -> "Setting"
         else -> ""
     }
-
+    Log.d("CURRENT", currentScreen + " " + displayText)
     when (currentScreen) {
         "study1/test" -> CenterAlignedTopAppBar(
             title = {
