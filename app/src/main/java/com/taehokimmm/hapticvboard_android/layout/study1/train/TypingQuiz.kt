@@ -77,10 +77,6 @@ fun Study1TypingQuiz(
 
     var correct by remember { mutableIntStateOf(0) }
 
-    // Record the wrong answers and the respective correct answers
-    val wrongAnswers = remember { mutableStateListOf<Char>() }
-    val correctAnswers = remember { mutableStateListOf<Char>() }
-
     var startTime by remember { mutableStateOf(0L) }
     var isSpeakingDone by remember { mutableStateOf(false) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
@@ -148,8 +144,6 @@ fun Study1TypingQuiz(
             navController.navigate("study1/train/end/${subject}")
         } else {
             correct = 0
-            wrongAnswers.clear()
-            correctAnswers.clear()
             testList = allowlist.shuffled()
             testIter = -1
         }
@@ -173,12 +167,6 @@ fun Study1TypingQuiz(
                                     soundManager.speakOut(key)
 
                                 val isCorrect = key == testList[testIter]
-                                if (key == testList[testIter]) {
-                                    correct++
-                                } else {
-                                    wrongAnswers.add(key[0])
-                                    correctAnswers.add(testList[testIter][0])
-                                }
                                 //--- Append Data to Database ---//
                                 val curTime = System.currentTimeMillis()
 
