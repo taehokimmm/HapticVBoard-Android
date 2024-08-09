@@ -39,7 +39,6 @@ import com.taehokimmm.hapticvboard_android.database.resetData
 @Composable
 fun IntroInit(navController: NavHostController) {
     val context = LocalContext.current
-    var testSubjectIdentifier by remember { mutableStateOf("test") }
     var errorMessage by remember { mutableStateOf("") }
 
     var options = listOf("A", "B", "C", "D")
@@ -111,9 +110,6 @@ fun IntroInit(navController: NavHostController) {
                 onClick = {
                     closeStudy1Database()
                     when {
-                        testSubjectIdentifier.isEmpty() -> errorMessage =
-                            "Please enter a test subject"
-
                         selectedOption.isEmpty() -> errorMessage =
                             "Please select a test group"
 

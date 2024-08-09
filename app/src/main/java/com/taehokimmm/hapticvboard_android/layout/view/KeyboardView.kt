@@ -268,8 +268,6 @@ fun processTouchEvent(
             val key = activeTouches.remove(pointerId)
             if (key != null) {
                 if (key != "Out of Bounds") {
-                    onKeyReleased(key)
-
                     if (allow.contains(key))
                         hapticManager?.generateHaptic(key, hapticMode)
                     else {
@@ -278,6 +276,7 @@ fun processTouchEvent(
                         else
                             hapticManager?.generateHaptic(key, HapticMode.TICK)
                     }
+                    onKeyReleased(key)
                 }
 
                 // Add Log

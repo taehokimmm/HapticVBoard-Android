@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.MotionEvent
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.TabRow
@@ -29,6 +31,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
@@ -141,7 +144,16 @@ fun FreeTypeWithGroup(
         ) {
 
             Spacer(modifier = Modifier.height(440.dp))
-            Box {
+            Box(
+                modifier = Modifier
+                    .pointerInput(Unit) {
+                        detectTapGestures (
+                            onDoubleTap = {
+                                Log.d("Free type", "double tapped")
+                            }
+                        )
+                    }
+            ) {
                 KeyboardLayout(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { },

@@ -31,21 +31,21 @@ fun GroupIntro(
                 "마찰음", "비음", "강한 파열음", "약한 파열음", "설측음", "합성음", "모음"
         )
     } else if(category == "location") {
-        phonemeGroups = listOf(
-            listOf("p", "b", "f", "v", "m", "e", "i"),
-            listOf("k", "c", "q", "g", "n", "r", "h", "a", "o", "u"),
-            listOf("t", "d", "s", "z", "l", "x", "j"),
-            listOf("w"),
-            listOf("y")
-        )
-        names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
-
 //        phonemeGroups = listOf(
-//            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
-//            listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-//            listOf("z", "x", "c", "v", "b", "n", "m")
+//            listOf("p", "b", "f", "v", "m", "e", "i"),
+//            listOf("k", "c", "q", "g", "n", "r", "h", "a", "o", "u"),
+//            listOf("t", "d", "s", "z", "l", "x", "j"),
+//            listOf("w"),
+//            listOf("y")
 //        )
-//        names = listOf("위", "위아래", "아래")
+//        names = listOf("위", "아래", "위아래 동시에", "위에서 아래", "아래에서 위")
+
+        phonemeGroups = listOf(
+            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
+            listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
+            listOf("z", "x", "c", "v", "b", "n", "m")
+        )
+        names = listOf("1행", "2행", "3행")
     }
     val allowGroup = getAllowGroup(group)
 
@@ -57,5 +57,8 @@ fun GroupIntro(
         .filter { it.second.isNotEmpty() }
         .unzip()
 
-    TrainGroup(innerPadding, soundManager, hapticManager, nonEmptyGroups, filteredNames)
+    if (category == "phoneme")
+        TrainGroup(innerPadding, soundManager, hapticManager, nonEmptyGroups, filteredNames)
+    else if (category == "location")
+        TrainGroupLocation(innerPadding, soundManager, hapticManager, nonEmptyGroups, filteredNames)
 }

@@ -1,7 +1,5 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.intro
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -9,10 +7,14 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.TabRow
@@ -41,7 +43,7 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TrainGroup(
+fun TrainGroupLocation(
     innerPadding: PaddingValues,
     soundManager: SoundManager?,
     hapticManager: HapticManager?,
@@ -73,8 +75,6 @@ fun TrainGroup(
     var verticalSwipeStart by remember{mutableStateOf(0f)}
     var verticalSwipeEnd by remember{mutableStateOf(0f)}
 
-    val swipeThreshold = 20
-
     LaunchedEffect(selectedTabIndex) {
         selectedIndex = 0
         soundManager?.speakOutKor(name[selectedTabIndex])
@@ -82,6 +82,8 @@ fun TrainGroup(
             onSelect(0)
         }, 1000)
     }
+
+    val swipeThreshold = 20
 
     Box(
         modifier = Modifier
@@ -151,53 +153,56 @@ fun TrainGroup(
                 )
             }
     ) {
-        TabRow(selectedTabIndex = 0, indicator = { tabPositions ->
-            SecondaryIndicator(
-                Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex])
-            )
-        }, tabs = {
-            name.forEachIndexed { i, n ->
-                TextButton(onClick = { selectedTabIndex = i }) {
-                    Text(n, fontSize = 20.sp)
-                }
-            }
-        })
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp)
-                .align(Alignment.BottomStart)
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(10.dp)
         ) {
-            FlowRow(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .align(Alignment.CenterStart),
-                horizontalArrangement = Arrangement.Center,
-                verticalArrangement = Arrangement.Center,
 
+            group.forEachIndexed{ groupIndex, subgroup ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(150.dp)
                 ) {
-                group[selectedTabIndex].forEachIndexed { index, alphabet ->
-                    Box (
+                    Box(
                         modifier = Modifier
-                            .size(120.dp, 120.dp)
-                            .padding(0.dp)
-                            .align(Alignment.CenterVertically)
-                            .background(
-                                if (index == selectedIndex) Color.Blue else Color.White
-                            ),
-                        contentAlignment = Alignment.Center
+                            .fillMaxSize()
                     ) {
-                        Text(
-                            text = alphabet.toUpperCase(),
-                            color =  (
-                                if (index == selectedIndex) Color.White else Color.Blue),
-                            fontSize = 40.sp,
-                            textAlign = TextAlign.Center,
-                        )
+
+                        //val boxSize = maxWidth / subgroup.size - 20.dp // Adjust the padding here as needed
+                        val boxSize = if (subgroup.size <= 3) 130.dp else 90.dp
+                        FlowRow(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalArrangement = Arrangement.Center,
+
+                            ) {
+                            subgroup.forEachIndexed { index, alphabet ->
+                                Box (
+                                    modifier = Modifier
+                                        .size(boxSize, 150.dp)
+                                        .padding(0.dp)
+                                        .align(Alignment.CenterVertically)
+                                        .background(
+                                            if (index == selectedIndex &&
+                                                groupIndex == selectedTabIndex)
+                                                Color.Blue else Color.White
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = alphabet.toUpperCase(),
+                                        color =  (
+                                                if (index == selectedIndex &&
+                                                    groupIndex == selectedTabIndex)
+                                                    Color.White else Color.Blue),
+                                        fontSize = 40.sp,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
+
             }
+
         }
     }
 }

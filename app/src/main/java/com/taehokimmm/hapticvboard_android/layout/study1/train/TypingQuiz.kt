@@ -57,7 +57,7 @@ fun Study1TypingQuiz(
     val context = LocalContext.current
     val allowlist = getAllowGroup(group)
 
-    val totalBlock = 3
+    val totalBlock = 4
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
@@ -95,16 +95,22 @@ fun Study1TypingQuiz(
             }
         }
     }
+    
+    fun speakNextWord() {
+    }
+
     fun speak() {
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-        tts?.speak("Press : " + testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+        delay({
+            tts?.speak(testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+        }, 500)
     }
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("Tap to start block " + testBlock)
+            soundManager.speakOutKor("시작하려면 탭하세요")
         }
     }
 
@@ -158,7 +164,8 @@ fun Study1TypingQuiz(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
                             if (allowlist.contains(key)) {
-                                soundManager.speakOut(key)
+                                if (testBlock % 2 == 0)
+                                    soundManager.speakOut(key)
 
                                 val isCorrect = key == testList[testIter]
                                 if (key == testList[testIter]) {
@@ -198,7 +205,7 @@ fun Study1TypingQuiz(
                         },
                         soundManager = soundManager,
                         hapticManager = hapticManager,
-                        hapticMode = hapticMode,
+                        hapticMode = if(testBlock % 2 == 1) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
                         allow = allowlist,
                         logData = Study1Phase3Log(
                             answer = testList[testIter], iter = testIter, block = testBlock

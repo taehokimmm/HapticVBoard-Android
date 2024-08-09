@@ -39,11 +39,12 @@ import com.taehokimmm.hapticvboard_android.database.resetData
 @Composable
 fun Study1TestInit(navController: NavHostController) {
     val context = LocalContext.current
-    var testSubjectIdentifier by remember { mutableStateOf("test") }
+    var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
     var options = listOf("A", "AB", "ABC", "ABCD")
     var selectedOption by remember { mutableStateOf("") }
+
 
     val subjectFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
