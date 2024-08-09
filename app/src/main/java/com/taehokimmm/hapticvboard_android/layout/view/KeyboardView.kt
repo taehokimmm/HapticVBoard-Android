@@ -333,7 +333,7 @@ fun processTouchEvent(
                     }
 
                     activeTouches[pointerId] = key
-                } else if (key == null && activeTouches.containsKey(pointerId) && pointerPosition.y < 1533) {
+                } else if (key == null && pointerPosition.y < 1533) {
                     // Key moved out of bounds, need to fix random number 1533
                     Log.d(
                         "TouchEvent",
