@@ -38,6 +38,7 @@ import com.taehokimmm.hapticvboard_android.database.Study1TestAnswer
 import com.taehokimmm.hapticvboard_android.database.Study1TestLog
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.layout.study1.train.TestDisplay
+import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
@@ -105,12 +106,14 @@ fun Study1Test(
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-        tts?.speak("Press : " + testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+        delay({
+            tts?.speak(testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+        }, 500)
     }
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("Tap to start")
+            soundManager.speakOutKor("시작하려면 탭하세요")
         }
     }
 

@@ -79,6 +79,7 @@ fun Study1IdentiQuiz(
     // Swipe Gesture
     var horizontalDragStart by remember {mutableStateOf(0f)}
     var horizontalDragEnd by remember {mutableStateOf(0f)}
+    val swipeThreshold = 20
 
     fun explainKey(key: String, delay: Long = 0) {
         isExplaining = true
@@ -95,6 +96,12 @@ fun Study1IdentiQuiz(
         delay({isExplaining = false}, delay+2500)
     }
 
+    fun speakNextWord() {
+        delay({
+            soundManager.speakOut(testList[testIter])
+        }, 500)
+    }
+
     fun onConfirm() {
         if (isExplaining) return
         if (isShowAnswer) {
@@ -106,7 +113,7 @@ fun Study1IdentiQuiz(
                     testList[testIter],
                     allowlist
                 )
-                soundManager.speakOut("Find : " +  testList[testIter])
+                speakNextWord()
                 isShowAnswer = false
             }
         } else {
@@ -154,7 +161,7 @@ fun Study1IdentiQuiz(
 
     LaunchedEffect (testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("Tap to start block " + testBlock)
+            soundManager.speakOut("시작하려면 탭하세요.")
         }
     }
     // Identification Test
@@ -175,7 +182,7 @@ fun Study1IdentiQuiz(
                         testList[testIter],
                         allowlist
                     )
-                    soundManager.speakOut("Find : " +  testList[testIter])
+                    speakNextWord()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -219,14 +226,14 @@ fun Study1IdentiQuiz(
                             if (isExplaining || isShowAnswer) return@detectHorizontalDragGestures
 
                             val swipeAmount = horizontalDragEnd - horizontalDragStart
-                            if (swipeAmount > 1) {
+                            if (swipeAmount > swipeThreshold) {
                                 if (selectedIndex < options.size - 1) {
                                     selectedIndex++
                                 } else {
                                     selectedIndex = 0
                                 }
                                 onSelect(selectedIndex)
-                            } else if (swipeAmount < -1) {
+                            } else if (swipeAmount < -swipeThreshold) {
                                 if (selectedIndex > 0) {
                                     selectedIndex--
                                 } else {

@@ -125,6 +125,7 @@ fun Study2Test(
     var horizontalDragEnd by remember {mutableStateOf(0f)}
     var verticalDragStart by remember {mutableStateOf(0f)}
     var verticalDragEnd by remember {mutableStateOf(0f)}
+    val swipeThreshold = 20
     LaunchedEffect(Unit) {
 
         var phrases1 = when (isPractice) {
@@ -285,10 +286,10 @@ fun Study2Test(
                             },
                             onDragEnd = {
                                 val amount = horizontalDragEnd - horizontalDragStart
-                                if (amount > 5) {
+                                if (amount > swipeThreshold) {
                                     if (testWordCnt < testWords.size - 1)
                                         testWordCnt++
-                                } else if (amount < -5) {
+                                } else if (amount < -swipeThreshold) {
                                     if (testWordCnt > 0)
                                         testWordCnt--
                                 }
@@ -308,7 +309,7 @@ fun Study2Test(
                             },
                             onDragEnd = {
                                 val amount = verticalDragEnd - verticalDragStart
-                                if (amount < -5) {
+                                if (amount < -swipeThreshold) {
                                     speak(testList[testIter])
                                 }
                             }
