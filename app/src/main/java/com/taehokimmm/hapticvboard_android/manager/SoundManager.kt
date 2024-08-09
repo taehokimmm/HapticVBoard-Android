@@ -119,7 +119,7 @@ class SoundManager(context: Context) {
         var keyToResource: Map<String, Int> = mapOf(
             "a" to R.raw.tts_a,
             "b" to R.raw.tts_b,
-            "c" to R.raw.tts_k,
+            "c" to R.raw.tts_c,
             "d" to R.raw.tts_d,
             "e" to R.raw.tts_e,
             "f" to R.raw.tts_f,
@@ -214,7 +214,7 @@ class SoundManager(context: Context) {
         var keyToResource: Map<String, Int> = mapOf(
             "a" to R.raw.phoneme_a,
             "b" to R.raw.phoneme_b,
-            "c" to R.raw.phoneme_k,
+            "c" to R.raw.phoneme_q,
             "d" to R.raw.phoneme_d,
             "e" to R.raw.phoneme_e,
             "f" to R.raw.phoneme_f,
@@ -222,7 +222,7 @@ class SoundManager(context: Context) {
             "h" to R.raw.phoneme_h,
             "i" to R.raw.phoneme_i,
             "j" to R.raw.phoneme_j,
-            "k" to R.raw.phoneme_k,
+            "k" to R.raw.phoneme_q,
             "l" to R.raw.phoneme_l,
             "m" to R.raw.phoneme_m,
             "n" to R.raw.phoneme_n,

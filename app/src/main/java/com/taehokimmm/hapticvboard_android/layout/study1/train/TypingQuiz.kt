@@ -56,6 +56,14 @@ fun Study1TypingQuiz(
     hapticMode: HapticMode
 ) {
     val context = LocalContext.current
+    val keyboardAllowlist = when(group) {
+        "A" -> getAllowGroup("A")
+        "B" -> getAllowGroup("AB")
+        "C" -> getAllowGroup("ABC")
+        "D" -> getAllowGroup("ABCD")
+        else -> listOf("")
+    }
+
     val allowlist = getAllowGroup(group)
 
     val totalBlock = 4
@@ -160,7 +168,7 @@ fun Study1TypingQuiz(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
-                            if (allowlist.contains(key)) {
+                            if (keyboardAllowlist.contains(key)) {
                                 if (testBlock % 2 == 0)
                                     soundManager.speakOut(key)
 
@@ -203,7 +211,7 @@ fun Study1TypingQuiz(
                         soundManager = soundManager,
                         hapticManager = hapticManager,
                         hapticMode = if(testBlock % 2 == 1) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
-                        allow = allowlist,
+                        allow = keyboardAllowlist,
                         logData = Study1Phase3Log(
                             answer = testList[testIter], iter = testIter, block = testBlock
                         ),

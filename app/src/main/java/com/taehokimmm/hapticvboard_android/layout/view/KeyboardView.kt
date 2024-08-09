@@ -272,9 +272,7 @@ fun processTouchEvent(
                         hapticManager?.generateHaptic(key, hapticMode)
                     else {
                         if (hapticMode == HapticMode.VOICEPHONEME)
-                            hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
-                        else
-                            hapticManager?.generateHaptic(key, HapticMode.TICK)
+                            hapticManager?.generateHaptic(key, HapticMode.VOICE)
                     }
                     onKeyReleased(key)
                 }
@@ -308,9 +306,7 @@ fun processTouchEvent(
                         hapticManager?.generateHaptic(key, hapticMode)
                     else {
                         if (hapticMode == HapticMode.VOICEPHONEME)
-                            hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
-                        else
-                            hapticManager?.generateHaptic(key, HapticMode.TICK)
+                            hapticManager?.generateHaptic(key, HapticMode.VOICE)
                     }
                     
                     if (activeTouches[pointerId] == "Out of Bounds")

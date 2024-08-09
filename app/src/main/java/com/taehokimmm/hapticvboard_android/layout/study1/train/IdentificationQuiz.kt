@@ -246,7 +246,7 @@ fun Study1IdentiQuiz(
                     )
                 }
         ) {
-            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager)
+            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 150.dp)
 
             Button(
                 onClick = {
