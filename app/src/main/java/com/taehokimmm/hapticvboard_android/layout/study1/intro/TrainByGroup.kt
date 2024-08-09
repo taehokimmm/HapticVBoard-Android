@@ -73,7 +73,7 @@ fun TrainGroup(
     var verticalSwipeStart by remember{mutableStateOf(0f)}
     var verticalSwipeEnd by remember{mutableStateOf(0f)}
 
-    val swipeThreshold = 20
+    val swipeThreshold = 100
 
     LaunchedEffect(selectedTabIndex) {
         selectedIndex = 0
@@ -107,6 +107,7 @@ fun TrainGroup(
                     onDragEnd = {
                         if (isExplaining) return@detectHorizontalDragGestures
                         val horizontalSwipeAmount  = horizontalSwipeEnd - horizontalSwipeStart
+                        Log.d("Swipe AMOUNT", horizontalSwipeAmount.toString() + " _ " + swipeThreshold)
                         if (horizontalSwipeAmount > swipeThreshold) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
                                 selectedIndex++
@@ -134,6 +135,7 @@ fun TrainGroup(
                     onDragEnd = {
                         if (isExplaining) return@detectVerticalDragGestures
                         val verticalSwipeAmount = verticalSwipeEnd - verticalSwipeStart
+                        Log.d("Swipe AMOUNT", verticalSwipeAmount.toString() + " _ " + swipeThreshold)
                         if (verticalSwipeAmount < -swipeThreshold) {
                             if (selectedTabIndex > 0) {
                                 selectedTabIndex --

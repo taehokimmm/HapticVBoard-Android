@@ -79,7 +79,7 @@ fun Study1IdentiQuiz(
     // Swipe Gesture
     var horizontalDragStart by remember {mutableStateOf(0f)}
     var horizontalDragEnd by remember {mutableStateOf(0f)}
-    val swipeThreshold = 20
+    val swipeThreshold = 100
 
     fun explainKey(key: String, delay: Long = 0) {
         isExplaining = true
@@ -226,6 +226,7 @@ fun Study1IdentiQuiz(
                             if (isExplaining || isShowAnswer) return@detectHorizontalDragGestures
 
                             val swipeAmount = horizontalDragEnd - horizontalDragStart
+                            Log.d("Swipe AMOUNT", swipeAmount.toString() + " _ " + swipeThreshold)
                             if (swipeAmount > swipeThreshold) {
                                 if (selectedIndex < options.size - 1) {
                                     selectedIndex++
