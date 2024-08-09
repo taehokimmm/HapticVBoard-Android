@@ -212,6 +212,17 @@ fun processTouchEvent(
     when (event.actionMasked) {
         MotionEvent.ACTION_DOWN-> {
             for (i in 0 until event.pointerCount) {
+                if (i >= 1) {
+                    // Play sound for additional touches
+                    val key = activeTouches[event.getPointerId(0)]!!
+                    if (allow.contains(key)) hapticManager?.generateHaptic(key, hapticMode)
+                    else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(
+                        key,
+                        HapticMode.VOICE
+                    )
+                    Log.d("TouchEvent", "additional touch: $key")
+                }
+
                 val pointerId = event.getPointerId(i)
                 val pointerPosition = Offset(event.getX(i), event.getY(i))
                 val key = keyPositions.entries.find { (_, coordinates) ->
@@ -292,12 +303,16 @@ fun processTouchEvent(
 
         MotionEvent.ACTION_MOVE -> {
             for (i in 0 until event.pointerCount) {
+                if (i >= 1) {
+                    // ignore the move event for additional touches
+                    continue
+                }
+
                 val pointerId = event.getPointerId(i)
                 val pointerPosition = Offset(event.getX(i), event.getY(i))
                 val key = keyPositions.entries.find { (_, coordinates) ->
                     isPointerOverKey(coordinates, pointerPosition)
                 }?.key
-                Log.d("Touch Event", "MOVE " + key)
                 if (key != null && activeTouches[pointerId] != key) {
 
                     Log.d(
