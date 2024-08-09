@@ -75,8 +75,6 @@ fun Study1TypingQuiz(
     // Typing Test
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    var correct by remember { mutableIntStateOf(0) }
-
     var startTime by remember { mutableStateOf(0L) }
     var isSpeakingDone by remember { mutableStateOf(false) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
@@ -143,7 +141,6 @@ fun Study1TypingQuiz(
             closeStudy1Database()
             navController.navigate("study1/train/end/${subject}")
         } else {
-            correct = 0
             testList = allowlist.shuffled()
             testIter = -1
         }
