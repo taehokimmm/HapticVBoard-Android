@@ -49,6 +49,7 @@ fun KeyboardLayout(
     // Root coordinates for global positioning
     var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
+    val outOfBound = 1533
     Box(modifier = Modifier
         .fillMaxWidth()
         .background(
@@ -228,6 +229,7 @@ fun processTouchEvent(
     context: Context,
     name: String?
 ) {
+    val outOfBound = 1500
     for(event in events) {
         if (event.pointerCount == 1) {
             val pointerId = event.getPointerId(event.actionIndex)
@@ -277,7 +279,7 @@ fun processTouchEvent(
                             )
                         }
                     }
-                    else if (pointerPosition.y < 1533) {
+                    else if (pointerPosition.y < outOfBound) {
                         // Key pressed out of bounds
                         Log.d(
                             "TouchEvent",
@@ -341,6 +343,12 @@ fun processTouchEvent(
                     val key = keyPositions.entries.find { (_, coordinates) ->
                         isPointerOverKey(coordinates, pointerPosition)
                     }?.key
+
+                    if (pointerPosition.y > outOfBound && activeTouches[pointerId] == "Out of Bounds") {
+                        activeTouches[pointerId] = ""
+                        hapticManager?.generateVibration("Out of Bounds")
+                    }
+
                     if (key != null && activeTouches[pointerId] != key) {
 
                         Log.d(
@@ -356,8 +364,6 @@ fun processTouchEvent(
                                 hapticManager?.generateHaptic(key, HapticMode.TICK)
                         }
 
-                        if (activeTouches[pointerId] == "Out of Bounds")
-                            hapticManager!!.generateVibration("Replay")
                         activeTouches[pointerId] = key
 
                         // Add Log
@@ -376,14 +382,14 @@ fun processTouchEvent(
                         }
 
                         activeTouches[pointerId] = key
-                    } else if (key == null && pointerPosition.y < 1533) {
+                    } else if (key == null && pointerPosition.y < outOfBound) {
                         // Key moved out of bounds, need to fix random number 1533
                         Log.d(
                             "TouchEvent",
                             "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
                         )
                         if (activeTouches[pointerId] != "Out of Bounds" && activeTouches[pointerId] != null)
-                            hapticManager!!.generateVibration("Replay")
+                            hapticManager!!.generateVibration("Out of Bounds")
                         activeTouches[pointerId] = "Out of Bounds"
                         // Add Log
                         if (name != null && logData != null) {

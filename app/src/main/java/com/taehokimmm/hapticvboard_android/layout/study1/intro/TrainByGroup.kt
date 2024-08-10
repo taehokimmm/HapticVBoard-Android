@@ -2,7 +2,6 @@ package com.taehokimmm.hapticvboard_android.layout.study1.intro
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -23,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,16 +52,32 @@ fun TrainGroup(
     var selectedIndex by remember { mutableStateOf(0) }
     var isExplaining by remember {mutableStateOf(false)}
 
+    val handler = Handler(Looper.getMainLooper())
+    val runnables = remember { mutableStateListOf<Runnable>() }
+
     fun explainKey(key: String) {
         isExplaining = true
         hapticManager?.generateHaptic(key,HapticMode.VOICE)
-        delay({soundManager?.playPhoneme(key)},700)
-        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500)
-        delay({isExplaining = false}, 1500)
+
+        // Clear any previous runnables before adding new ones
+        runnables.clear()
+
+        runnables.add(
+            delay({soundManager?.playPhoneme(key)},700, handler)
+        )
+        runnables.add(
+            delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500, handler)
+        )
+        runnables.add(
+            delay({isExplaining = false}, 1500, handler)
+        )
     }
 
     fun onSelect(index: Int) {
-        if (isExplaining) return
+        if (isExplaining) {
+            runnables.forEach { handler.removeCallbacks(it) }
+            isExplaining = false
+        }
         val key = group[selectedTabIndex][index]
         explainKey(key)
         selectedIndex = index
@@ -73,9 +89,13 @@ fun TrainGroup(
     var verticalSwipeStart by remember{mutableStateOf(0f)}
     var verticalSwipeEnd by remember{mutableStateOf(0f)}
 
-    val swipeThreshold = 20
+    val swipeThreshold = 100
 
     LaunchedEffect(selectedTabIndex) {
+        if (isExplaining) {
+            runnables.forEach { handler.removeCallbacks(it) }
+            isExplaining = false
+        }
         selectedIndex = 0
         soundManager?.speakOutKor(name[selectedTabIndex])
         delay({
@@ -89,7 +109,7 @@ fun TrainGroup(
             .padding(innerPadding)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {onSelect(selectedIndex)},
+                    onTap = { onSelect(selectedIndex) },
                     onDoubleTap = {
                         if (isExplaining) return@detectTapGestures
                         soundManager?.speakOutKor(name[selectedTabIndex])
@@ -105,8 +125,7 @@ fun TrainGroup(
                         horizontalSwipeEnd = change.position.x
                     },
                     onDragEnd = {
-                        if (isExplaining) return@detectHorizontalDragGestures
-                        val horizontalSwipeAmount  = horizontalSwipeEnd - horizontalSwipeStart
+                        val horizontalSwipeAmount = horizontalSwipeEnd - horizontalSwipeStart
                         if (horizontalSwipeAmount > swipeThreshold) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
                                 selectedIndex++
@@ -126,23 +145,25 @@ fun TrainGroup(
                 )
             }
             .pointerInput(Unit) {
-                detectVerticalDragGestures (
-                    onDragStart = {offset ->
-                        verticalSwipeStart = offset.y },
-                    onVerticalDrag = {change, dragAmount ->
-                        verticalSwipeEnd = change.position.y},
+                detectVerticalDragGestures(
+                    onDragStart = { offset ->
+                        verticalSwipeStart = offset.y
+                    },
+                    onVerticalDrag = { change, dragAmount ->
+                        verticalSwipeEnd = change.position.y
+                    },
                     onDragEnd = {
-                        if (isExplaining) return@detectVerticalDragGestures
                         val verticalSwipeAmount = verticalSwipeEnd - verticalSwipeStart
                         if (verticalSwipeAmount < -swipeThreshold) {
                             if (selectedTabIndex > 0) {
-                                selectedTabIndex --
+                                selectedTabIndex--
                             } else {
                                 selectedTabIndex = name.size - 1
                             }
+
                         } else if (verticalSwipeAmount > swipeThreshold) {
                             if (selectedTabIndex < name.size - 1) {
-                                selectedTabIndex ++
+                                selectedTabIndex++
                             } else {
                                 selectedTabIndex = 0
                             }
