@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -87,10 +88,10 @@ fun Study2Test(
 
     val totalBlock = when (isPractice) {
         true -> 1
-        false -> 4
+        false -> 3
     }
     val testNumber = when (isPractice) {
-        true -> 4
+        true -> 3
         false -> 5
     }
     var testBlock by remember { mutableStateOf(0) }
@@ -125,6 +126,16 @@ fun Study2Test(
     var verticalDragStart by remember {mutableStateOf(0f)}
     var verticalDragEnd by remember {mutableStateOf(0f)}
     val swipeThreshold = 20
+
+    var countdown by remember { mutableStateOf(0) }
+
+    LaunchedEffect(countdown) {
+        kotlinx.coroutines.delay(1000L)
+        countdown++
+    }
+
+
+
     LaunchedEffect(Unit) {
 
         var phrases1 = when (isPractice) {
@@ -222,7 +233,8 @@ fun Study2Test(
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("Tap to start Block " + (testBlock + 1).toString())
+//            soundManager.speakOut("Tap to start Block " + (testBlock + 1).toString())
+            countdown = 0
             testList = phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
             val targetText = testList[testIter]
@@ -249,13 +261,22 @@ fun Study2Test(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            // Show countdown (MM:SS)
+            Text(
+                text = "%02d:%02d".format(countdown / 60, countdown % 60),
+                fontSize = 30.sp,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+
             Button(
                 onClick = {
                     testIter = 0
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(),
+                    .height(200.dp)
+                    .align(Alignment.Center),
                 shape = RoundedCornerShape(corner = CornerSize(0)),
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {

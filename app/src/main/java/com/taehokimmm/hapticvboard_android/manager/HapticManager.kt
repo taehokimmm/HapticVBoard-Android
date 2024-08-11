@@ -58,7 +58,7 @@ class HapticManager(context: Context) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
 
                 var vibrate: VibrationEffect? = null
-                if (key == "Backspace") {
+                if (key == "Backspace"){
                     vibrate = VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE)
                 } else if(key == "Space"){
                     vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)

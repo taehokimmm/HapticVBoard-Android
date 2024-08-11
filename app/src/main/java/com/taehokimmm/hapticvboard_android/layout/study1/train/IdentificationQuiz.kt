@@ -2,6 +2,7 @@ package com.taehokimmm.hapticvboard_android.layout.study1.train
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -26,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -63,7 +65,7 @@ fun Study1IdentiQuiz(
     val context = LocalContext.current
     val allowlist = getAllowGroup(group)
 
-    val totalBlock = 3
+    val totalBlock = 1
     var testIter by remember { mutableStateOf(-1) }
     var testBlock by remember { mutableStateOf(1) }
     var testList by remember { mutableStateOf(allowlist.shuffled()) }
@@ -78,21 +80,40 @@ fun Study1IdentiQuiz(
     // Swipe Gesture
     var horizontalDragStart by remember {mutableStateOf(0f)}
     var horizontalDragEnd by remember {mutableStateOf(0f)}
-    val swipeThreshold = 20
+    val swipeThreshold = 100
+
+
+    val handler = Handler(Looper.getMainLooper())
+    val runnables = remember { mutableStateListOf<Runnable>() }
 
     fun explainKey(key: String, delay: Long = 0) {
         isExplaining = true
+
+        // Clear any previous runnables before adding new ones
+        runnables.clear()
+
         // Word
-        delay({hapticManager?.generateHaptic(key,HapticMode.VOICE)},delay+0)
+        runnables.add(
+            delay({ hapticManager.generateHaptic(key,HapticMode.VOICE) },delay+0, handler)
+        )
+
         // Phoneme
-        delay({soundManager?.playPhoneme(key)}, delay+700)
-        delay({
-            hapticManager?.generateHaptic(
+        runnables.add(
+            delay({ soundManager.playPhoneme(key) }, delay+700, handler)
+        )
+
+        runnables.add(
+            delay({
+            hapticManager.generateHaptic(
                 key,
                 HapticMode.PHONEME
             )
-        }, delay+1500)
-        delay({isExplaining = false}, delay+2500)
+        }, delay+1500, handler)
+        )
+
+        runnables.add(
+            delay({isExplaining = false}, delay+2500, handler)
+        )
     }
 
     fun speakNextWord() {
@@ -102,19 +123,12 @@ fun Study1IdentiQuiz(
     }
 
     fun onConfirm() {
-        if (isExplaining) return
+        if (isExplaining) {
+            runnables.forEach { handler.removeCallbacks(it) }
+            isExplaining = false
+        }
         if (isShowAnswer) {
             testIter++
-            if (testIter < testList.size) {
-                selectedIndex = 0
-                selectedAnswer = -1
-                options = generateCandidates(
-                    testList[testIter],
-                    allowlist
-                )
-                speakNextWord()
-                isShowAnswer = false
-            }
         } else {
             // Correct Feedback
             val selectedOption = options[selectedIndex]
@@ -139,21 +153,40 @@ fun Study1IdentiQuiz(
     }
 
     fun onSelect(index: Int) {
-        if (isExplaining) return
+        if (isExplaining) {
+            runnables.forEach { runnable ->
+                Log.d("Identification", runnable.toString())
+                handler.removeCallbacks(runnable) }
+            isExplaining = false
+        }
         selectedIndex = index
 
         if (isShowAnswer) {
             explainKey(testList[testIter])
         } else {
-            soundManager.speakOut((index+1).toString())
-            delay(
-                {
-                    hapticManager.generateHaptic(
-                        options[index],
-                        HapticMode.PHONEME
-                    )
 
-                }, 900
+            isExplaining = true
+            runnables.clear()
+
+            soundManager.speakOut((index+1).toString())
+
+            runnables.add(
+                delay(
+                    {
+                        hapticManager.generateHaptic(
+                            options[index],
+                            HapticMode.PHONEME
+                        )
+                    }, 900, handler
+                )
+            )
+
+            runnables.add(
+                delay(
+                    {
+                        isExplaining = false
+                    }, 900, handler
+                )
             )
         }
     }
@@ -161,6 +194,15 @@ fun Study1IdentiQuiz(
     LaunchedEffect (testIter) {
         if (testIter == -1) {
             soundManager.speakOut("시작하려면 탭하세요.")
+        } else if (testIter < testList.size) {
+            selectedIndex = 0
+            selectedAnswer = -1
+            options = generateCandidates(
+                testList[testIter],
+                allowlist
+            )
+            speakNextWord()
+            isShowAnswer = false
         }
     }
     // Identification Test
@@ -177,11 +219,6 @@ fun Study1IdentiQuiz(
             Button(
                 onClick = {
                     testIter = 0
-                    options = generateCandidates(
-                        testList[testIter],
-                        allowlist
-                    )
-                    speakNextWord()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -222,7 +259,7 @@ fun Study1IdentiQuiz(
                             horizontalDragEnd = change.position.x
                         },
                         onDragEnd = {
-                            if (isExplaining || isShowAnswer) return@detectHorizontalDragGestures
+                            if (isShowAnswer) return@detectHorizontalDragGestures
 
                             val swipeAmount = horizontalDragEnd - horizontalDragStart
                             if (swipeAmount > swipeThreshold) {

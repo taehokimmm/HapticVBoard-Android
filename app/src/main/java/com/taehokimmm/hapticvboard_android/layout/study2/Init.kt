@@ -50,9 +50,8 @@ fun Study2Init(navController: NavHostController) {
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var options = listOf("audio", "phoneme", "audiophoneme")
+    var options = listOf("audio", "phoneme", "audiophoneme", "vibration")
     var selectedOption by remember { mutableStateOf("audio") }
-
 
     var subjects = listOf("test")
     for(i in 1 until 12) {
