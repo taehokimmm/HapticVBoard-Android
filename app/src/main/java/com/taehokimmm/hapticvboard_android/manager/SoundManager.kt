@@ -58,22 +58,23 @@ class SoundManager(context: Context) {
         ttsKor = TextToSpeech(context) {
             if (it === TextToSpeech.SUCCESS) {
 
-                // Export TTS to wav file
-//                for (letter in 'a' .. 'z') {
-//                    // Output file
-//                    val outputFile: File = File(
-//                        context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-//                        "tts_" + letter +".wav")
-//                    // Synthesizing to file
-//                    val params = Bundle()
-//                    params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "tts1")
-//                    ttsKor.synthesizeToFile(letter.toString(), params, outputFile, "tts1")
-//
-//                }
-
-
                 // Set TTS Language
                 val result = ttsKor.setLanguage(Locale.KOREAN)
+
+                // Export TTS to wav file
+                for (letter in 'a' .. 'z') {
+                    // Output file
+                    val outputFile: File = File(
+                        context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+                        "tts_" + letter +".wav")
+                    Log.d("TTSMANAGER", outputFile.absolutePath)
+                    // Synthesizing to file
+                    val params = Bundle()
+                    params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "tts1")
+                    ttsKor.synthesizeToFile(letter.toString(), params, outputFile, "tts1")
+
+                }
+
 
                 if (result == TextToSpeech.LANG_NOT_SUPPORTED || result == TextToSpeech.LANG_MISSING_DATA) {
                     Log.e("TTS", "This Language is not supported")
