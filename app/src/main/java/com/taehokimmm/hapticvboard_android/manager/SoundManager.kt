@@ -145,10 +145,13 @@ class SoundManager(context: Context) {
             "y" to R.raw.tts_y,
             "z" to R.raw.tts_z
         )
-        releaseMediaPlayer()
-        mediaPlayer =
-            keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
-        playMediaPlayer()
+        speakOut(key)
+        delay({
+            releaseMediaPlayer()
+            mediaPlayer =
+                keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
+            playMediaPlayer()
+        }, 700)
     }
 
 

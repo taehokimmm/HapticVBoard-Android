@@ -94,7 +94,7 @@ fun Study1IdentiQuiz(
 
         // Word
         runnables.add(
-            delay({ hapticManager.generateHaptic(key,HapticMode.VOICE) },delay+0, handler)
+            delay({ soundManager.speakOut(key) },delay+0, handler)
         )
 
         // Phoneme
@@ -118,7 +118,7 @@ fun Study1IdentiQuiz(
 
     fun speakNextWord() {
         delay({
-            soundManager.speakOut(testList[testIter])
+            soundManager.speakOutChar(testList[testIter])
         }, 500)
     }
 
@@ -161,15 +161,13 @@ fun Study1IdentiQuiz(
         }
         selectedIndex = index
 
+        isExplaining = true
+        runnables.clear()
+
         if (isShowAnswer) {
-            explainKey(testList[testIter])
+            explainKey(options[selectedIndex])
         } else {
-
-            isExplaining = true
-            runnables.clear()
-
             soundManager.speakOut((index+1).toString())
-
             runnables.add(
                 delay(
                     {
@@ -259,8 +257,6 @@ fun Study1IdentiQuiz(
                             horizontalDragEnd = change.position.x
                         },
                         onDragEnd = {
-                            if (isShowAnswer) return@detectHorizontalDragGestures
-
                             val swipeAmount = horizontalDragEnd - horizontalDragStart
                             if (swipeAmount > swipeThreshold) {
                                 if (selectedIndex < options.size - 1) {
@@ -281,7 +277,7 @@ fun Study1IdentiQuiz(
                     )
                 }
         ) {
-            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager)
+            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 200.dp)
 
             Button(
                 onClick = {
@@ -366,7 +362,7 @@ fun getAllowGroup(group: String): List<String> {
 fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
     var group = listOf(key)
     var others = allowGroup.filterNot{it == key}
-    group += others.shuffled().slice(0..2)
+    group += others.shuffled().slice(0..3)
     return group.shuffled()
 }
 

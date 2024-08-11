@@ -104,12 +104,14 @@ fun Study1TypingQuiz(
         soundManager.speakOutChar(testList[testIter])
         delay({
             isSpeakingDone = true
-        }, 500)
+        }, 700)
     }
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             soundManager.speakOutKor("시작하려면 탭하세요")
+        } else if (testIter < testList.size) {
+            speak()
         }
     }
 
@@ -122,7 +124,6 @@ fun Study1TypingQuiz(
             Button(
                 onClick = {
                     testIter = 0
-                    speak()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -150,7 +151,7 @@ fun Study1TypingQuiz(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager, height = 100.dp)
+            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager, height = 200.dp)
 
             if (isSpeakingDone) {
                 Box(
@@ -186,7 +187,6 @@ fun Study1TypingQuiz(
                                 delay(
                                     {// Speak next target alphabet key
                                         testIter++
-                                        if (testIter < testList.size) speak()
                                     }, 1500
                                 )
                                 isSpeakingDone = false

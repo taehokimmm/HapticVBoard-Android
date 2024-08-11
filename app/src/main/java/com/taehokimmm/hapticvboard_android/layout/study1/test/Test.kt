@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,14 +63,7 @@ fun Study1Test(
     val context = LocalContext.current
 
     val allowlist = getAllowGroup(group)
-
-    val keyboardAllowlist = when(group) {
-        "A" -> getAllowGroup("A")
-        "B" -> getAllowGroup("AB")
-        "C" -> getAllowGroup("ABC")
-        "D" -> getAllowGroup("ABCD")
-        else -> listOf("")
-    }
+    val keyboardAllowlist = getAllowGroup(group)
 
     val totalBlock = 1
     var testBlock by remember { mutableStateOf(1) }
