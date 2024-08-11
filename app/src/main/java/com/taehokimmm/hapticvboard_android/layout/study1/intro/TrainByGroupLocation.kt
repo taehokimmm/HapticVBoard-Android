@@ -1,6 +1,7 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.intro
 
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -17,14 +18,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,12 +52,25 @@ fun TrainGroupLocation(
     var selectedIndex by remember { mutableStateOf(0) }
     var isExplaining by remember {mutableStateOf(false)}
 
+    val handler = Handler(Looper.getMainLooper())
+    val runnables = remember { mutableStateListOf<Runnable>() }
+
     fun explainKey(key: String) {
         isExplaining = true
-        soundManager?.speakOutChar(key)
-        delay({soundManager?.playPhoneme(key)},700)
-        delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500)
-        delay({isExplaining = false}, 1500)
+        hapticManager?.generateHaptic(key,HapticMode.VOICE)
+
+        // Clear any previous runnables before adding new ones
+        runnables.clear()
+
+        runnables.add(
+            delay({soundManager?.playPhoneme(key)},700, handler)
+        )
+        runnables.add(
+            delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500, handler)
+        )
+        runnables.add(
+            delay({isExplaining = false}, 1500, handler)
+        )
     }
 
     fun onSelect(index: Int) {

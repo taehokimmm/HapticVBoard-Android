@@ -64,6 +64,8 @@ class HapticManager(context: Context) {
                     vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)
                 } else if(key == "Replay"){
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
+                } else if (key == "Out of Bounds") {
+                    vibrate = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
                 } else {
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
                 }
