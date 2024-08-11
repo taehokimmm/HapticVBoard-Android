@@ -57,8 +57,5 @@ fun GroupIntro(
         .filter { it.second.isNotEmpty() }
         .unzip()
 
-    if (category == "phoneme")
-        TrainGroup(innerPadding, soundManager, hapticManager, nonEmptyGroups, filteredNames)
-    else if (category == "location")
-        TrainGroupLocation(innerPadding, soundManager, hapticManager, nonEmptyGroups, filteredNames)
+    TrainGroup(innerPadding, soundManager, hapticManager, nonEmptyGroups, filteredNames)
 }

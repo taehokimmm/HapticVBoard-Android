@@ -48,7 +48,6 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.R
-import com.taehokimmm.hapticvboard_android.calculateIKI
 import com.taehokimmm.hapticvboard_android.calculatePressDuration
 import com.taehokimmm.hapticvboard_android.calculateUER
 import com.taehokimmm.hapticvboard_android.calculateWPM

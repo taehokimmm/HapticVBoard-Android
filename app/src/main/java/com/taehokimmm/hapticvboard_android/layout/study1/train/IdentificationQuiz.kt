@@ -2,7 +2,6 @@ package com.taehokimmm.hapticvboard_android.layout.study1.train
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -364,11 +363,21 @@ fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: 
 }
 
 
-fun delay(function: () -> Unit, delayMillis: Long) {
-    Handler(Looper.getMainLooper()).postDelayed(
-        {// Speak & Haptic Feedback for answer
-            function()
-        },
-        delayMillis
-    )
+fun delay(function: () -> Unit, delayMillis: Long, handler: Handler? = null): Runnable {
+    val runnable = Runnable {
+        function()
+    }
+    if (handler == null) {
+        Handler(Looper.getMainLooper()).postDelayed(
+            runnable,
+            delayMillis
+        )
+    } else {
+        handler.postDelayed(
+            runnable,
+            delayMillis
+        )
+    }
+
+    return runnable
 }
