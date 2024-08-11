@@ -78,12 +78,12 @@ fun Study1IdentiQuiz(
     // Swipe Gesture
     var horizontalDragStart by remember {mutableStateOf(0f)}
     var horizontalDragEnd by remember {mutableStateOf(0f)}
-    val swipeThreshold = 20
+    val swipeThreshold = 100
 
     fun explainKey(key: String, delay: Long = 0) {
         isExplaining = true
         // Word
-        delay({hapticManager?.generateHaptic(key,HapticMode.VOICE)},delay+0)
+        delay({soundManager?.speakOutChar(key)},delay+0)
         // Phoneme
         delay({soundManager?.playPhoneme(key)}, delay+700)
         delay({
@@ -97,7 +97,7 @@ fun Study1IdentiQuiz(
 
     fun speakNextWord() {
         delay({
-            soundManager.speakOut(testList[testIter])
+            soundManager.speakOutChar(testList[testIter])
         }, 500)
     }
 
@@ -225,6 +225,7 @@ fun Study1IdentiQuiz(
                             if (isExplaining || isShowAnswer) return@detectHorizontalDragGestures
 
                             val swipeAmount = horizontalDragEnd - horizontalDragStart
+
                             if (swipeAmount > swipeThreshold) {
                                 if (selectedIndex < options.size - 1) {
                                     selectedIndex++
@@ -244,7 +245,7 @@ fun Study1IdentiQuiz(
                     )
                 }
         ) {
-            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager)
+            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 150.dp)
 
             Button(
                 onClick = {
@@ -329,7 +330,7 @@ fun getAllowGroup(group: String): List<String> {
 fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
     var group = listOf(key)
     var others = allowGroup.filterNot{it == key}
-    group += others.shuffled().slice(0..2)
+    group += others.shuffled().slice(0..3)
     return group.shuffled()
 }
 

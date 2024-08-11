@@ -124,7 +124,7 @@ fun Study2Test(
     var horizontalDragEnd by remember {mutableStateOf(0f)}
     var verticalDragStart by remember {mutableStateOf(0f)}
     var verticalDragEnd by remember {mutableStateOf(0f)}
-    val swipeThreshold = 20
+    val swipeThreshold = 100
     LaunchedEffect(Unit) {
 
         var phrases1 = when (isPractice) {

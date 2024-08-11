@@ -63,6 +63,14 @@ fun Study1Test(
 
     val allowlist = getAllowGroup(group)
 
+    val keyboardAllowlist = when(group) {
+        "A" -> getAllowGroup("A")
+        "B" -> getAllowGroup("AB")
+        "C" -> getAllowGroup("ABC")
+        "D" -> getAllowGroup("ABCD")
+        else -> listOf("")
+    }
+
     val totalBlock = 1
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
@@ -167,7 +175,7 @@ fun Study1Test(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
-                            if (allowlist.contains(key)) {
+                            if (keyboardAllowlist.contains(key)) {
                                 //--- Append Data to Database ---//
                                 val curTime = System.currentTimeMillis()
                                 val data = Study1TestAnswer(
@@ -191,7 +199,7 @@ fun Study1Test(
                         soundManager = soundManager,
                         hapticManager = hapticManager,
                         hapticMode = hapticMode,
-                        allow = allowlist,
+                        allow = keyboardAllowlist,
                         logData = Study1TestLog(
                             answer = answer, iter = iter, block = block
                         ),

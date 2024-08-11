@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
+import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
 import com.taehokimmm.hapticvboard_android.database.resetData
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
@@ -109,6 +110,7 @@ fun Study1TrainInit(navController: NavHostController) {
             Button(
                 onClick = {
                     closeStudy1Database()
+                    closeStudy2Database()
                     when {
                         testSubjectIdentifier.isEmpty() -> errorMessage =
                             "Please enter a test subject"
@@ -117,7 +119,6 @@ fun Study1TrainInit(navController: NavHostController) {
                             "Please select a test group"
 
                         else -> {
-                            deleteDatabaseByName(context, testSubjectIdentifier)
                             navController.navigate("study1/train/phase1/${testSubjectIdentifier}/${selectedOption}")
                         }
                     }

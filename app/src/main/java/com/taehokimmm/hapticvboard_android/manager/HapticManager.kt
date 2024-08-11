@@ -26,7 +26,7 @@ class HapticManager(context: Context) {
             hapticMode == HapticMode.VOICEPHONEME ||
             hapticMode == HapticMode.VOICETICK
         ) {
-            soundManager.speakOut(key)
+            soundManager.speakOutKeyboard(key)
         }
 
         if (hapticMode == HapticMode.VOICE) return
