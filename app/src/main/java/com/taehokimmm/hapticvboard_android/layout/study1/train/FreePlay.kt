@@ -44,6 +44,13 @@ fun Study1FreePlay(
     hapticMode: HapticMode
 ) {
     val allowGroup = getAllowGroup(group)
+    val keyboardAllowlist = when(group) {
+        "A" -> getAllowGroup("A")
+        "B" -> getAllowGroup("AB")
+        "C" -> getAllowGroup("ABC")
+        "D" -> getAllowGroup("ABCD")
+        else -> listOf("")
+    }
     var countdown by remember { mutableStateOf(0) }
 
     LaunchedEffect(countdown) {
@@ -84,7 +91,7 @@ fun Study1FreePlay(
                 soundManager = soundManager,
                 hapticManager = hapticManager,
                 hapticMode = HapticMode.VOICEPHONEME,
-                allow = allowGroup
+                allow = keyboardAllowlist
             )
 
             AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->

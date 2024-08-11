@@ -132,6 +132,7 @@ fun Study2Init(navController: NavHostController) {
 
             Button(
                 onClick = {
+                    closeStudy1Database()
                     closeStudy2Database()
                     if (testSubjectIdentifier.isNotEmpty()) {
                         navController.navigate("study2/$testSubjectIdentifier/$selectedOption/$isPractice")

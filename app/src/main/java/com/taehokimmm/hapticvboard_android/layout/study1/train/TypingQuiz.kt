@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
@@ -55,6 +56,14 @@ fun Study1TypingQuiz(
     hapticMode: HapticMode
 ) {
     val context = LocalContext.current
+    val keyboardAllowlist = when(group) {
+        "A" -> getAllowGroup("A")
+        "B" -> getAllowGroup("AB")
+        "C" -> getAllowGroup("ABC")
+        "D" -> getAllowGroup("ABCD")
+        else -> listOf("")
+    }
+
     val allowlist = getAllowGroup(group)
 
     val totalBlock = 4
@@ -65,12 +74,6 @@ fun Study1TypingQuiz(
 
     // Typing Test
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
-
-    var correct by remember { mutableIntStateOf(0) }
-
-    // Record the wrong answers and the respective correct answers
-    val wrongAnswers = remember { mutableStateListOf<Char>() }
-    val correctAnswers = remember { mutableStateListOf<Char>() }
 
     var startTime by remember { mutableStateOf(0L) }
     var isSpeakingDone by remember { mutableStateOf(false) }
@@ -95,16 +98,12 @@ fun Study1TypingQuiz(
             }
         }
     }
-    
-    fun speakNextWord() {
-    }
 
     fun speak() {
         isSpeakingDone = false
-        val params = Bundle()
-        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        soundManager.speakOutChar(testList[testIter])
         delay({
-            tts?.speak(testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
+            isSpeakingDone = true
         }, 500)
     }
 
@@ -142,9 +141,6 @@ fun Study1TypingQuiz(
             closeStudy1Database()
             navController.navigate("study1/train/end/${subject}")
         } else {
-            correct = 0
-            wrongAnswers.clear()
-            correctAnswers.clear()
             testList = allowlist.shuffled()
             testIter = -1
         }
@@ -154,7 +150,7 @@ fun Study1TypingQuiz(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager)
+            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager, height = 100.dp)
 
             if (isSpeakingDone) {
                 Box(
@@ -163,17 +159,11 @@ fun Study1TypingQuiz(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyRelease = { key ->
-                            if (allowlist.contains(key)) {
+                            if (keyboardAllowlist.contains(key)) {
                                 if (testBlock % 2 == 0)
                                     soundManager.speakOut(key)
 
                                 val isCorrect = key == testList[testIter]
-                                if (key == testList[testIter]) {
-                                    correct++
-                                } else {
-                                    wrongAnswers.add(key[0])
-                                    correctAnswers.add(testList[testIter][0])
-                                }
                                 //--- Append Data to Database ---//
                                 val curTime = System.currentTimeMillis()
 
@@ -206,7 +196,7 @@ fun Study1TypingQuiz(
                         soundManager = soundManager,
                         hapticManager = hapticManager,
                         hapticMode = if(testBlock % 2 == 1) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
-                        allow = allowlist,
+                        allow = keyboardAllowlist,
                         logData = Study1Phase3Log(
                             answer = testList[testIter], iter = testIter, block = testBlock
                         ),

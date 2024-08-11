@@ -144,16 +144,7 @@ fun FreeTypeWithGroup(
         ) {
 
             Spacer(modifier = Modifier.height(440.dp))
-            Box(
-                modifier = Modifier
-                    .pointerInput(Unit) {
-                        detectTapGestures (
-                            onDoubleTap = {
-                                Log.d("Free type", "double tapped")
-                            }
-                        )
-                    }
-            ) {
+            Box() {
                 KeyboardLayout(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { },
