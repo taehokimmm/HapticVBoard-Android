@@ -1,12 +1,15 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.util.Log
+
 
 fun calculateTouchDuration(startTime: Long, endTime: Long): Long {
     return endTime - startTime
 }
 
 
-fun calculateWPM(startTime: Long, endTime: Long, wordCount: Int): Double {
+fun calculateWPM(startTime: Long, endTime: Long, sentence: String): Double {
+    val wordCount = sentence.length / 5
     val durationInMinutes = (endTime - startTime) / 1000.0 / 60.0
     return wordCount / durationInMinutes
 }
@@ -74,5 +77,6 @@ fun keyboardEfficiency(inputText: String, keyStrokeNum: Int): Double {
 }
 
 fun calculatePressDuration(pressDurations: List<Long>): Double {
+    Log.d("PressDuration", pressDurations.toString())
     return pressDurations.average()
 }

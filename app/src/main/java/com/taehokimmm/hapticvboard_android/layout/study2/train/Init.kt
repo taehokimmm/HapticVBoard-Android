@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2
+package com.taehokimmm.hapticvboard_android.layout.study2.train
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,17 +41,10 @@ import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 
 
 @Composable
-fun Study2Init(navController: NavHostController) {
-    var context = LocalContext.current
+fun Study2TrainInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    val subjectFocusRequester = FocusRequester()
-    val questionsFocusRequester = FocusRequester()
-    val focusManager = LocalFocusManager.current
-
-    var options = listOf("audio", "phoneme", "audiophoneme", "vibration")
-    var selectedOption by remember { mutableStateOf("audio") }
 
     var subjects = listOf("test")
     for(i in 1 until 12) {
@@ -59,10 +52,6 @@ fun Study2Init(navController: NavHostController) {
     }
     for(i in 1 until 8) {
         subjects += listOf("Pilot" + i)
-    }
-
-    var isPractice by remember {
-        mutableStateOf(false)
     }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -85,43 +74,6 @@ fun Study2Init(navController: NavHostController) {
                 }
             )
 
-            // Select Modality
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Column {
-                    options.forEach{option -> (
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = selectedOption == option,
-                                onClick = { selectedOption = option }
-                            )
-                            Text(text = option)
-                        }
-                    )}
-                }
-            }
-
-
-            Text(
-                modifier = Modifier.padding(start = 14.dp),
-                text = "Select Session",
-                fontSize = 16.sp
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                CheckboxWithLabel(
-                    checked = isPractice,
-                    onCheckedChange = { isPractice = it },
-                    label = "Is Practice Session?"
-                )
-            }
-
             if (errorMessage.isNotEmpty()) {
                 Text(
                     text = errorMessage,
@@ -135,7 +87,7 @@ fun Study2Init(navController: NavHostController) {
                     closeStudy1Database()
                     closeStudy2Database()
                     if (testSubjectIdentifier.isNotEmpty()) {
-                        navController.navigate("study2/$testSubjectIdentifier/$selectedOption/$isPractice")
+                        navController.navigate("study2/train/$testSubjectIdentifier")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     }
@@ -143,18 +95,9 @@ fun Study2Init(navController: NavHostController) {
                     .padding(top = 20.dp)
                     .fillMaxWidth()
             ) {
-                Text("Start Test")
+                Text("Start Train")
             }
 
-
-//            Button(onClick = {
-//                resetData(context, testSubjectIdentifier, selectedOption)
-//            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
-//            )
-//            {
-//                Text("DELETE DATABASE",
-//                    color = Color.White)
-//            }
         }
     }
 }

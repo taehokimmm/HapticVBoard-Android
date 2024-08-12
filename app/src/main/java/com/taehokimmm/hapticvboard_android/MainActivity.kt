@@ -69,6 +69,9 @@ import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2End
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2Init
 import com.taehokimmm.hapticvboard_android.layout.study2.Study2Test
+import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2Train
+import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainEnd
+import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainInit
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 //import com.taehokimmm.hapticvboard_android.manager.SerialMonitorScreen
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -236,6 +239,30 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         val subject = it.arguments?.getString("subject")!!
                         Study1TestEnd(subject, navController)
                     }
+
+                    composable("study2/train/init") {
+                        currentScreen = "study2/train/init"
+                        Study2TrainInit(navController)
+                    }
+                    composable("study2/train/{subject}") {
+                        currentScreen = "study2/test"
+                        val subject = it.arguments?.getString("subject")!!
+
+                        Study2Train(
+                            innerPadding,
+                            subject,
+                            navController,
+                            soundManager!!,
+                            hapticManager!!,
+                        )
+                    }
+                    composable("study2/train/end/{subject}") {
+                        currentScreen = "study2/end"
+                        val subject = it.arguments?.getString("subject")!!
+                        Study2TrainEnd(subject, navController)
+                    }
+
+
                     composable("study2/init") {
                         currentScreen = "study2/init"
                         Study2Init(navController)
@@ -317,6 +344,13 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "study1/test"
                     onItemClicked()
                 })
+            NavigationDrawerItem(label = { Text("Study 2 Train") },
+                selected = selectedItem == "study2/train",
+                onClick = {
+                    navController.navigate("study2/train/init")
+                    selectedItem = "study2/train"
+                    onItemClicked()
+                })
             NavigationDrawerItem(label = { Text("Study 2 Test") },
                 selected = selectedItem == "study2/test",
                 onClick = {
@@ -353,11 +387,12 @@ fun DrawTopAppBar(
         "study1/train/phase2" -> "Free Play"
         "study1/train/phase3" -> "Typing Quiz"
         "study1/test/init" -> "Study 1 Test"
+        "study2/train/init" -> "Study 2 Train"
         "study2/init" -> "Study 2 Test"
         "setting" -> "Setting"
         else -> ""
     }
-    Log.d("CURRENT", currentScreen + " " + displayText)
+
     when (currentScreen) {
         "study1/test" -> CenterAlignedTopAppBar(
             title = {
