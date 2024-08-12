@@ -1,5 +1,7 @@
 package com.taehokimmm.hapticvboard_android
 
+import android.util.Log
+
 
 fun calculateTouchDuration(startTime: Long, endTime: Long): Long {
     return endTime - startTime
@@ -74,5 +76,6 @@ fun keyboardEfficiency(inputText: String, keyStrokeNum: Int): Double {
 }
 
 fun calculatePressDuration(pressDurations: List<Long>): Double {
+    Log.d("PressDuration", pressDurations.toString())
     return pressDurations.average()
 }
