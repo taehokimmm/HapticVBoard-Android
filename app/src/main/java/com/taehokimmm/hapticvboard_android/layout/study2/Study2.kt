@@ -134,8 +134,6 @@ fun Study2Test(
         countdown++
     }
 
-
-
     LaunchedEffect(Unit) {
 
         var phrases1 = when (isPractice) {
@@ -147,7 +145,6 @@ fun Study2Test(
         } else {
             phrases = phrases1.slice(totalBlock * testNumber..phrases1.size - 1)
         }
-
 
         // Initiate TTS
         tts = TextToSpeech(context) { status ->
@@ -173,17 +170,13 @@ fun Study2Test(
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
-
     }
 
     fun speakWord(word: String) {
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
-
         if (word.length == 1) return
         delay(
             {
@@ -274,7 +267,7 @@ fun Study2Test(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .fillMaxHeight()
                     .align(Alignment.Center),
                 shape = RoundedCornerShape(corner = CornerSize(0)),
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
@@ -398,11 +391,7 @@ fun Study2Test(
                             onKeyRelease = { key ->
                                 var isEnd = false
                                 if (key == "Space") {
-                                    if (inputText.last() != ' ') {
-                                        isEnd = onConfirm()
-                                    } else {
-                                        speak(testWords[testWordCnt])
-                                    }
+                                    isEnd = onConfirm()
                                 } else if (key == "Replay") {
                                     // Replay word
                                     speak(testWords[testWordCnt])

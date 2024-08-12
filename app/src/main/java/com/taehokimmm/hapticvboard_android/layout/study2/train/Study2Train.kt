@@ -75,15 +75,15 @@ fun Study2Train(
 
     val context = LocalContext.current
 
-    val totalBlock = 10
+    val totalBlock = 3
     val testNumber = 5
-    val modeCnt = 3
+    val modeCnt = 2
     var testBlock by remember { mutableStateOf(0) }
-    var testIter by remember { mutableIntStateOf(0) }
-    var modeIter by remember { mutableIntStateOf(-1) }
-    var testWords by remember { mutableStateOf(listOf("")) }
+    var testIter by remember { mutableIntStateOf(-1) }
+    var modeIter by remember { mutableIntStateOf(0) }
+    var testWords by remember { mutableStateOf(readTxtFile(context, R.raw.five_letter_words)) }
 
-    var testList by remember { mutableStateOf(readTxtFile(context, R.raw.frequent_words)) }
+    var testList by remember { mutableStateOf(listOf("")) }
 
     // WPM
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -124,26 +124,41 @@ fun Study2Train(
         }
     }
 
+    LaunchedEffect(testBlock) {
+        testList = testWords.slice(testBlock * testNumber until (testBlock + 1) * testNumber)
+    }
+
     fun speak(word: String) {
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
 
+        tts?.setSpeechRate(1f)
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
-
     }
 
     fun speakWord(word: String) {
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
         isSpeakingDone = false
-        for (index in 0 until word.length) {
-            tts?.speak(
-                word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId"
-            )
-        }
+
+
+        delay({
+            tts?.setSpeechRate(2f)
+            for (index in 0 until word.length) {
+                tts?.speak(
+                    word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId"
+                )
+            }
+            tts?.setSpeechRate(1f)
+        }, 1000)
     }
 
+
+    fun speakWordLetter(word:String) {
+        speak(word)
+        speakWord(word)
+    }
 
     fun addLogging() {
         endTime = System.currentTimeMillis()
@@ -157,7 +172,7 @@ fun Study2Train(
         val data = Study2Metric(
             testBlock, testIter*modeCnt + modeIter, wpm, pd, uer, ke, targetText, inputText
         )
-        addStudy2Metric(context, "train", data)
+        addStudy2Metric(context, subject+ "_train2", data)
     }
 
     fun initMetric() {
@@ -169,34 +184,49 @@ fun Study2Train(
     fun onConfirm(): Boolean {
         val isCorrect = (inputText == testList[testIter])
         soundManager.playSound(isCorrect)
-        delay(
-            {
-                speakWord(inputText)
-            }, 700
-        )
+
+        var delay = 0L
+        if (!isCorrect) {
+            delay(
+                {
+                    speakWord(inputText)
+                }, 500
+            )
+            delay = 2000L
+        }
 
         delay({
             initMetric()
             addLogging()
             modeIter++
             inputText = ""
-        }, 3000)
+        }, 1000 + delay)
         return true
     }
 
     LaunchedEffect(modeIter) {
+        if (testIter == -1) return@LaunchedEffect
         if (modeIter == modeCnt) {
             modeIter = 0
             testIter++
+            return@LaunchedEffect
         }
-        tts?.speak("Type : " + testList[testIter], TextToSpeech.QUEUE_ADD, null)
+
+        if (modeIter == 0) {
+            speakWordLetter(testList[testIter])
+        } else {
+            tts?.speak(testList[testIter], TextToSpeech.QUEUE_ADD, null)
+        }
     }
 
     LaunchedEffect(testIter) {
-        if (testIter < testNumber) {
-            modeIter = 0
+        if (testIter == -1) {
+            soundManager.speakOutKor("시작하려면 탭하세요")
+        } else if (testIter < testNumber) {
+
         } else {
             testBlock++
+
             if (testBlock > totalBlock) {
                 closeStudy2Database()
                 navController!!.navigate("study2/train/end/$subject")
@@ -206,7 +236,30 @@ fun Study2Train(
         }
     }
 
-    if (testIter < testList.size) {
+    if (testIter == -1) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Button(
+                onClick = {
+                    modeIter = 0
+                    testIter = 0
+                    speakWordLetter(testList[testIter])
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(corner = CornerSize(0)),
+                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+            ) {
+                Text(
+                    text = "Tap to Start \n Block : " + testBlock, fontSize = 20.sp
+                )
+            }
+        }
+    } else if (testIter < testList.size) {
         Box(
             modifier = Modifier
                     .fillMaxSize()
@@ -277,7 +330,7 @@ fun Study2Train(
                                     keystrokeTimestamps += curTime
                                     keyStrokeNum += 1
 
-                                    if (modeIter == 1) {
+                                    if (modeIter == 0) {
                                         hapticManager?.generateHaptic(key, HapticMode.VOICE)
                                     }
                                 }
@@ -292,7 +345,7 @@ fun Study2Train(
                                 targetText = testList[testIter],
                                 inputText = inputText
                             ),
-                            name = "test"
+                            name = subject+ "_train2"
                         )
                     }
 

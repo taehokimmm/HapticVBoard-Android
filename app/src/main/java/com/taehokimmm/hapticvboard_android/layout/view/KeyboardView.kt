@@ -213,6 +213,7 @@ fun replaySound(
         HapticMode.VOICE
     )
     Log.d("TouchEvent", "additional touch: $key")
+
 }
 
 fun processTouchEvent(
@@ -238,8 +239,11 @@ fun processTouchEvent(
         Log.d("PressDur", "EVENT : "+ event.actionMasked)
         when (event.actionMasked) {
             MotionEvent.ACTION_POINTER_1_DOWN -> {
+
                 val pointerId = event.getPointerId(event.actionIndex)
+                val pointerPosition = Offset(event.getX(event.actionIndex), event.getY(event.actionIndex))
                 replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode)
+
             }
             MotionEvent.ACTION_POINTER_1_UP -> {
                 val pointerId = event.getPointerId(event.actionIndex)
@@ -249,14 +253,28 @@ fun processTouchEvent(
                 for (i in 0 until event.pointerCount) {
                     val pointerId = event.getPointerId(i)
 
-                    if (i >= 1) {
-                        replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode)
-                    }
-
                     val pointerPosition = Offset(event.getX(i), event.getY(i))
                     val key = keyPositions.entries.find { (_, coordinates) ->
                         isPointerOverKey(coordinates, pointerPosition)
                     }?.key
+
+                    if (i >= 1) {
+
+                        if (name != null && logData != null && key != null) {
+                            addLog(
+                                context,
+                                name,
+                                logData,
+                                "Replay",
+                                key,
+                                pointerPosition.x,
+                                pointerPosition.y
+                            )
+                        }
+
+                        replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode)
+                    }
+
                     if (key != null && activeTouches[pointerId] != key) {
                         activeTouches[pointerId] = key
                         if (allow.contains(key)) hapticManager?.generateHaptic(key, hapticMode)
@@ -334,16 +352,29 @@ fun processTouchEvent(
             MotionEvent.ACTION_MOVE -> {
                 for (i in 0 until event.pointerCount) {
                     val pointerId = event.getPointerId(i)
-                    if (i >= 1) {
-                        replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode)
-                        // ignore the move event for additional touches
-                        continue
-                    }
 
                     val pointerPosition = Offset(event.getX(i), event.getY(i))
                     val key = keyPositions.entries.find { (_, coordinates) ->
                         isPointerOverKey(coordinates, pointerPosition)
                     }?.key
+
+                    if (i >= 1) {
+                        if (name != null && logData != null && key != null) {
+                            addLog(
+                                context,
+                                name,
+                                logData,
+                                "Replay",
+                                key,
+                                pointerPosition.x,
+                                pointerPosition.y
+                            )
+                        }
+                        replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode)
+                        // ignore the move event for additional touches
+                        continue
+                    }
+
 
                     if (pointerPosition.y > outOfBound && activeTouches[pointerId] == "Out of Bounds") {
                         activeTouches[pointerId] = ""
