@@ -198,9 +198,8 @@ fun Study2Test(
 
     fun addLogging() {
         endTime = System.currentTimeMillis()
-        wordCount = inputText.split("\\s+".toRegex()).size
         val targetText = testList[testIter]
-        val wpm = calculateWPM(startTime, endTime, wordCount)
+        val wpm = calculateWPM(startTime, endTime, targetText)
         //val iki = calculateIKI(keystrokeTimestamps)
         val pd = calculatePressDuration(pressDurations)
         val uer = calculateUER(targetText, inputText)

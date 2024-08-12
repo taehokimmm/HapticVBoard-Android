@@ -50,7 +50,7 @@ fun Study1TrainInit(navController: NavHostController) {
     for(i in 1 until 12) {
         subjects += listOf("P" + i)
     }
-    for(i in 1 until 5) {
+    for(i in 1 until 8) {
         subjects += listOf("Pilot" + i)
     }
 

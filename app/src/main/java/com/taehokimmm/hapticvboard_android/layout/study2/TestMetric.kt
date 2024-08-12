@@ -8,7 +8,8 @@ fun calculateTouchDuration(startTime: Long, endTime: Long): Long {
 }
 
 
-fun calculateWPM(startTime: Long, endTime: Long, wordCount: Int): Double {
+fun calculateWPM(startTime: Long, endTime: Long, sentence: String): Double {
+    val wordCount = sentence.length / 5
     val durationInMinutes = (endTime - startTime) / 1000.0 / 60.0
     return wordCount / durationInMinutes
 }

@@ -75,14 +75,16 @@ fun Study2Train(
 
     val context = LocalContext.current
 
-    val totalBlock = 5
-    val testNumber = 3
+    val totalBlock = 10
+    val testNumber = 5
+    val modeNumber = 3
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(0) }
+    var modeIter by remember { mutableIntStateOf(-1) }
     var testWords by remember { mutableStateOf(listOf("")) }
-    var testWordCnt by remember { mutableIntStateOf(-1) }
+    var modeCnt by remember { mutableIntStateOf(3) }
 
-    var testList by remember { mutableStateOf(readTxtFile(context, R.raw.practice_phrase)) }
+    var testList by remember { mutableStateOf(readTxtFile(context, R.raw.frequent_words)) }
 
     // WPM
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -161,14 +163,14 @@ fun Study2Train(
     fun addLogging() {
         endTime = System.currentTimeMillis()
         wordCount = inputText.split("\\s+".toRegex()).size
-        val targetText = testList[testBlock]
-        val wpm = calculateWPM(startTime, endTime, wordCount)
+        val targetText = testList[testIter]
+        val wpm = calculateWPM(startTime, endTime, targetText)
         //val iki = calculateIKI(keystrokeTimestamps)
         val pd = calculatePressDuration(pressDurations)
         val uer = calculateUER(targetText, inputText)
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = Study2Metric(
-            testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
+            testBlock, testIter*modeCnt + modeIter, wpm, pd, uer, ke, targetText, inputText
         )
         addStudy2Metric(context, "train", data)
     }
@@ -180,38 +182,36 @@ fun Study2Train(
     }
 
     fun onConfirm(): Boolean {
-        if (testWordCnt < testWords.size - 1) {
-            testWordCnt++
-            speak(testWords[testWordCnt])
-            return false
-        } else {
-            soundManager.playSound(true)
-            delay({
-                initMetric()
-                addLogging()
-                testIter++
-                inputText = ""
-            }, 500)
-            return true
+        soundManager.speakOut(inputText)
+        
+        val isCorrect = (inputText == testList[testIter])
+        soundManager.playSound(isCorrect)
+
+        delay({
+            initMetric()
+            addLogging()
+            modeIter++
+            inputText = ""
+        }, 500)
+        return true
+    }
+
+    LaunchedEffect(modeIter) {
+        if (modeIter == modeCnt) {
+            modeIter = 0
+            testIter++
         }
+        speak(testList[testIter])
     }
 
     LaunchedEffect(testIter) {
         if (testIter == 0) {
             isTypingMode = false
-            delay(
-                {
-                    speak(testList[testBlock])
-                }, 500
-            )
         } else {
             isTypingMode = true
-            speak(testWords[0])
         }
         if (testIter < testNumber) {
-            val targetText = testList[testBlock]
-            testWords = targetText.split(" ")
-            testWordCnt = 0
+            modeIter = 0
         } else {
             testBlock++
             if (testBlock > totalBlock) {
@@ -235,48 +235,8 @@ fun Study2Train(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .pointerInput(Unit) {
-                        detectHorizontalDragGestures(
-                            onDragStart = { offset ->
-                                horizontalDragStart = offset.x
-                            },
-                            onHorizontalDrag = { change, dragAmount ->
-                                horizontalDragEnd = change.position.x
-                            },
-                            onDragEnd = {
-                                val amount = horizontalDragEnd - horizontalDragStart
-                                if (amount > swipeThreshold) {
-                                    if (testWordCnt < testWords.size - 1)
-                                        testWordCnt++
-                                } else if (amount < -swipeThreshold) {
-                                    if (testWordCnt > 0)
-                                        testWordCnt--
-                                }
-                                speakWord(testWords[testWordCnt])
-                            }
-                        )
-                    }
-                    .pointerInput(Unit) {
-                        detectVerticalDragGestures(
-                            onDragStart = { offset ->
-                                Log.d("Study2", "on vertical drag start")
-                                verticalDragStart = offset.y
-                            },
-                            onVerticalDrag = { change, dragAmount ->
-                                verticalDragEnd = change.position.y
-
-                            },
-                            onDragEnd = {
-                                val amount = verticalDragEnd - verticalDragStart
-                                if (amount < -swipeThreshold) {
-                                    speak(testList[testBlock])
-                                }
-                            }
-                        )
-                    }
-                    .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = {
-                                testWordCnt = -1
                                 tts?.stop()
                                 soundManager.playSound(true)
                                 delay(
@@ -284,16 +244,17 @@ fun Study2Train(
                                         isTypingMode = true
                                         initMetric()
                                         onConfirm()
-                                    }, 500)
+                                    }, 500
+                                )
                             },
                             onTap = {
-                                speakWord(testWords[testWordCnt])
+                                speakWord(testList[testIter])
                             }
                         )
                     }
             }
         ) {
-            TextDisplay(testIter, testNumber, testList[testBlock])
+            TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter])
             Column(
                 modifier = Modifier.align(Alignment.BottomStart),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -336,14 +297,10 @@ fun Study2Train(
                             onKeyRelease = { key ->
                                 var isEnd = false
                                 if (key == "Space") {
-                                    if (inputText.last() != ' ') {
-                                        isEnd = onConfirm()
-                                    } else {
-                                        speak(testWords[testWordCnt])
-                                    }
+                                    onConfirm()
                                 } else if (key == "Replay") {
                                     // Replay word
-                                    speak(testWords[testWordCnt])
+                                    speak(testList[testIter])
                                 }
                                 if (isEnd) return@KeyboardLayout
 
@@ -365,7 +322,7 @@ fun Study2Train(
                                     keystrokeTimestamps += curTime
                                     keyStrokeNum += 1
 
-                                    if (testIter == 1) {
+                                    if (modeIter == 1) {
                                         hapticManager?.generateHaptic(key, HapticMode.VOICE)
                                     }
                                 }
@@ -373,11 +330,11 @@ fun Study2Train(
                             enterKeyVisibility = true,
                             soundManager = soundManager,
                             hapticManager = hapticManager,
-                            hapticMode = if (testIter == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
+                            hapticMode = if (modeIter == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
                             logData = Study2TestLog(
-                                iteration = testIter,
+                                iteration = testIter * modeCnt + modeIter,
                                 block = testBlock,
-                                targetText = testList[testBlock],
+                                targetText = testList[testIter],
                                 inputText = inputText
                             ),
                             name = "test"
@@ -388,7 +345,9 @@ fun Study2Train(
         }
         if (isTypingMode) {
             AndroidView(
-                modifier = Modifier.fillMaxSize().fillMaxHeight(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .fillMaxHeight(),
                 factory = { context ->
                     MultiTouchView(context).apply {
                         onMultiTouchEvent = { event ->
@@ -397,6 +356,41 @@ fun Study2Train(
                         }
                     }
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testString: String) {
+    Column(
+        modifier = Modifier.padding(top = 10.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Block : ${testBlock + 1} / $blockNumber", fontSize = 20.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Iteraction : ${testIter + 1} / $testNumber", fontSize = 15.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = testString, fontSize = 20.sp
             )
         }
     }
