@@ -267,7 +267,7 @@ fun Study2Test(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight()
+                    .height(500.dp)
                     .align(Alignment.Center),
                 shape = RoundedCornerShape(corner = CornerSize(0)),
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
