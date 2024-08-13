@@ -19,16 +19,18 @@ fun GroupIntro(
     var names = listOf("")
     if (category == "phoneme") {
         phonemeGroups = listOf(
-            listOf("s", "z", "f", "v", "h", "j"),
-            listOf("n", "m"),
+            listOf("f", "v", "s", "z", "h"),
             listOf("p", "t", "k", "c", "q"),
             listOf("b", "d", "g"),
+            listOf("j"),
+            listOf("n", "m"),
             listOf("l", "r"),
             listOf("x"),
-            listOf("a", "e", "i", "o", "u", "w", "y")
+            listOf("a", "e", "i", "o", "u"),
+            listOf("w", "y")
         )
         names = listOf(
-                "마찰음", "비음", "강한 파열음", "약한 파열음", "설측음", "합성음", "모음"
+                "마찰음", "강한 파열음", "약한 파열음", "파찰음", "비음", "혀옆소리", "합성음", "단모음", "이중모음"
         )
     } else if(category == "location") {
 //        phonemeGroups = listOf(

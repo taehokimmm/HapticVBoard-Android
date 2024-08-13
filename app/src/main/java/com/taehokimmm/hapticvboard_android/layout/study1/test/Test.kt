@@ -95,7 +95,6 @@ fun Study1Test(
 
                     override fun onDone(utteranceId: String?) {
                         isSpeakingDone = true
-                        startTime = System.currentTimeMillis()
                     }
 
                     override fun onError(utteranceId: String?) {
@@ -106,11 +105,11 @@ fun Study1Test(
     }
     fun speak() {
         isSpeakingDone = false
-        val params = Bundle()
-        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        soundManager.speakOutChar(testList[testIter])
         delay({
-            tts?.speak(testList[testIter], TextToSpeech.QUEUE_FLUSH, params, "utteranceId")
-        }, 500)
+            isSpeakingDone = true
+            startTime = System.currentTimeMillis()
+              }, 700)
     }
 
     LaunchedEffect(testIter) {

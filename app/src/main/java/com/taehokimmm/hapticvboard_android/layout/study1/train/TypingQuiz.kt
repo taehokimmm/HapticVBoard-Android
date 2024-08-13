@@ -104,6 +104,7 @@ fun Study1TypingQuiz(
         soundManager.speakOutChar(testList[testIter])
         delay({
             isSpeakingDone = true
+            startTime = System.currentTimeMillis()
         }, 700)
     }
 
