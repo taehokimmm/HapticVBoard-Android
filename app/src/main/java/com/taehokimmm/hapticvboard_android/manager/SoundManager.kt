@@ -145,13 +145,47 @@ class SoundManager(context: Context) {
             "y" to R.raw.tts_y,
             "z" to R.raw.tts_z
         )
+
+        var avaiation: Map<String, String> = mapOf(
+            "a" to "apple",
+            "b" to "boy",
+            "c" to "cat",
+            "d" to "dog",
+            "e" to "engine",
+            "f" to "five",
+            "g" to "game",
+            "h" to "hotel",
+            "i" to "ice cream",
+            "j" to "juice",
+            "k" to "korea",
+            "l" to "lemon",
+            "m" to "mike",
+            "n" to "number",
+            "o" to "orange",
+            "p" to "people",
+            "q" to "queen",
+            "r" to "red",
+            "s" to "summer",
+            "t" to "time",
+            "u" to "uniform",
+            "v" to "video",
+            "w" to "wow",
+            "x" to "x-ray",
+            "y" to "yellowy",
+            "z" to "zero",
+        )
         speakOut(key)
+
+//        delay({
+//            releaseMediaPlayer()
+//            mediaPlayer =
+//                keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
+//            playMediaPlayer()
+//        }, 700)
+
         delay({
-            releaseMediaPlayer()
-            mediaPlayer =
-                keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
-            playMediaPlayer()
-        }, 700)
+            avaiation[key]?.let { speakOut(it) }
+        }, 600)
     }
 
 

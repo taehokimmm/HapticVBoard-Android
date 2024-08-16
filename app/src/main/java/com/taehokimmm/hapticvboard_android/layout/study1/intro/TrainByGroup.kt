@@ -57,19 +57,19 @@ fun TrainGroup(
 
     fun explainKey(key: String) {
         isExplaining = true
-        hapticManager?.generateHaptic(key,HapticMode.VOICE)
+        soundManager?.speakOutChar(key)
 
         // Clear any previous runnables before adding new ones
         runnables.clear()
 
         runnables.add(
-            delay({soundManager?.playPhoneme(key)},700, handler)
+            delay({soundManager?.playPhoneme(key)},1500, handler)
         )
         runnables.add(
-            delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },1500, handler)
+            delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },2200, handler)
         )
         runnables.add(
-            delay({isExplaining = false}, 1500, handler)
+            delay({isExplaining = false}, 2200, handler)
         )
     }
 
@@ -89,7 +89,7 @@ fun TrainGroup(
     var verticalSwipeStart by remember{mutableStateOf(0f)}
     var verticalSwipeEnd by remember{mutableStateOf(0f)}
 
-    val swipeThreshold = 100
+    val swipeThreshold = 50
 
     LaunchedEffect(selectedTabIndex) {
         if (isExplaining) {
@@ -98,9 +98,6 @@ fun TrainGroup(
         }
         selectedIndex = 0
         soundManager?.speakOutKor(name[selectedTabIndex])
-        delay({
-            onSelect(0)
-        }, 1000)
     }
 
     Box(

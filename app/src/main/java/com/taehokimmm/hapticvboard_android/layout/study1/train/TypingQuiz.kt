@@ -104,8 +104,11 @@ fun Study1TypingQuiz(
         soundManager.speakOutChar(testList[testIter])
         delay({
             isSpeakingDone = true
-            startTime = System.currentTimeMillis()
         }, 700)
+
+        delay({
+            startTime = System.currentTimeMillis()
+        }, 1000)
     }
 
     LaunchedEffect(testIter) {
@@ -152,11 +155,11 @@ fun Study1TypingQuiz(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager, height = 200.dp)
+            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager, height = 300.dp)
 
             if (isSpeakingDone) {
                 Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
+                    contentAlignment = Alignment.BottomCenter
                 ) {
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,

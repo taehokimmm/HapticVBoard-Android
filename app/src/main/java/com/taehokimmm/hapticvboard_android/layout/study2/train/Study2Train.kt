@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.widget.EditText
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -275,14 +276,14 @@ fun Study2Train(
             }
         }
     } else if (testIter < testList.size) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, modeCnt, testList[testIter])
+            TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, modeCnt, testList[testIter], soundManager)
             Column(
-                modifier = Modifier.align(Alignment.BottomStart),
+                modifier = Modifier.align(Alignment.End).fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
@@ -291,7 +292,7 @@ fun Study2Train(
                         .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
                         .padding(20.dp, 16.dp)
                         .heightIn(min = 30.dp, max = 200.dp),
-                    contentAlignment = Alignment.CenterStart
+                    contentAlignment = Alignment.BottomEnd
                 ) {
                     AndroidView(modifier = Modifier.fillMaxWidth(), factory = { ctx ->
                         EditText(ctx).apply {
@@ -314,7 +315,10 @@ fun Study2Train(
 
                 Spacer(modifier = Modifier.height(20.dp))
                 if (isSpeakingDone)
-                    Box {
+                    Box (
+                        modifier = Modifier.align(Alignment.End).fillMaxHeight(),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
                         KeyboardLayout(
                             touchEvents = keyboardTouchEvents,
                             onKeyPress = { key ->
@@ -363,33 +367,34 @@ fun Study2Train(
                             ),
                             name = subject+ "_train2"
                         )
+                        AndroidView(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .fillMaxHeight(),
+                            factory = { context ->
+                                MultiTouchView(context).apply {
+                                    onMultiTouchEvent = { event ->
+                                        keyboardTouchEvents.clear()
+                                        keyboardTouchEvents.add(event)
+                                    }
+                                }
+                            }
+                        )
                     }
 
             }
         }
 
-        if (isSpeakingDone)
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .fillMaxHeight(),
-                factory = { context ->
-                    MultiTouchView(context).apply {
-                        onMultiTouchEvent = { event ->
-                            keyboardTouchEvents.clear()
-                            keyboardTouchEvents.add(event)
-                        }
-                    }
-                }
-            )
 
     }
 }
 
 @Composable
-fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, modeIter:Int, modeCnt: Int, testString: String) {
+fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, modeIter:Int, modeCnt: Int, testString: String, soundManager: SoundManager) {
     Column(
-        modifier = Modifier.padding(top = 10.dp)
+        modifier = Modifier.padding(top = 10.dp).clickable(onClick = {
+            soundManager.speakOut(testString)
+        }).height(200.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center

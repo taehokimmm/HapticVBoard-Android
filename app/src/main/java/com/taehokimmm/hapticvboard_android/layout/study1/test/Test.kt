@@ -107,9 +107,12 @@ fun Study1Test(
         isSpeakingDone = false
         soundManager.speakOutChar(testList[testIter])
         delay({
+              }, 700)
+
+        delay({
             isSpeakingDone = true
             startTime = System.currentTimeMillis()
-              }, 700)
+        }, 1000)
     }
 
     LaunchedEffect(testIter) {

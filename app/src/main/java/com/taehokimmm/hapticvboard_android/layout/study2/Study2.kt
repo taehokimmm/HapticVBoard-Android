@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.widget.EditText
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -88,11 +89,11 @@ fun Study2Test(
 
     val totalBlock = when (isPractice) {
         true -> 1
-        false -> 3
+        false -> 4
     }
     val testNumber = when (isPractice) {
         true -> 3
-        false -> 5
+        false -> 3
     }
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
@@ -278,7 +279,7 @@ fun Study2Test(
             }
         }
     } else if (testIter < testList.size) {
-        Box(
+        Column(
             modifier = when(isTypingMode) {
                 true -> Modifier
                     .fillMaxSize()
@@ -338,7 +339,8 @@ fun Study2Test(
                                     {
                                         initMetric()
                                         onConfirm()
-                                    }, 500)
+                                    }, 500
+                                )
                             },
                             onTap = {
                                 Log.d("Study2", "on double tap")
@@ -348,9 +350,10 @@ fun Study2Test(
                     }
             }
         ) {
-            TextDisplay(testIter, testNumber, testList[testIter])
+            TextDisplay(testIter, testNumber, testList[testIter], soundManager,
+                if (testWordCnt < testWords.size && testWordCnt >= 0) testWords[testWordCnt] else "")
             Column(
-                modifier = Modifier.align(Alignment.BottomStart),
+                modifier = Modifier.align(Alignment.End).fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
@@ -359,7 +362,7 @@ fun Study2Test(
                         .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
                         .padding(20.dp, 16.dp)
                         .heightIn(min = 30.dp, max = 200.dp),
-                    contentAlignment = Alignment.CenterStart
+                    contentAlignment = Alignment.BottomEnd
                 ) {
                     AndroidView(modifier = Modifier.fillMaxWidth(), factory = { ctx ->
                         EditText(ctx).apply {
@@ -382,7 +385,10 @@ fun Study2Test(
 
                 Spacer(modifier = Modifier.height(20.dp))
                 if (isTypingMode) {
-                    Box {
+                    Box (
+                        modifier = Modifier.align(Alignment.End).fillMaxHeight(),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
                         KeyboardLayout(
                             touchEvents = keyboardTouchEvents,
                             onKeyPress = { key ->
@@ -417,7 +423,7 @@ fun Study2Test(
                                     keyStrokeNum += 1
                                 }
                             },
-                            enterKeyVisibility = true,
+                            enterKeyVisibility = false,
                             soundManager = soundManager,
                             hapticManager = hapticManager,
                             hapticMode = hapticMode,
@@ -429,17 +435,19 @@ fun Study2Test(
                             ),
                             name = name
                         )
-//                        AndroidView(modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(300.dp),
-//                            factory = { context ->
-//                                MultiTouchView(context).apply {
-//                                    onMultiTouchEvent = { event ->
-//                                        keyboardTouchEvents.clear()
-//                                        keyboardTouchEvents.add(event)
-//                                    }
-//                                }
-//                            })
+                        AndroidView(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .fillMaxHeight(),
+                            factory = { context ->
+                                MultiTouchView(context).apply {
+                                    onMultiTouchEvent = { event ->
+                                        keyboardTouchEvents.clear()
+                                        keyboardTouchEvents.add(event)
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -453,17 +461,7 @@ fun Study2Test(
 //            })
         }
         if (isTypingMode) {
-            AndroidView(
-                modifier = Modifier.fillMaxSize().fillMaxHeight(),
-                factory = { context ->
-                    MultiTouchView(context).apply {
-                        onMultiTouchEvent = { event ->
-                            keyboardTouchEvents.clear()
-                            keyboardTouchEvents.add(event)
-                        }
-                    }
-                }
-            )
+
         }
     }
 }
@@ -477,9 +475,11 @@ fun readTxtFile(context: Context, resId: Int): List<String> {
 }
 
 @Composable
-fun TextDisplay(testIter: Int, testNumber: Int, testString: String) {
+fun TextDisplay(testIter: Int, testNumber: Int, testString: String, soundManager: SoundManager, text: String) {
     Column(
-        modifier = Modifier.padding(top = 10.dp)
+        modifier = Modifier.padding(top = 10.dp).clickable(
+            onClick = {soundManager.speakOut(text)}
+        ).height(200.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
