@@ -30,6 +30,14 @@ fun closeStudy1Database() {
     Study1Database.closeDatabase()
 }
 
+
+fun closeAllDatabases() {
+    Study1Database.closeDatabase()
+    Study2BVIDatabase.closeDatabase()
+    Study2Database.closeDatabase()
+    Study2TrainDatabase.closeDatabase()
+}
+
 fun addStudy1TrainPhase3Answer(context: Context, subject: String, group: String, data: Study1Phase3Answer){
     addData(context, subject + "_" + group, data
     ) { dao, answer -> dao.addTrainPhase3(answer) }
@@ -80,6 +88,24 @@ fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touc
             data.timestamp = System.currentTimeMillis()
             data.date = System.currentTimeMillis().toFormattedDateString()
             addStudy2Log(context, name, data)
+        }
+        is Study2TrainLog -> {
+            data.x = x
+            data.y = y
+            data.state = state
+            data.touchedKey = touchedKey
+            data.timestamp = System.currentTimeMillis()
+            data.date = System.currentTimeMillis().toFormattedDateString()
+            addStudy2TrainLog(context, name, data)
+        }
+        is Study2BVITestLog -> {
+            data.x = x
+            data.y = y
+            data.state = state
+            data.touchedKey = touchedKey
+            data.timestamp = System.currentTimeMillis()
+            data.date = System.currentTimeMillis().toFormattedDateString()
+            addStudy2BVILog(context, name, data)
         }
         else -> {
             // Handle unknown type

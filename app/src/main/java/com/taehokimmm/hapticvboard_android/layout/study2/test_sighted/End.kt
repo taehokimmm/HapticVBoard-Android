@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_textentry
+package com.taehokimmm.hapticvboard_android.layout.study2.test_sighted
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,7 +34,7 @@ fun Study2End(
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
-            navController.navigate("study2/init")
+            navController.navigate("study2/sighted/init")
         }) {
             Text("Return to Test Selection")
         }

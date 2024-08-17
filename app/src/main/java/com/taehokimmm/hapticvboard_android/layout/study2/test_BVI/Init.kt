@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
@@ -43,16 +44,12 @@ fun Study2BVITestInit(navController: NavHostController) {
     var options = listOf("audio", "phoneme")
     var selectedOption by remember { mutableStateOf("audio") }
 
-    var subjects = listOf("test")
+    var subjects = listOf("Vtest")
     for(i in 1 until 12) {
         subjects += listOf("VP" + i)
     }
     for(i in 1 until 8) {
         subjects += listOf("Pilot" + i)
-    }
-
-    var isPractice by remember {
-        mutableStateOf(false)
     }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -104,9 +101,7 @@ fun Study2BVITestInit(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    closeStudy1Database()
-                    closeStudy2TrainDatabase()
-                    closeStudy2Database()
+                    closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
                         navController.navigate("study2/BVI/$testSubjectIdentifier/$selectedOption")
                     } else if (testSubjectIdentifier.isEmpty()) {

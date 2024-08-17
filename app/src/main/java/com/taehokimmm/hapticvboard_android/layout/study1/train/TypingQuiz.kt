@@ -123,7 +123,7 @@ fun Study1TypingQuiz(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager, height = 300.dp)
+            TestDisplay(testBlock, totalBlock, testIter, testList.size, testList[testIter][0], soundManager, height = 300.dp)
             Box(
                 contentAlignment = Alignment.BottomCenter
             ) {

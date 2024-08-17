@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
@@ -88,9 +89,7 @@ fun Study2TrainInit(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    closeStudy1Database()
-                    closeStudy2Database()
-                    closeStudy2TrainDatabase()
+                    closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
                         navController.navigate("study2/train/$testSubjectIdentifier")
                     } else if (testSubjectIdentifier.isEmpty()) {

@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_textentry
+package com.taehokimmm.hapticvboard_android.layout.study2.test_sighted
 
 import android.content.Context
 import android.os.Bundle
@@ -222,7 +222,6 @@ fun Study2Test(
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-//            soundManager.speakOut("Tap to start Block " + (testBlock + 1).toString())
             countdown = 0
             testList = phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
@@ -235,7 +234,7 @@ fun Study2Test(
             testBlock++
             if (testBlock >= totalBlock) {
                 closeStudy2Database()
-                navController!!.navigate("study2/end/$subject")
+                navController!!.navigate("study2/sighted/end/$subject")
             } else {
                 testIter = -1
             }

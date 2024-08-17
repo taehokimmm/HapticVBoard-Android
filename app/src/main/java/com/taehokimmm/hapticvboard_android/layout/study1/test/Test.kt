@@ -130,7 +130,7 @@ fun Study1Test(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TestDisplay(testIter, testList.size, testList[testIter][0], soundManager)
+            TestDisplay(testBlock, totalBlock, testIter, testList.size, testList[testIter][0], soundManager)
 
             val answer = testList[testIter]
             val iter = testIter
