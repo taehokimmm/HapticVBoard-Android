@@ -57,7 +57,7 @@ fun Study2Train(
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    val totalBlock = 3
+    val totalBlock = 4
     val testNumber = 26
     val modeCnt = 3
     var testBlock by remember { mutableStateOf(0) }
@@ -122,6 +122,17 @@ fun Study2Train(
     LaunchedEffect(timer) {
         kotlinx.coroutines.delay(1000L)
         timer++
+
+        var temp: Int
+        if (testBlock == 0 && modeIter == 0) {
+            temp = 0
+        } else if (modeIter == 0) {
+            temp = 60 - timer
+        } else {
+            temp = 30 - timer
+        }
+        if (temp < 0) temp = 0
+        if (temp != countdown) countdown = temp
     }
 
     LaunchedEffect(modeIter) {
@@ -148,19 +159,6 @@ fun Study2Train(
         }
     }
 
-    LaunchedEffect(timer) {
-        var temp = countdown
-        if (testBlock == 0 && modeIter == 0) {
-            temp = 0
-        } else if (modeIter == 0) {
-            temp = 60 - timer
-        } else {
-            temp = 30 - timer
-        }
-        if (temp < 0) temp = 0
-        if (temp != countdown) countdown = temp
-    }
-
     LaunchedEffect(countdown) {
         if (countdown == 0) {
             val modeName = modeNames[modeIter]
@@ -182,21 +180,23 @@ fun Study2Train(
                 modifier = Modifier.align(Alignment.TopCenter)
             )
 
-            Button(
-                onClick = {
-                    if (countdown > 0) return@Button
-                    testIter = 0
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(500.dp)
-                    .align(Alignment.Center),
-                shape = RoundedCornerShape(corner = CornerSize(0)),
-                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
-            ) {
-                Text(
-                    text = "Tap to Start \n Block : " + (testBlock + 1) + "\n Mode : " + modeNames[modeIter], fontSize = 20.sp
-                )
+            if (countdown == 0) {
+                Button(
+                    onClick = {
+                        testIter = 0
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp)
+                        .align(Alignment.Center),
+                    shape = RoundedCornerShape(corner = CornerSize(0)),
+                    colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+                ) {
+                    Text(
+                        text = "Tap to Start \n Block : " + (testBlock + 1) + "\n Mode : " + modeNames[modeIter],
+                        fontSize = 20.sp
+                    )
+                }
             }
         }
     } else if (testIter < testList.size) {

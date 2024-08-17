@@ -124,11 +124,28 @@ fun Study2Test(
     var verticalDragEnd by remember {mutableStateOf(0f)}
     val swipeThreshold = 20
 
-    var countdown by remember { mutableStateOf(0) }
+    var timer by remember { mutableStateOf(0) }
+    var countdown by remember { mutableStateOf(30) }
+
+    LaunchedEffect(timer) {
+        kotlinx.coroutines.delay(1000L)
+        timer++
+
+        var temp: Int
+        if (testBlock == 0) {
+            temp = 30 - timer
+        } else {
+            temp = 60 - timer
+        }
+        if (temp < 0) temp = 0
+        if (temp != countdown) countdown = temp
+    }
+
 
     LaunchedEffect(countdown) {
-        kotlinx.coroutines.delay(1000L)
-        countdown++
+        if (countdown == 0) {
+            soundManager.speakOut("시작하려면 탭하세요.")
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -222,7 +239,8 @@ fun Study2Test(
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            countdown = 0
+            countdown = 60
+            timer = 0
             testList = phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
             val targetText = testList[testIter]
@@ -244,7 +262,7 @@ fun Study2Test(
 
     if (testIter == -1) {
         // Layout
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -254,23 +272,40 @@ fun Study2Test(
                 text = "%02d:%02d".format(countdown / 60, countdown % 60),
                 fontSize = 30.sp,
                 fontFamily = FontFamily.Monospace,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
-            Button(
-                onClick = {
-                    testIter = 0
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(500.dp)
-                    .align(Alignment.Center),
-                shape = RoundedCornerShape(corner = CornerSize(0)),
-                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Column (
+
             ) {
-                Text(
-                    text = "Tap to Start \n Block : " + (testBlock + 1).toString(), fontSize = 20.sp
-                )
+                testList.forEach { sentence ->
+                    Text(
+                        text = sentence,
+                        fontSize = 18.sp,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.align(Alignment.Start).padding(20.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(30.dp))
+
+            if (countdown == 0) {
+                Button(
+                    onClick = {
+                        testIter = 0
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.CenterHorizontally),
+                    shape = RoundedCornerShape(corner = CornerSize(0)),
+                    colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+                ) {
+                    Text(
+                        text = "Tap to Start \n Block : " + (testBlock + 1).toString(), fontSize = 20.sp
+                    )
+                }
             }
         }
     } else if (testIter < testList.size) {

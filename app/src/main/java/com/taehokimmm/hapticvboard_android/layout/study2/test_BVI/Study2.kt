@@ -167,21 +167,23 @@ fun Study2BVITest(
                 modifier = Modifier.align(Alignment.TopCenter)
             )
 
-            Button(
-                onClick = {
-                    if (countdown > 0) return@Button
-                    testIter = 0
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(500.dp)
-                    .align(Alignment.Center),
-                shape = RoundedCornerShape(corner = CornerSize(0)),
-                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
-            ) {
-                Text(
-                    text = "Tap to Start \n Block : " + (testBlock + 1), fontSize = 20.sp
-                )
+            if (countdown == 0) {
+                Button(
+                    onClick = {
+                        testIter = 0
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp)
+                        .align(Alignment.Center),
+                    shape = RoundedCornerShape(corner = CornerSize(0)),
+                    colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+                ) {
+                    Text(
+                        text = "Tap to Start \n Block : " + (testBlock + 1), fontSize = 20.sp
+                    )
+                }
+
             }
         }
     } else if (testIter < testList.size) {
