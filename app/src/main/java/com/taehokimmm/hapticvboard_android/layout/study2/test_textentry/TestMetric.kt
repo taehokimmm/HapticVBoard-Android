@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android
+package com.taehokimmm.hapticvboard_android.layout.study2.test_textentry
 
 import android.util.Log
 

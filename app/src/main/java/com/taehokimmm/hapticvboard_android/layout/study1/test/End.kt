@@ -8,15 +8,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 
 
 @Composable
 fun Study1TestEnd(subject: String, navController: NavHostController) {
+    LaunchedEffect(Unit) {
+        closeStudy1Database()
+    }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,

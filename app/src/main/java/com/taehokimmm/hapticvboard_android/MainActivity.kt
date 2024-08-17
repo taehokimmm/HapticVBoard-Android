@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Bundle
-import android.util.Log
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -66,9 +65,9 @@ import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1IdentiQuiz
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
-import com.taehokimmm.hapticvboard_android.layout.study2.Study2End
-import com.taehokimmm.hapticvboard_android.layout.study2.Study2Init
-import com.taehokimmm.hapticvboard_android.layout.study2.Study2Test
+import com.taehokimmm.hapticvboard_android.layout.study2.test_textentry.Study2End
+import com.taehokimmm.hapticvboard_android.layout.study2.test_textentry.Study2Init
+import com.taehokimmm.hapticvboard_android.layout.study2.test_textentry.Study2Test
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2Train
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainEnd
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainInit

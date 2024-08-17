@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
+import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
 import com.taehokimmm.hapticvboard_android.database.resetData
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
@@ -49,6 +50,9 @@ fun Study1TrainInit(navController: NavHostController) {
     var subjects = listOf("test")
     for(i in 1 until 12) {
         subjects += listOf("P" + i)
+    }
+    for(i in 1 until 6) {
+        subjects += listOf("VP" + i)
     }
     for(i in 1 until 8) {
         subjects += listOf("Pilot" + i)
@@ -110,6 +114,7 @@ fun Study1TrainInit(navController: NavHostController) {
             Button(
                 onClick = {
                     closeStudy1Database()
+                    closeStudy2TrainDatabase()
                     closeStudy2Database()
                     when {
                         testSubjectIdentifier.isEmpty() -> errorMessage =
