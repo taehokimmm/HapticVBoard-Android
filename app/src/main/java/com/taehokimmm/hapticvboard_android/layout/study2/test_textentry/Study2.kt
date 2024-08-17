@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2
+package com.taehokimmm.hapticvboard_android.layout.study2.test_textentry
 
 import android.content.Context
 import android.os.Bundle
@@ -50,14 +50,10 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.R
-import com.taehokimmm.hapticvboard_android.calculatePressDuration
-import com.taehokimmm.hapticvboard_android.calculateUER
-import com.taehokimmm.hapticvboard_android.calculateWPM
 import com.taehokimmm.hapticvboard_android.database.Study2Metric
 import com.taehokimmm.hapticvboard_android.database.Study2TestLog
 import com.taehokimmm.hapticvboard_android.database.addStudy2Metric
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.keyboardEfficiency
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -75,7 +71,7 @@ fun Study2Test(
     hapticManager: HapticManager?,
     hapticMode: HapticMode
 ) {
-    val name = subject + "_" + when(hapticMode) {
+    val databaseName = subject + "_" + when(hapticMode) {
         HapticMode.TICK -> "vibration"
         HapticMode.PHONEME -> "phoneme"
         HapticMode.VOICE -> "audio"
@@ -93,7 +89,7 @@ fun Study2Test(
     }
     val testNumber = when (isPractice) {
         true -> 3
-        false -> 3
+        false -> 5
     }
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
@@ -201,7 +197,7 @@ fun Study2Test(
         val data = Study2Metric(
             testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
         )
-        addStudy2Metric(context, name, data)
+        addStudy2Metric(context, databaseName, data)
     }
 
     fun initMetric() {
@@ -433,7 +429,7 @@ fun Study2Test(
                                 targetText = testList[testIter],
                                 inputText = inputText
                             ),
-                            name = name
+                            name = databaseName
                         )
                         AndroidView(
                             modifier = Modifier

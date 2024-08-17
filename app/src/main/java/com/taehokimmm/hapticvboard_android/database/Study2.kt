@@ -22,6 +22,39 @@ data class TouchMetric(
     val touchDuration: Long
 )
 
+@Entity(tableName = "study2TrainMetric")
+data class Study2TrainAnswer(
+    val block: Int,
+    val iteration: Int,
+    val mode: Int,
+    val answer: String,
+    val perceived: String,
+    val duration: Long,
+    var timestamp: String = System.currentTimeMillis().toFormattedDateString()
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0
+}
+
+
+@Entity("study2TrainLog")
+data class Study2TrainLog(
+    val block: Int,
+    val iteration: Int,
+    val mode: Int,
+    val answer: String,
+    var state: String = "", // DOWN, UP, MOVE
+    var touchedKey: String = "",
+    var x : Float = 0.0f,
+    var y : Float = 0.0f,
+    var timestamp: Long = System.currentTimeMillis(),
+    var date: String = System.currentTimeMillis().toFormattedDateString()
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id : Int = 0
+}
+
+
 @Entity(tableName = "study2Metric")
 data class Study2Metric(
     val block: Int,

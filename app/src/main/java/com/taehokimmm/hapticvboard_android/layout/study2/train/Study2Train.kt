@@ -1,12 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.study2.train
 
-import android.os.Bundle
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import android.view.MotionEvent
-import android.widget.EditText
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,20 +37,13 @@ import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
-import com.taehokimmm.hapticvboard_android.R
-import com.taehokimmm.hapticvboard_android.calculatePressDuration
-import com.taehokimmm.hapticvboard_android.calculateUER
-import com.taehokimmm.hapticvboard_android.calculateWPM
-import com.taehokimmm.hapticvboard_android.database.Study2Metric
-import com.taehokimmm.hapticvboard_android.database.Study2TestLog
-import com.taehokimmm.hapticvboard_android.database.addStudy2Metric
+import com.taehokimmm.hapticvboard_android.database.Study2TrainAnswer
+import com.taehokimmm.hapticvboard_android.database.Study2TrainLog
+import com.taehokimmm.hapticvboard_android.database.addStudy2TrainAnswer
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.keyboardEfficiency
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
-import com.taehokimmm.hapticvboard_android.layout.study2.readTxtFile
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
-import java.util.Locale
 
 @Composable
 fun Study2Train(
@@ -67,179 +53,118 @@ fun Study2Train(
     soundManager: SoundManager,
     hapticManager: HapticManager?,
 ) {
+    val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    val context = LocalContext.current
-
-    val totalBlock = 5
-    val testNumber = 5
-    val modeCnt = 2
+    val totalBlock = 3
+    val testNumber = 26
+    val modeCnt = 3
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
     var modeIter by remember { mutableIntStateOf(0) }
-    var testWords by remember { mutableStateOf(readTxtFile(context, R.raw.five_letter_words)) }
+    var modeNames = listOf("음성 모드 학습", "진동 모드 학습", "테스트")
+
+    var testAlphabets = ('a'..'z').map { it.toString() }
 
     var testList by remember { mutableStateOf(listOf("")) }
 
-    // WPM
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
-    var wordCount by remember { mutableIntStateOf(0) }
 
-    // IKI
-    val keystrokeTimestamps = remember { mutableStateListOf<Long>() }
-
-    // Press Duration
-    var pressDurations by remember{mutableStateOf(listOf(0L))}
-    var pressStartTime by remember{mutableLongStateOf(0)}
-
-    // Keyboard Efficiency
-    var keyStrokeNum by remember { mutableStateOf(0) }
-
-    var isSpeakingDone by remember { mutableStateOf(false) }
-    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    val databaseName = subject+ "_study2"
 
     fun initMetric() {
         startTime = System.currentTimeMillis()
-        keystrokeTimestamps.clear()
-        keyStrokeNum = 0
-    }
-
-    LaunchedEffect(Unit) {
-        // Initiate TTS
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.US
-                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {
-                        isSpeakingDone = false
-                    }
-
-                    override fun onDone(utteranceId: String?) {
-                        isSpeakingDone = true
-                        initMetric()
-                    }
-
-                    override fun onError(utteranceId: String?) {
-                    }
-                })
-            }
-        }
     }
 
     LaunchedEffect(testBlock) {
-        testList = testWords.slice(testBlock * testNumber until (testBlock + 1) * testNumber)
+        testList = testAlphabets.shuffled()
     }
 
     fun speak(word: String) {
-        isSpeakingDone = false
-        val params = Bundle()
-        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-
-        tts?.setSpeechRate(1f)
-        tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
+        soundManager.speakOutChar(word)
+        startTime = -1L
     }
 
-    fun speakLetter(word: String) {
-        val params = Bundle()
-        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-        isSpeakingDone = false
-
-        tts?.setSpeechRate(2f)
-        for (index in 0 until word.length) {
-            tts?.speak(
-                word[index].toString(), TextToSpeech.QUEUE_ADD, params, "utteranceId"
-            )
-        }
-        tts?.setSpeechRate(1f)
-    }
-
-
-    fun speakWordLetter(word:String) {
-        speak(word)
-        delay({speakLetter(word)}, 1000)
-    }
-
-    fun addLogging() {
+    fun addLogging(inputText: String) {
         endTime = System.currentTimeMillis()
-        wordCount = inputText.split("\\s+".toRegex()).size
-        val targetText = testList[testIter]
-        val wpm = calculateWPM(startTime, endTime, targetText)
-        //val iki = calculateIKI(keystrokeTimestamps)
-        val pd = calculatePressDuration(pressDurations)
-        val uer = calculateUER(targetText, inputText)
-        var ke = keyboardEfficiency(inputText, keyStrokeNum)
-        val data = Study2Metric(
-            testBlock, testIter*modeCnt + modeIter, wpm, pd, uer, ke, targetText, inputText
+        val data = Study2TrainAnswer(
+            answer = testList[testIter],
+            perceived = inputText,
+            iteration = testIter,
+            mode = modeIter,
+            block = testBlock,
+            duration = endTime - startTime
         )
-        addStudy2Metric(context, subject+ "_train2", data)
+        addStudy2TrainAnswer(context, databaseName, data)
     }
 
-
-    fun onConfirm(): Boolean {
-        val isCorrect = (inputText == testList[testIter])
-        soundManager.playSound(isCorrect)
-
+    fun onConfirm(inputText: String): Boolean {
         var delay = 0L
-        if (!isCorrect) {
-            delay(
-                {
-                    speakLetter(inputText)
-                }, 500
-            )
-            delay = 2000L
+        if (modeIter <= 1) {
+            val isCorrect = (inputText == testList[testIter])
+            soundManager.playSound(isCorrect)
+            delay = 1000L
         }
 
-        addLogging()
+        addLogging(inputText)
         delay({
-            modeIter++
-            inputText = ""
+            testIter++
             initMetric()
-        }, 1000 + delay)
+        }, delay)
         return true
     }
 
-    LaunchedEffect(modeIter) {
-        if (testIter == -1) return@LaunchedEffect
-        if (modeIter >= modeCnt) {
-            testIter++
-            modeIter = 0
-            return@LaunchedEffect
-        }
-
-        if (testIter >= testNumber) {
-            return@LaunchedEffect
-        }
-        if (modeIter == 0) {
-            speakWordLetter(testList[testIter])
-        } else {
-            tts?.speak(testList[testIter], TextToSpeech.QUEUE_ADD, null)
-        }
-    }
-
+    var timer by remember { mutableStateOf(0) }
     var countdown by remember { mutableStateOf(0) }
 
-    LaunchedEffect(countdown) {
+    LaunchedEffect(timer) {
         kotlinx.coroutines.delay(1000L)
-        countdown++
+        timer++
     }
 
-    LaunchedEffect(testIter) {
-        if (testIter == -1) {
-            countdown = 0
-            //soundManager.speakOutKor("시작하려면 탭하세요")
-        } else if (testIter < testNumber) {
-
-        } else {
+    LaunchedEffect(modeIter) {
+        if (modeIter >= modeCnt) {
             testBlock++
-
             if (testBlock > totalBlock) {
                 closeStudy2Database()
                 navController!!.navigate("study2/train/end/$subject")
             } else {
-                testIter = -1
+                modeIter = 0
             }
+            return@LaunchedEffect
+        }
+    }
+
+    LaunchedEffect(testIter) {
+        if (testIter == -1) {
+            timer = 0
+        } else if (testIter >= testList.size) {
+            modeIter++
+            testIter = -1
+        } else {
+            speak(testList[testIter])
+        }
+    }
+
+    LaunchedEffect(timer) {
+        var temp = countdown
+        if (testBlock == 0 && modeIter == 0) {
+            temp = 0
+        } else if (modeIter == 0) {
+            temp = 60 - timer
+        } else {
+            temp = 30 - timer
+        }
+        if (temp < 0) temp = 0
+        if (temp != countdown) countdown = temp
+    }
+
+    LaunchedEffect(countdown) {
+        if (countdown == 0) {
+            val modeName = modeNames[modeIter]
+            soundManager.speakOut(modeName + " : 시작하려면 탭하세요.")
         }
     }
 
@@ -259,9 +184,8 @@ fun Study2Train(
 
             Button(
                 onClick = {
-                    modeIter = 0
+                    if (countdown > 0) return@Button
                     testIter = 0
-                    speakWordLetter(testList[testIter])
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -271,7 +195,7 @@ fun Study2Train(
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {
                 Text(
-                    text = "Tap to Start \n Block : " + (testBlock + 1), fontSize = 20.sp
+                    text = "Tap to Start \n Block : " + (testBlock + 1) + "\n Mode : " + modeNames[modeIter], fontSize = 20.sp
                 )
             }
         }
@@ -281,120 +205,69 @@ fun Study2Train(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, modeCnt, testList[testIter], soundManager)
+            TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, testList[testIter], soundManager)
             Column(
-                modifier = Modifier.align(Alignment.End).fillMaxHeight(),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Box(
+                Box (
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
-                        .padding(20.dp, 16.dp)
-                        .heightIn(min = 30.dp, max = 200.dp),
+                        .align(Alignment.End)
+                        .fillMaxHeight(),
                     contentAlignment = Alignment.BottomEnd
                 ) {
-                    AndroidView(modifier = Modifier.fillMaxWidth(), factory = { ctx ->
-                        EditText(ctx).apply {
-                            hint = "Enter text here"
-                            textSize = 20f
-                            showSoftInputOnFocus = false
-                            setText(inputText)
-                            setSelection(inputText.length)
-                            isFocusable = true
-                            isCursorVisible = true
-                            isPressed = true
-                        }
-                    }, update = { editText ->
-                        if (editText.text.toString() != inputText) {
-                            editText.setText(inputText)
-                            editText.setSelection(inputText.length)
-                        }
-                    })
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                if (isSpeakingDone)
-                    Box (
-                        modifier = Modifier.align(Alignment.End).fillMaxHeight(),
-                        contentAlignment = Alignment.BottomEnd
-                    ) {
-                        KeyboardLayout(
-                            touchEvents = keyboardTouchEvents,
-                            onKeyPress = { key ->
-                                pressStartTime = System.currentTimeMillis()
-                            },
-                            onKeyRelease = { key ->
-                                if (key == "Space") {
-                                    onConfirm()
-                                    return@KeyboardLayout
-                                } else if (key == "Replay") {
-                                    // Replay word
-                                    speak(testList[testIter])
-                                }
-
-                                inputText = when (key) {
-                                    "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
-                                    "Shift" -> inputText
-                                    "Replay" -> {
-                                        inputText
-                                    }
-                                    else -> {
-                                        inputText + key
-                                    }
-                                }
-                                if (key != "Replay") {
-                                    val curTime = System.currentTimeMillis()
-                                    val pressDur = curTime - pressStartTime
-                                    pressDurations += pressDur
-                                    keystrokeTimestamps += curTime
-                                    keyStrokeNum += 1
-
-                                    if (modeIter == 0) {
-                                        hapticManager?.generateHaptic(key, HapticMode.VOICE)
-                                    }
-                                }
-                            },
-                            enterKeyVisibility = false,
-                            soundManager = soundManager,
-                            hapticManager = hapticManager,
-                            hapticMode = HapticMode.PHONEME,
-                            logData = Study2TestLog(
-                                iteration = testIter * modeCnt + modeIter,
-                                block = testBlock,
-                                targetText = testList[testIter],
-                                inputText = inputText
-                            ),
-                            name = subject+ "_train2"
-                        )
-                        AndroidView(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .fillMaxHeight(),
-                            factory = { context ->
-                                MultiTouchView(context).apply {
-                                    onMultiTouchEvent = { event ->
-                                        keyboardTouchEvents.clear()
-                                        keyboardTouchEvents.add(event)
-                                    }
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyPress = { key ->
+                            if (startTime == -1L)
+                                startTime = System.currentTimeMillis()
+                        },
+                        onKeyRelease = { key ->
+                            onConfirm(key)
+                            if (modeIter == 1) soundManager.speakOut(key)
+                        },
+                        enterKeyVisibility = false,
+                        soundManager = soundManager,
+                        hapticManager = hapticManager,
+                        hapticMode = if (modeIter == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
+                        logData = Study2TrainLog(
+                            block = testBlock,
+                            iteration = testIter,
+                            mode = modeIter,
+                            answer = testList[testIter]
+                        ),
+                        name = databaseName
+                    )
+                    AndroidView(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .fillMaxHeight(),
+                        factory = { context ->
+                            MultiTouchView(context).apply {
+                                onMultiTouchEvent = { event ->
+                                    keyboardTouchEvents.clear()
+                                    keyboardTouchEvents.add(event)
                                 }
                             }
-                        )
-                    }
-
+                        }
+                    )
+                }
             }
         }
-
-
     }
 }
 
 @Composable
-fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, modeIter:Int, modeCnt: Int, testString: String, soundManager: SoundManager) {
+fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, modeIter: Int, testString: String, soundManager: SoundManager) {
     Column(
-        modifier = Modifier.padding(top = 10.dp).clickable(onClick = {
-            soundManager.speakOut(testString)
-        }).height(200.dp)
+        modifier = Modifier
+            .padding(top = 10.dp)
+            .clickable(onClick = {
+                soundManager.speakOut(testString)
+            })
+            .height(200.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
@@ -410,7 +283,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Iteraction : ${testIter + 1} / $testNumber", fontSize = 20.sp
+                text = "Mode : ${listOf("Train-Voice", "Train-Phoneme", "Test")[modeIter]}", fontSize = 15.sp
             )
         }
 
@@ -420,7 +293,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Mode : ${modeIter + 1} / $modeCnt", fontSize = 20.sp
+                text = "Iteration : ${testIter + 1} / $testNumber", fontSize = 20.sp
             )
         }
 
@@ -430,7 +303,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = testString, fontSize = 20.sp
+                text = testString.uppercase(), fontSize = 50.sp
             )
         }
     }

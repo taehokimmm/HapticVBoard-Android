@@ -3,8 +3,6 @@ package com.taehokimmm.hapticvboard_android.layout.study1.test
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
@@ -82,37 +80,10 @@ fun Study1Test(
 
 
     var startTime by remember { mutableStateOf(0L) }
-    var isSpeakingDone by remember { mutableStateOf(false) }
-    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
-    LaunchedEffect(Unit) {
-        // Initiate TTS
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.US
-                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {
-                    }
 
-                    override fun onDone(utteranceId: String?) {
-                        isSpeakingDone = true
-                    }
-
-                    override fun onError(utteranceId: String?) {
-                    }
-                })
-            }
-        }
-    }
     fun speak() {
-        isSpeakingDone = false
         soundManager.speakOutChar(testList[testIter])
-        delay({
-              }, 700)
-
-        delay({
-            isSpeakingDone = true
-            startTime = System.currentTimeMillis()
-        }, 1000)
+        startTime = -1L
     }
 
     LaunchedEffect(testIter) {
@@ -164,52 +135,52 @@ fun Study1Test(
             val answer = testList[testIter]
             val iter = testIter
             val block = testBlock
-            if (isSpeakingDone) {
-                Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
-                ) {
-                    KeyboardLayout(
-                        touchEvents = keyboardTouchEvents,
-                        onKeyRelease = { key ->
-                            if (keyboardAllowlist.contains(key)) {
-                                //--- Append Data to Database ---//
-                                val curTime = System.currentTimeMillis()
-                                val data = Study1TestAnswer(
-                                    answer = testList[testIter],
-                                    perceived = key,
-                                    iter = testIter,
-                                    block = testBlock,
-                                    duration = curTime - startTime
-                                )
-                                addStudy1Answer(context, subject, group, data)
-                                // ------------------------------//
-                                Handler(Looper.getMainLooper()).postDelayed(
-                                    {// Speak next target alphabet key
-                                        testIter++
-                                        if (testIter < testList.size) speak()
-                                    }, 200
-                                )
-                                isSpeakingDone = false
-                            }
-                        },
-                        soundManager = soundManager,
-                        hapticManager = hapticManager,
-                        hapticMode = hapticMode,
-                        allow = keyboardAllowlist,
-                        logData = Study1TestLog(
-                            answer = answer, iter = iter, block = block
-                        ),
-                        name = subject + "_" + group.last()
-                    )
-                    AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
-                        MultiTouchView(context).apply {
-                            onMultiTouchEvent = { event ->
-                                keyboardTouchEvents.clear()
-                                keyboardTouchEvents.add(event)
-                            }
+            Box(
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
+            ) {
+                KeyboardLayout(
+                    touchEvents = keyboardTouchEvents,
+                    onKeyPress = {key ->
+                        if (startTime == -1L)
+                            startTime = System.currentTimeMillis() },
+                    onKeyRelease = { key ->
+                        if (keyboardAllowlist.contains(key)) {
+                            //--- Append Data to Database ---//
+                            val curTime = System.currentTimeMillis()
+                            val data = Study1TestAnswer(
+                                answer = testList[testIter],
+                                perceived = key,
+                                iter = testIter,
+                                block = testBlock,
+                                duration = curTime - startTime
+                            )
+                            addStudy1Answer(context, subject, group, data)
+                            // ------------------------------//
+                            Handler(Looper.getMainLooper()).postDelayed(
+                                {// Speak next target alphabet key
+                                    testIter++
+                                    if (testIter < testList.size) speak()
+                                }, 200
+                            )
                         }
-                    })
-                }
+                    },
+                    soundManager = soundManager,
+                    hapticManager = hapticManager,
+                    hapticMode = hapticMode,
+                    allow = keyboardAllowlist,
+                    logData = Study1TestLog(
+                        answer = answer, iter = iter, block = block
+                    ),
+                    name = subject + "_" + group.last()
+                )
+                AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                    MultiTouchView(context).apply {
+                        onMultiTouchEvent = { event ->
+                            keyboardTouchEvents.clear()
+                            keyboardTouchEvents.add(event)
+                        }
+                    }
+                })
             }
         }
         timer.schedule(timerTask, 0, 100)
