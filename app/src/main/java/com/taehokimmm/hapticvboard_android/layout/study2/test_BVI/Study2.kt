@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.train
+package com.taehokimmm.hapticvboard_android.layout.study2.test_BVI
 
 import android.view.MotionEvent
 import androidx.compose.foundation.clickable
@@ -35,23 +35,25 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.database.Study2BVITestAnswer
+import com.taehokimmm.hapticvboard_android.database.Study2BVITestLog
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
-import com.taehokimmm.hapticvboard_android.database.Study2TrainAnswer
-import com.taehokimmm.hapticvboard_android.database.Study2TrainLog
-import com.taehokimmm.hapticvboard_android.database.addStudy2TrainAnswer
+import com.taehokimmm.hapticvboard_android.database.addStudy2BVIMetric
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
+import com.taehokimmm.hapticvboard_android.layout.study1.train.TestDisplay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 @Composable
-fun Study2Train(
+fun Study2BVITest(
     innerPadding: PaddingValues,
     subject: String,
     navController: NavHostController?,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
+    hapticMode: HapticMode
 ) {
     val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
@@ -59,11 +61,8 @@ fun Study2Train(
 
     val totalBlock = 3
     val testNumber = 26
-    val modeCnt = 3
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
-    var modeIter by remember { mutableIntStateOf(0) }
-    var modeNames = listOf("음성 모드 학습", "진동 모드 학습", "테스트")
 
     var testAlphabets = ('a'..'z').map { it.toString() }
 
@@ -72,7 +71,13 @@ fun Study2Train(
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
 
-    val databaseName = subject+ "_study2"
+    val databaseName = subject + "_" + when(hapticMode) {
+        HapticMode.TICK -> "vibration"
+        HapticMode.PHONEME -> "phoneme"
+        HapticMode.VOICE -> "audio"
+        HapticMode.VOICEPHONEME -> "voicephoneme"
+        else -> ""
+    }
 
     fun initMetric() {
         startTime = System.currentTimeMillis()
@@ -89,31 +94,22 @@ fun Study2Train(
 
     fun addLogging(inputText: String) {
         endTime = System.currentTimeMillis()
-        val data = Study2TrainAnswer(
+        val data = Study2BVITestAnswer(
             answer = testList[testIter],
             perceived = inputText,
             iteration = testIter,
-            mode = modeIter,
             block = testBlock,
             duration = endTime - startTime
         )
-        addStudy2TrainAnswer(context, databaseName, data)
+        addStudy2BVIMetric(context, databaseName, data)
     }
 
-    fun onConfirm(inputText: String): Boolean {
-        var delay = 0L
-        if (modeIter <= 1) {
-            val isCorrect = (inputText == testList[testIter])
-            soundManager.playSound(isCorrect)
-            delay = 1000L
-        }
-
+    fun onConfirm(inputText: String) {
         addLogging(inputText)
+        initMetric()
         delay({
             testIter++
-            initMetric()
-        }, delay)
-        return true
+        }, 500)
     }
 
     var timer by remember { mutableStateOf(0) }
@@ -124,36 +120,26 @@ fun Study2Train(
         timer++
     }
 
-    LaunchedEffect(modeIter) {
-        if (modeIter >= modeCnt) {
-            testBlock++
-            if (testBlock > totalBlock) {
-                closeStudy2Database()
-                navController!!.navigate("study2/train/end/$subject")
-            } else {
-                modeIter = 0
-            }
-            return@LaunchedEffect
-        }
-    }
-
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             timer = 0
         } else if (testIter >= testList.size) {
-            modeIter++
-            testIter = -1
+            testBlock++
+            if (testBlock > totalBlock) {
+                closeStudy2Database()
+                navController!!.navigate("study2/BVI/end/$subject")
+            } else {
+                testIter = -1
+            }
         } else {
             speak(testList[testIter])
         }
     }
 
     LaunchedEffect(timer) {
-        var temp = countdown
-        if (testBlock == 0 && modeIter == 0) {
+        var temp: Int
+        if (testBlock == 0) {
             temp = 0
-        } else if (modeIter == 0) {
-            temp = 60 - timer
         } else {
             temp = 30 - timer
         }
@@ -163,8 +149,7 @@ fun Study2Train(
 
     LaunchedEffect(countdown) {
         if (countdown == 0) {
-            val modeName = modeNames[modeIter]
-            soundManager.speakOut(modeName + " : 시작하려면 탭하세요.")
+            soundManager.speakOut("시작하려면 탭하세요.")
         }
     }
 
@@ -195,7 +180,7 @@ fun Study2Train(
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {
                 Text(
-                    text = "Tap to Start \n Block : " + (testBlock + 1) + "\n Mode : " + modeNames[modeIter], fontSize = 20.sp
+                    text = "Tap to Start \n Block : " + (testBlock + 1), fontSize = 20.sp
                 )
             }
         }
@@ -205,7 +190,7 @@ fun Study2Train(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, testList[testIter], soundManager)
+            TestDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], soundManager)
             Column(
                 modifier = Modifier
                     .align(Alignment.End)
@@ -226,16 +211,14 @@ fun Study2Train(
                         },
                         onKeyRelease = { key ->
                             onConfirm(key)
-                            if (modeIter == 1) soundManager.speakOut(key)
                         },
                         enterKeyVisibility = false,
                         soundManager = soundManager,
                         hapticManager = hapticManager,
-                        hapticMode = if (modeIter == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
-                        logData = Study2TrainLog(
+                        hapticMode = hapticMode,
+                        logData = Study2BVITestLog(
                             block = testBlock,
                             iteration = testIter,
-                            mode = modeIter,
                             answer = testList[testIter]
                         ),
                         name = databaseName
@@ -293,7 +276,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "${testIter + 1} / $testNumber", fontSize = 20.sp
+                text = "Iteration : ${testIter + 1} / $testNumber", fontSize = 20.sp
             )
         }
 

@@ -278,7 +278,7 @@ fun Study1IdentiQuiz(
                     )
                 }
         ) {
-            TestDisplay(testIter, testNumber, testList[testIter][0], soundManager, height = 180.dp)
+            TestDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], soundManager, height = 180.dp)
 
             Button(
                 onClick = {
@@ -368,10 +368,22 @@ fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
 }
 
 @Composable
-fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height: Dp = 300.dp) {
+fun TestDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height: Dp = 200.dp) {
     Column(
-        modifier = Modifier.padding(top = 10.dp)
+        modifier = Modifier.padding(top = 10.dp).clickable(onClick = {
+            soundManager.speakOut(testLetter.toString())
+        })
     ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Block : ${testBlock + 1} / $blockNumber", fontSize = 15.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
@@ -387,9 +399,7 @@ fun TestDisplay(testIter: Int, testNumber: Int, testLetter: Char, soundManager: 
                 .fillMaxWidth()
                 .height(height)
                 .align(Alignment.CenterHorizontally)
-                .clickable(onClick = {
-                    soundManager.speakOut(testLetter.toString())
-                }),
+            ,
             contentAlignment = Alignment.Center
         ) {
             Text(

@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_textentry
+package com.taehokimmm.hapticvboard_android.layout.study2.test_sighted
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
@@ -122,11 +123,9 @@ fun Study2Init(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    closeStudy1Database()
-                    closeStudy2TrainDatabase()
-                    closeStudy2Database()
+                    closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
-                        navController.navigate("study2/$testSubjectIdentifier/$selectedOption/$isPractice")
+                        navController.navigate("study2/sighted/$testSubjectIdentifier/$selectedOption/$isPractice")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     }

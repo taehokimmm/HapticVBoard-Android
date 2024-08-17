@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.database.resetData
 
@@ -108,7 +109,7 @@ fun IntroInit(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    closeStudy1Database()
+                    closeAllDatabases()
                     when {
                         selectedOption.isEmpty() -> errorMessage =
                             "Please select a test group"

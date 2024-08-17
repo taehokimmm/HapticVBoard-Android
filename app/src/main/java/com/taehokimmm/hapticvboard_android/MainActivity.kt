@@ -65,9 +65,12 @@ import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1IdentiQuiz
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
-import com.taehokimmm.hapticvboard_android.layout.study2.test_textentry.Study2End
-import com.taehokimmm.hapticvboard_android.layout.study2.test_textentry.Study2Init
-import com.taehokimmm.hapticvboard_android.layout.study2.test_textentry.Study2Test
+import com.taehokimmm.hapticvboard_android.layout.study2.test_BVI.Study2BVITest
+import com.taehokimmm.hapticvboard_android.layout.study2.test_BVI.Study2BVITestEnd
+import com.taehokimmm.hapticvboard_android.layout.study2.test_BVI.Study2BVITestInit
+import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2End
+import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Init
+import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Test
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2Train
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainEnd
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainInit
@@ -244,7 +247,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         Study2TrainInit(navController)
                     }
                     composable("study2/train/{subject}") {
-                        currentScreen = "study2/test"
+                        currentScreen = "study2/train"
                         val subject = it.arguments?.getString("subject")!!
 
                         Study2Train(
@@ -256,18 +259,48 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         )
                     }
                     composable("study2/train/end/{subject}") {
-                        currentScreen = "study2/end"
+                        currentScreen = "study2/train/end"
                         val subject = it.arguments?.getString("subject")!!
                         Study2TrainEnd(subject, navController)
                     }
+                    //------ Study 2 Test : BVI Participants -----//
+                    composable("study2/BVI/init") {
+                        currentScreen = "study2/BVI/init"
+                        Study2BVITestInit(navController)
+                    }
+                    composable("study2/BVI/{subject}/{feedback}") {
+                        currentScreen = "study2/BVI"
+                        val subject = it.arguments?.getString("subject")!!
+                        val feedback = it.arguments?.getString("feedback")!!
+                        var hapticMode = HapticMode.NONE
+                        if (feedback == "audio") hapticMode = HapticMode.VOICE
+                        else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
+                        else if(feedback == "audiophoneme") hapticMode = HapticMode.VOICEPHONEME
+                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
 
+                        Study2BVITest(
+                            innerPadding,
+                            subject,
+                            navController,
+                            soundManager!!,
+                            hapticManager!!,
+                            hapticMode
+                        )
+                    }
 
-                    composable("study2/init") {
-                        currentScreen = "study2/init"
+                    composable("study2/BVI/end/{subject}") {
+                        currentScreen = "study2/BVI/end"
+                        val subject = it.arguments?.getString("subject")!!
+                        Study2BVITestEnd(subject, navController)
+                    }
+
+                    //------ Study 2 Test : Sighted Participants -----//
+                    composable("study2/sighted/init") {
+                        currentScreen = "study2/sighted/init"
                         Study2Init(navController)
                     }
-                    composable("study2/{subject}/{feedback}/{isPractice}") {
-                        currentScreen = "study2/test"
+                    composable("study2/sighted/{subject}/{feedback}/{isPractice}") {
+                        currentScreen = "study2/sighted"
                         val subject = it.arguments?.getString("subject")!!
                         val feedback = it.arguments?.getString("feedback")!!
                         val isPractice = it.arguments?.getString("isPractice")!!.toBoolean()
@@ -287,8 +320,8 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             hapticMode
                         )
                     }
-                    composable("study2/end/{subject}") {
-                        currentScreen = "study2/end"
+                    composable("study2/sighted/end/{subject}") {
+                        currentScreen = "study2/sighted/end"
                         val subject = it.arguments?.getString("subject")!!
                         Study2End(subject, navController)
                     }
@@ -350,11 +383,18 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "study2/train"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 2 Test") },
-                selected = selectedItem == "study2/test",
+            NavigationDrawerItem(label = { Text("Study 2 Test - Sighted") },
+                selected = selectedItem == "study2/sighted",
                 onClick = {
-                    navController.navigate("study2/init")
-                    selectedItem = "study2/test"
+                    navController.navigate("study2/sighted/init")
+                    selectedItem = "study2/sighted"
+                    onItemClicked()
+                })
+            NavigationDrawerItem(label = { Text("Study 2 Test - BVI") },
+                selected = selectedItem == "study2/BVI",
+                onClick = {
+                    navController.navigate("study2/BVI/init")
+                    selectedItem = "study2/BVI"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Setting") },
@@ -385,47 +425,82 @@ fun DrawTopAppBar(
         "study1/train/phase1" -> "Identification Quiz"
         "study1/train/phase2" -> "Free Play"
         "study1/train/phase3" -> "Typing Quiz"
-        "study1/test/init" -> "Study 1 Test"
+        "study1/sighted/init" -> "Study 1 Test"
         "study2/train/init" -> "Study 2 Train"
-        "study2/init" -> "Study 2 Test"
+        "study2/BVI/init" -> "Study 2 Test - BVI"
+        "study2/sighted/init" -> "Study 2 Test - Sighted"
         "setting" -> "Setting"
         else -> ""
     }
 
     when (currentScreen) {
-        "study1/test" -> CenterAlignedTopAppBar(
-            title = {
-                Button(
-                    onClick = { navController.navigate("study1/test/init") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
-                    )
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Close, contentDescription = "End Test")
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        Text("End Test")
-                    }
-                }
-            }, modifier = Modifier.padding(top = 20.dp)
-        )
-
-        "study2/test" -> CenterAlignedTopAppBar(
-            title = {
-                Button(
-                    onClick = { navController.navigate("study2/init") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
-                    )
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Close, contentDescription = "End Test")
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        Text("End Test")
-                    }
-                }
-            }, modifier = Modifier.padding(top = 20.dp)
-        )
+//        "study1/test" -> CenterAlignedTopAppBar(
+//            title = {
+//                Button(
+//                    onClick = { navController.navigate("study1/test/end") },
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
+//                    )
+//                ) {
+//                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
+//                        Spacer(modifier = Modifier.padding(8.dp))
+//                        Text("End Test")
+//                    }
+//                }
+//            }, modifier = Modifier.padding(top = 20.dp)
+//        )
+//
+//        "study2/sighted" -> CenterAlignedTopAppBar(
+//            title = {
+//                Button(
+//                    onClick = { navController.navigate("study2/sighted/end") },
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
+//                    )
+//                ) {
+//                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
+//                        Spacer(modifier = Modifier.padding(8.dp))
+//                        Text("End Test")
+//                    }
+//                }
+//            }, modifier = Modifier.padding(top = 20.dp)
+//        )
+//
+//        "study2/BVI" -> CenterAlignedTopAppBar(
+//            title = {
+//                Button(
+//                    onClick = { navController.navigate("study2/BVI/end") },
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
+//                    )
+//                ) {
+//                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
+//                        Spacer(modifier = Modifier.padding(8.dp))
+//                        Text("End Test")
+//                    }
+//                }
+//            }, modifier = Modifier.padding(top = 20.dp)
+//        )
+//
+//        "study2/train" -> CenterAlignedTopAppBar(
+//            title = {
+//                Button(
+//                    onClick = { navController.navigate("study2/train/end") },
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
+//                    )
+//                ) {
+//                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
+//                        Spacer(modifier = Modifier.padding(8.dp))
+//                        Text("End Test")
+//                    }
+//                }
+//            }, modifier = Modifier.padding(top = 20.dp)
+//        )
 
         "testEnd" -> {}
 
