@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.study1.train
 
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,9 +65,10 @@ fun Study1TypingQuiz(
     val allowlist = getAllowGroup(group)
 
     val totalBlock = 6
-    var testBlock by remember { mutableStateOf(1) }
+    var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableStateOf(-1) }
-    var testList = remember { allowlist.shuffled() }
+    var testList by remember { mutableStateOf(allowlist.shuffled()) }
+    var modeNames = listOf("음성 모드 학습", "진동 모드 학습")
 
 
     // Typing Test
@@ -83,7 +85,8 @@ fun Study1TypingQuiz(
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            soundManager.speakOutKor("시작하려면 탭하세요")
+            val modeName = modeNames[testBlock%2]
+            soundManager.speakOutKor(modeName + " : 시작하려면 탭하세요")
         } else if (testIter < testList.size) {
             isTypingMode = true
             speak()
@@ -107,17 +110,20 @@ fun Study1TypingQuiz(
                 colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
             ) {
                 Text(
-                    text = "Tap to Start \n Block : " + testBlock, fontSize = 20.sp
+                    text = "Tap to Start \n Block : " + (testBlock+1)
+                            + "\n Mode : " + modeNames[testBlock%2]
+                    , fontSize = 20.sp
                 )
             }
         }
     } else if (testIter == testList.size) {
         testBlock++
-        if (testBlock > totalBlock) {
+        if (testBlock >= totalBlock) {
             closeStudy1Database()
             navController.navigate("study1/train/end/${subject}")
         } else {
             testList = allowlist.shuffled()
+            Log.d("study1train", testList.toString())
             testIter = -1
         }
     } else {
@@ -133,11 +139,13 @@ fun Study1TypingQuiz(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyPress = {key ->
+                            if (testBlock % 2 == 0)
+                                soundManager.stop()
                             if(startTime == -1L) startTime = System.currentTimeMillis()
                         },
                         onKeyRelease = { key ->
                             if (keyboardAllowlist.contains(key)) {
-                                if (testBlock % 2 == 0)
+                                if (testBlock % 2 == 1)
                                     soundManager.speakOut(key)
                                 val isCorrect = key == testList[testIter]
                                 //--- Append Data to Database ---//
@@ -170,7 +178,7 @@ fun Study1TypingQuiz(
                         },
                         soundManager = soundManager,
                         hapticManager = hapticManager,
-                        hapticMode = if(testBlock % 2 == 1) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
+                        hapticMode = if(testBlock % 2 == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
                         allow = keyboardAllowlist,
                         logData = Study1Phase3Log(
                             answer = testList[testIter], iter = testIter, block = testBlock

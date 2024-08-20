@@ -269,7 +269,6 @@ fun processTouchEvent(
             val pointerId = event.getPointerId(event.actionIndex)
             activeTouches.keys.forEach { id -> if (pointerId != id) activeTouches.remove(id) }
         }
-        Log.d("touchevent", "EVENT : "+ event.actionMasked)
         when (event.actionMasked) {
             MotionEvent.ACTION_POINTER_1_DOWN -> {
                 val pointerId = event.getPointerId(event.actionIndex)
@@ -293,6 +292,9 @@ fun processTouchEvent(
                     }
 
                     if (key != null && activeTouches[pointerId] != key) {
+                        if (onKeyPressed != null)
+                            onKeyPressed(key)
+                        
                         activeTouches[pointerId] = key
                         if (allow.contains(key)) hapticManager?.generateHaptic(key, hapticMode)
                         else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(
@@ -300,8 +302,7 @@ fun processTouchEvent(
                             HapticMode.VOICE
                         )
                         Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
-                        if (onKeyPressed != null)
-                            onKeyPressed(key)
+
                         // Add Log
                         if (name != null && logData != null) {
                             addLog(

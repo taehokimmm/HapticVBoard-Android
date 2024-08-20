@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.study2.train
 
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -79,10 +80,6 @@ fun Study2Train(
         startTime = System.currentTimeMillis()
     }
 
-    LaunchedEffect(testBlock) {
-        testList = testAlphabets.shuffled()
-    }
-
     fun speak(word: String) {
         soundManager.stop()
         soundManager.speakOutChar(word)
@@ -102,6 +99,9 @@ fun Study2Train(
         addStudy2TrainAnswer(context, databaseName, data)
     }
 
+    var timer by remember { mutableStateOf(0) }
+    var countdown by remember { mutableStateOf(0) }
+
     fun onConfirm(inputText: String): Boolean {
         var delay = 0L
         isTypingMode = false
@@ -112,15 +112,13 @@ fun Study2Train(
         }
 
         addLogging(inputText)
+        timer = 0
         delay({
             testIter++
             initMetric()
         }, delay)
         return true
     }
-
-    var timer by remember { mutableStateOf(0) }
-    var countdown by remember { mutableStateOf(0) }
 
     LaunchedEffect(timer) {
         kotlinx.coroutines.delay(1000L)
@@ -132,7 +130,7 @@ fun Study2Train(
         } else if (modeIter == 0) {
             temp = 60 - timer
         } else {
-            temp = 30 - timer
+            temp = 10 - timer
         }
         if (temp < 0) temp = 0
         if (temp != countdown) countdown = temp
@@ -153,6 +151,8 @@ fun Study2Train(
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
+            testList = testAlphabets.shuffled()
+            Log.d("study2train", testList.toString())
             timer = 0
         } else if (testIter >= testList.size) {
             modeIter++
@@ -217,6 +217,8 @@ fun Study2Train(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyPress = { key ->
+                            if (modeIter == 0)
+                                soundManager.stop()
                             if (startTime == -1L)
                                 startTime = System.currentTimeMillis()
                         },

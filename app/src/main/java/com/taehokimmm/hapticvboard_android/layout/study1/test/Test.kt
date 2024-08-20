@@ -139,7 +139,6 @@ fun Study1Test(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyPress = {key ->
-
                             if (startTime == -1L)
                                 startTime = System.currentTimeMillis() },
                         onKeyRelease = { key ->

@@ -53,6 +53,7 @@ class SoundManager(context: Context) {
             } else {
                 Log.e("TTS", "Initialization Failed!")
             }
+            tts?.addEarcon("silent", "com.taehokimmm.hapticvboard_android", R.raw.silent_quarter)
         }
 
         ttsKor = TextToSpeech(context) {
@@ -86,6 +87,11 @@ class SoundManager(context: Context) {
             }
         }
     }
+
+    fun playEarcon(earcon: String) {
+        tts?.playEarcon(earcon, TextToSpeech.QUEUE_ADD, null, null)
+    }
+
     fun playMediaPlayer() {
         mediaPlayer?.setOnCompletionListener {
             releaseMediaPlayer()  // Release the MediaPlayer once the sound has finished playing
@@ -111,8 +117,8 @@ class SoundManager(context: Context) {
         tts.setSpeechRate(2F)
         tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
     }
-    fun speakOut(text: String) {
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH) {
+        tts.speak(text, mode, null, null)
     }
 
     fun speakOutKor(text: String) {
@@ -177,18 +183,8 @@ class SoundManager(context: Context) {
             "y" to "yellowy",
             "z" to "zero",
         )
-        speakOut(key)
-
-//        delay({
-//            releaseMediaPlayer()
-//            mediaPlayer =
-//                keyToResource[key]?.let { MediaPlayer.create(context, it) }!!
-//            playMediaPlayer()
-//        }, 700)
-
-        delay({
-            avaiation[key]?.let { speakOut(it) }
-        }, 600)
+        speakOut(key, TextToSpeech.QUEUE_ADD)
+        avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
     }
 
 
