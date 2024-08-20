@@ -263,44 +263,14 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         val subject = it.arguments?.getString("subject")!!
                         Study2TrainEnd(subject, navController)
                     }
-                    //------ Study 2 Test : BVI Participants -----//
-                    composable("study2/BVI/init") {
-                        currentScreen = "study2/BVI/init"
-                        Study2BVITestInit(navController)
-                    }
-                    composable("study2/BVI/{subject}/{feedback}") {
-                        currentScreen = "study2/BVI"
-                        val subject = it.arguments?.getString("subject")!!
-                        val feedback = it.arguments?.getString("feedback")!!
-                        var hapticMode = HapticMode.NONE
-                        if (feedback == "audio") hapticMode = HapticMode.VOICE
-                        else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
-                        else if(feedback == "audiophoneme") hapticMode = HapticMode.VOICEPHONEME
-                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
 
-                        Study2BVITest(
-                            innerPadding,
-                            subject,
-                            navController,
-                            soundManager!!,
-                            hapticManager!!,
-                            hapticMode
-                        )
-                    }
-
-                    composable("study2/BVI/end/{subject}") {
-                        currentScreen = "study2/BVI/end"
-                        val subject = it.arguments?.getString("subject")!!
-                        Study2BVITestEnd(subject, navController)
-                    }
-
-                    //------ Study 2 Test : Sighted Participants -----//
-                    composable("study2/sighted/init") {
-                        currentScreen = "study2/sighted/init"
+                    //------ Study 2 Test -----//
+                    composable("study2/test/init") {
+                        currentScreen = "study2/test/init"
                         Study2Init(navController)
                     }
-                    composable("study2/sighted/{subject}/{feedback}/{isPractice}") {
-                        currentScreen = "study2/sighted"
+                    composable("study2/test/{subject}/{feedback}/{isPractice}") {
+                        currentScreen = "study2/test"
                         val subject = it.arguments?.getString("subject")!!
                         val feedback = it.arguments?.getString("feedback")!!
                         val isPractice = it.arguments?.getString("isPractice")!!.toBoolean()
@@ -320,8 +290,8 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             hapticMode
                         )
                     }
-                    composable("study2/sighted/end/{subject}") {
-                        currentScreen = "study2/sighted/end"
+                    composable("study2/test/end/{subject}") {
+                        currentScreen = "study2/test/end"
                         val subject = it.arguments?.getString("subject")!!
                         Study2End(subject, navController)
                     }
@@ -383,18 +353,11 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "study2/train"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 2 Test - Sighted") },
-                selected = selectedItem == "study2/sighted",
+            NavigationDrawerItem(label = { Text("Study 2 Test") },
+                selected = selectedItem == "study2/test",
                 onClick = {
-                    navController.navigate("study2/sighted/init")
-                    selectedItem = "study2/sighted"
-                    onItemClicked()
-                })
-            NavigationDrawerItem(label = { Text("Study 2 Test - BVI") },
-                selected = selectedItem == "study2/BVI",
-                onClick = {
-                    navController.navigate("study2/BVI/init")
-                    selectedItem = "study2/BVI"
+                    navController.navigate("study2/test/init")
+                    selectedItem = "study2/test"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Setting") },
@@ -425,82 +388,14 @@ fun DrawTopAppBar(
         "study1/train/phase1" -> "Identification Quiz"
         "study1/train/phase2" -> "Free Play"
         "study1/train/phase3" -> "Typing Quiz"
-        "study1/sighted/init" -> "Study 1 Test"
+        "study1/test/init" -> "Study 1 Test"
         "study2/train/init" -> "Study 2 Train"
-        "study2/BVI/init" -> "Study 2 Test - BVI"
-        "study2/sighted/init" -> "Study 2 Test - Sighted"
+        "study2/test/init" -> "Study 2 Test"
         "setting" -> "Setting"
         else -> ""
     }
 
     when (currentScreen) {
-//        "study1/test" -> CenterAlignedTopAppBar(
-//            title = {
-//                Button(
-//                    onClick = { navController.navigate("study1/test/end") },
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
-//                    )
-//                ) {
-//                    Row(verticalAlignment = Alignment.CenterVertically) {
-//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
-//                        Spacer(modifier = Modifier.padding(8.dp))
-//                        Text("End Test")
-//                    }
-//                }
-//            }, modifier = Modifier.padding(top = 20.dp)
-//        )
-//
-//        "study2/sighted" -> CenterAlignedTopAppBar(
-//            title = {
-//                Button(
-//                    onClick = { navController.navigate("study2/sighted/end") },
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
-//                    )
-//                ) {
-//                    Row(verticalAlignment = Alignment.CenterVertically) {
-//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
-//                        Spacer(modifier = Modifier.padding(8.dp))
-//                        Text("End Test")
-//                    }
-//                }
-//            }, modifier = Modifier.padding(top = 20.dp)
-//        )
-//
-//        "study2/BVI" -> CenterAlignedTopAppBar(
-//            title = {
-//                Button(
-//                    onClick = { navController.navigate("study2/BVI/end") },
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
-//                    )
-//                ) {
-//                    Row(verticalAlignment = Alignment.CenterVertically) {
-//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
-//                        Spacer(modifier = Modifier.padding(8.dp))
-//                        Text("End Test")
-//                    }
-//                }
-//            }, modifier = Modifier.padding(top = 20.dp)
-//        )
-//
-//        "study2/train" -> CenterAlignedTopAppBar(
-//            title = {
-//                Button(
-//                    onClick = { navController.navigate("study2/train/end") },
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = Color(0xFFFF3B30), contentColor = Color.White
-//                    )
-//                ) {
-//                    Row(verticalAlignment = Alignment.CenterVertically) {
-//                        Icon(Icons.Filled.Close, contentDescription = "End Test")
-//                        Spacer(modifier = Modifier.padding(8.dp))
-//                        Text("End Test")
-//                    }
-//                }
-//            }, modifier = Modifier.padding(top = 20.dp)
-//        )
 
         "testEnd" -> {}
 

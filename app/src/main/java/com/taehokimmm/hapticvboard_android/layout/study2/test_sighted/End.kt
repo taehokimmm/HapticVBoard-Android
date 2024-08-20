@@ -34,7 +34,7 @@ fun Study2End(
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
-            navController.navigate("study2/sighted/init")
+            navController.navigate("study2/test/init")
         }) {
             Text("Return to Test Selection")
         }

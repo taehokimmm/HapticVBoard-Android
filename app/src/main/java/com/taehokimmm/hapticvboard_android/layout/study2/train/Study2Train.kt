@@ -69,6 +69,7 @@ fun Study2Train(
 
     var testList by remember { mutableStateOf(listOf("")) }
 
+    var isTypingMode by remember { mutableStateOf(false) }
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
 
@@ -83,6 +84,7 @@ fun Study2Train(
     }
 
     fun speak(word: String) {
+        soundManager.stop()
         soundManager.speakOutChar(word)
         startTime = -1L
     }
@@ -102,6 +104,7 @@ fun Study2Train(
 
     fun onConfirm(inputText: String): Boolean {
         var delay = 0L
+        isTypingMode = false
         if (modeIter <= 1) {
             val isCorrect = (inputText == testList[testIter])
             soundManager.playSound(isCorrect)
@@ -155,6 +158,7 @@ fun Study2Train(
             modeIter++
             testIter = -1
         } else {
+            isTypingMode = true
             speak(testList[testIter])
         }
     }
@@ -206,18 +210,10 @@ fun Study2Train(
                 .padding(innerPadding)
         ) {
             TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, testList[testIter], soundManager)
-            Column(
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Box(
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
             ) {
-                Box (
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.BottomEnd
-                ) {
+                if (isTypingMode) {
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyPress = { key ->
@@ -240,21 +236,26 @@ fun Study2Train(
                         ),
                         name = databaseName
                     )
-                    AndroidView(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .fillMaxHeight(),
-                        factory = { context ->
-                            MultiTouchView(context).apply {
-                                onMultiTouchEvent = { event ->
-                                    keyboardTouchEvents.clear()
-                                    keyboardTouchEvents.add(event)
-                                }
-                            }
-                        }
-                    )
                 }
             }
+        }
+        if (isTypingMode) {
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .fillMaxHeight(),
+                factory = { context ->
+                    MultiTouchView(
+                        context,
+                        onTap = {speak(testList[testIter])}
+                    ).apply {
+                        onMultiTouchEvent = { event ->
+                            keyboardTouchEvents.clear()
+                            keyboardTouchEvents.add(event)
+                        }
+                    }
+                }
+            )
         }
     }
 }
@@ -264,9 +265,6 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
     Column(
         modifier = Modifier
             .padding(top = 10.dp)
-            .clickable(onClick = {
-                soundManager.speakOut(testString)
-            })
             .height(200.dp)
     ) {
         Box(

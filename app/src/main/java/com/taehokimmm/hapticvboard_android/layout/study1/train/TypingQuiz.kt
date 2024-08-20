@@ -63,7 +63,7 @@ fun Study1TypingQuiz(
 
     val allowlist = getAllowGroup(group)
 
-    val totalBlock = 4
+    val totalBlock = 6
     var testBlock by remember { mutableStateOf(1) }
     var testIter by remember { mutableStateOf(-1) }
     var testList = remember { allowlist.shuffled() }
@@ -73,8 +73,10 @@ fun Study1TypingQuiz(
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
     var startTime by remember { mutableStateOf(0L) }
+    var isTypingMode by remember { mutableStateOf(false) }
 
     fun speak() {
+        soundManager.stop()
         soundManager.speakOutChar(testList[testIter])
         startTime = -1L
     }
@@ -83,6 +85,7 @@ fun Study1TypingQuiz(
         if (testIter == -1) {
             soundManager.speakOutKor("시작하려면 탭하세요")
         } else if (testIter < testList.size) {
+            isTypingMode = true
             speak()
         }
     }
@@ -121,67 +124,76 @@ fun Study1TypingQuiz(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
         ) {
             TestDisplay(testBlock, totalBlock, testIter, testList.size, testList[testIter][0], soundManager, height = 300.dp)
             Box(
-                contentAlignment = Alignment.BottomCenter
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
             ) {
-                KeyboardLayout(
-                    touchEvents = keyboardTouchEvents,
-                    onKeyPress = {key ->
-                        if(startTime == -1L) startTime = System.currentTimeMillis()
-                    },
-                    onKeyRelease = { key ->
-                        if (keyboardAllowlist.contains(key)) {
-                            if (testBlock % 2 == 0)
-                                soundManager.speakOut(key)
+                if (isTypingMode) {
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyPress = {key ->
+                            if(startTime == -1L) startTime = System.currentTimeMillis()
+                        },
+                        onKeyRelease = { key ->
+                            if (keyboardAllowlist.contains(key)) {
+                                if (testBlock % 2 == 0)
+                                    soundManager.speakOut(key)
+                                val isCorrect = key == testList[testIter]
+                                //--- Append Data to Database ---//
+                                val curTime = System.currentTimeMillis()
 
-                            val isCorrect = key == testList[testIter]
-                            //--- Append Data to Database ---//
-                            val curTime = System.currentTimeMillis()
+                                val data = Study1Phase3Answer(
+                                    answer = testList[testIter],
+                                    perceived = key,
+                                    iter = testIter,
+                                    block = testBlock,
+                                    duration = curTime - startTime
+                                )
+                                addStudy1TrainPhase3Answer(context, subject, group, data)
+                                // ------------------------------//
 
-                            val data = Study1Phase3Answer(
-                                answer = testList[testIter],
-                                perceived = key,
-                                iter = testIter,
-                                block = testBlock,
-                                duration = curTime - startTime
-                            )
-                            addStudy1TrainPhase3Answer(context, subject, group, data)
-                            // ------------------------------//
+                                delay(
+                                    {// Correction Feedback
+                                        soundManager.playSound(isCorrect)
+                                    }, 500
+                                )
 
-                            delay(
-                                {// Speak next target alphabet key
-                                    soundManager.playSound(isCorrect)
-                                }, 500
-                            )
+                                delay(
+                                    {// Speak next target alphabet key
+                                        testIter++
+                                    }, 1500
+                                )
 
-                            delay(
-                                {// Speak next target alphabet key
-                                    testIter++
-                                }, 1500
-                            )
-                        }
-                    },
-                    soundManager = soundManager,
-                    hapticManager = hapticManager,
-                    hapticMode = if(testBlock % 2 == 1) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
-                    allow = keyboardAllowlist,
-                    logData = Study1Phase3Log(
-                        answer = testList[testIter], iter = testIter, block = testBlock
-                    ),
-                    name = subject + "_" + group.last()
-                )
-                AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
-                    MultiTouchView(context).apply {
-                        onMultiTouchEvent = { event ->
-                            keyboardTouchEvents.clear()
-                            keyboardTouchEvents.add(event)
-                        }
-                    }
-                })
+                                isTypingMode = false
+                            }
+                        },
+                        soundManager = soundManager,
+                        hapticManager = hapticManager,
+                        hapticMode = if(testBlock % 2 == 1) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
+                        allow = keyboardAllowlist,
+                        logData = Study1Phase3Log(
+                            answer = testList[testIter], iter = testIter, block = testBlock
+                        ),
+                        name = subject + "_" + group.last()
+                    )
+                }
             }
+        }
+
+        if (isTypingMode) {
+            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                MultiTouchView(
+                    context,
+                    onTap = {speak()}
+                ).apply {
+                    onMultiTouchEvent = { event ->
+                        keyboardTouchEvents.clear()
+                        keyboardTouchEvents.add(event)
+                    }
+                }
+            })
+
         }
     }
 }

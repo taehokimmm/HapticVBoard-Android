@@ -125,7 +125,7 @@ fun Study2Init(navController: NavHostController) {
                 onClick = {
                     closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
-                        navController.navigate("study2/sighted/$testSubjectIdentifier/$selectedOption/$isPractice")
+                        navController.navigate("study2/test/$testSubjectIdentifier/$selectedOption/$isPractice")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     }

@@ -9,9 +9,9 @@ fun calculateTouchDuration(startTime: Long, endTime: Long): Long {
 
 
 fun calculateWPM(startTime: Long, endTime: Long, sentence: String): Double {
-    val wordCount = sentence.length / 5
-    val durationInMinutes = (endTime - startTime) / 1000.0 / 60.0
-    return wordCount / durationInMinutes
+    val wordCount = (sentence.length - 1) / 5
+    val duration = (endTime - startTime) / 1000.0
+    return (wordCount / duration) * 60
 }
 
 fun calculateAccuracy(typedText: String, referenceText: String): Double {
@@ -72,11 +72,11 @@ fun calculateUER(stimulus: String, enteredText: String): Double {
 }
 
 fun keyboardEfficiency(inputText: String, keyStrokeNum: Int): Double {
+    if (keyStrokeNum == 0) return (-1).toDouble()
     val charNum = inputText.length
     return charNum.toDouble() / keyStrokeNum.toDouble()
 }
 
 fun calculatePressDuration(pressDurations: List<Long>): Double {
-    Log.d("PressDuration", pressDurations.toString())
     return pressDurations.average()
 }

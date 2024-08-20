@@ -87,7 +87,7 @@ fun KeyboardLayout(
 
             Row {
                 if (enterKeyVisibility) {
-                    Spacer(modifier = Modifier.width(57.dp))
+                    Spacer(modifier = Modifier.width(50.dp))
                 }
                 lastRow.forEach { key ->
                     DrawKey(key = key,
@@ -162,7 +162,7 @@ fun DrawKey(
                     else -> width
                 },
                 when (key) {
-                    "Space", "Replay" -> height * 2f
+                    "Space" -> height * 1.8f
                     else -> height
                 })
             .background(backgroundColor)
@@ -231,6 +231,23 @@ fun replaySound(
     }
 }
 
+fun getRow(key: String): Int {
+    val phonemeGroups = listOf(
+        listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
+        listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
+        listOf("z", "x", "c", "v", "b", "n", "m")
+    )
+    var idx = -1
+    phonemeGroups.forEachIndexed( {index, group ->
+        if (group.contains(key)) idx = index
+    })
+    return idx
+}
+
+fun isRowChanged(from: String, to: String): Boolean {
+    return getRow(from) != getRow(to)
+}
+
 fun processTouchEvent(
     events: MutableList<MotionEvent>,
     keyPositions: Map<String, LayoutCoordinates>,
@@ -245,13 +262,14 @@ fun processTouchEvent(
     context: Context,
     name: String?
 ) {
+
     val outOfBound = 1500
     for(event in events) {
         if (event.pointerCount == 1) {
             val pointerId = event.getPointerId(event.actionIndex)
             activeTouches.keys.forEach { id -> if (pointerId != id) activeTouches.remove(id) }
         }
-        Log.d("PressDur", "EVENT : "+ event.actionMasked)
+        Log.d("touchevent", "EVENT : "+ event.actionMasked)
         when (event.actionMasked) {
             MotionEvent.ACTION_POINTER_1_DOWN -> {
                 val pointerId = event.getPointerId(event.actionIndex)
@@ -335,6 +353,7 @@ fun processTouchEvent(
                                 hapticManager?.generateHaptic(key, HapticMode.TICK)
                         }
                         onKeyReleased(key)
+                    } else {
                     }
 
                     // Add Log
@@ -374,6 +393,10 @@ fun processTouchEvent(
                             "TouchEvent",
                             "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                         )
+
+                        if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true)
+                            hapticManager?.generateVibration("rowchanged")
+
                         if (allow.contains(key))
                             hapticManager?.generateHaptic(key, hapticMode)
                         else {

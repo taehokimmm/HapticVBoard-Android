@@ -71,17 +71,11 @@ fun Study1Test(
 
     // Typing Test
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
-    val timer = Timer()
-    var timerTask: TimerTask = object : TimerTask() {
-        override fun run() {
-            return
-        }
-    }
-
-
     var startTime by remember { mutableStateOf(0L) }
+    var isTypingMode by remember { mutableStateOf(false) }
 
     fun speak() {
+        soundManager.stop()
         soundManager.speakOutChar(testList[testIter])
         startTime = -1L
     }
@@ -89,6 +83,9 @@ fun Study1Test(
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             soundManager.speakOutKor("시작하려면 탭하세요")
+        } else if (testIter < testList.size) {
+            isTypingMode = true
+            speak()
         }
     }
 
@@ -138,51 +135,60 @@ fun Study1Test(
             Box(
                 modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
             ) {
-                KeyboardLayout(
-                    touchEvents = keyboardTouchEvents,
-                    onKeyPress = {key ->
-                        if (startTime == -1L)
-                            startTime = System.currentTimeMillis() },
-                    onKeyRelease = { key ->
-                        if (keyboardAllowlist.contains(key)) {
-                            //--- Append Data to Database ---//
-                            val curTime = System.currentTimeMillis()
-                            val data = Study1TestAnswer(
-                                answer = testList[testIter],
-                                perceived = key,
-                                iter = testIter,
-                                block = testBlock,
-                                duration = curTime - startTime
-                            )
-                            addStudy1Answer(context, subject, group, data)
-                            // ------------------------------//
-                            Handler(Looper.getMainLooper()).postDelayed(
-                                {// Speak next target alphabet key
-                                    testIter++
-                                    if (testIter < testList.size) speak()
-                                }, 200
-                            )
-                        }
-                    },
-                    soundManager = soundManager,
-                    hapticManager = hapticManager,
-                    hapticMode = hapticMode,
-                    allow = keyboardAllowlist,
-                    logData = Study1TestLog(
-                        answer = answer, iter = iter, block = block
-                    ),
-                    name = subject + "_" + group.last()
-                )
-                AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
-                    MultiTouchView(context).apply {
-                        onMultiTouchEvent = { event ->
-                            keyboardTouchEvents.clear()
-                            keyboardTouchEvents.add(event)
-                        }
-                    }
-                })
+                if (isTypingMode) {
+                    KeyboardLayout(
+                        touchEvents = keyboardTouchEvents,
+                        onKeyPress = {key ->
+
+                            if (startTime == -1L)
+                                startTime = System.currentTimeMillis() },
+                        onKeyRelease = { key ->
+                            if (keyboardAllowlist.contains(key)) {
+                                //--- Append Data to Database ---//
+                                val curTime = System.currentTimeMillis()
+                                val data = Study1TestAnswer(
+                                    answer = testList[testIter],
+                                    perceived = key,
+                                    iter = testIter,
+                                    block = testBlock,
+                                    duration = curTime - startTime
+                                )
+                                addStudy1Answer(context, subject, group, data)
+                                // ------------------------------//
+                                Handler(Looper.getMainLooper()).postDelayed(
+                                    {// Speak next target alphabet key
+                                        testIter++
+                                    }, 200
+                                )
+                                isTypingMode = false
+                            }
+                        },
+                        soundManager = soundManager,
+                        hapticManager = hapticManager,
+                        hapticMode = hapticMode,
+                        allow = keyboardAllowlist,
+                        logData = Study1TestLog(
+                            answer = answer, iter = iter, block = block
+                        ),
+                        name = subject + "_" + group.last()
+                    )
+
+                }
             }
         }
-        timer.schedule(timerTask, 0, 100)
+
+        if (isTypingMode) {
+            AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                MultiTouchView(
+                    context,
+                    onTap = { speak()}
+                ).apply {
+                    onMultiTouchEvent = { event ->
+                        keyboardTouchEvents.clear()
+                        keyboardTouchEvents.add(event)
+                    }
+                }
+            })
+        }
     }
 }

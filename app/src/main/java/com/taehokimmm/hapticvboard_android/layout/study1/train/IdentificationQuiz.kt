@@ -125,6 +125,7 @@ fun Study1IdentiQuiz(
 
     fun onConfirm() {
         if (isExplaining) {
+            soundManager.stop()
             runnables.forEach { handler.removeCallbacks(it) }
             isExplaining = false
         }
@@ -371,6 +372,7 @@ fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
 fun TestDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height: Dp = 200.dp) {
     Column(
         modifier = Modifier.padding(top = 10.dp).clickable(onClick = {
+            soundManager.stop()
             soundManager.speakOut(testLetter.toString())
         })
     ) {

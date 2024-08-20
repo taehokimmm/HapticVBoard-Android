@@ -103,7 +103,10 @@ class SoundManager(context: Context) {
      *
      * @param text The text for which to play the sound.
      */
-
+    fun stop() {
+        tts.stop()
+        ttsKor.stop()
+    }
     fun speakOutKeyboard(key: String) {
         tts.setSpeechRate(2F)
         tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
