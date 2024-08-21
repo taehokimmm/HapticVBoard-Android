@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -267,7 +268,6 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
     Column(
         modifier = Modifier
             .padding(top = 10.dp)
-            .height(200.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
@@ -303,7 +303,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = testString.uppercase(), fontSize = 50.sp
+                text = testString.uppercase(), fontSize = 120.sp, fontWeight = FontWeight.Bold
             )
         }
     }

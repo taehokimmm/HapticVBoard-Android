@@ -86,11 +86,11 @@ fun Study2Test(
 
     val totalBlock = when (isPractice) {
         true -> 1
-        false -> 1
+        false -> 2
     }
     val testNumber = when (isPractice) {
         true -> 3
-        false -> 10
+        false -> 5
     }
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
@@ -134,7 +134,7 @@ fun Study2Test(
 
         var temp: Int
         if (testBlock == 0) {
-            temp = 30 - timer
+            temp = 0
         } else {
             temp = 60 - timer
         }
@@ -170,6 +170,7 @@ fun Study2Test(
                     override fun onError(utteranceId: String?) {
                     }
                 })
+                tts?.addEarcon("swish", "com.taehokimmm.hapticvboard_android", R.raw.swish)
                 tts?.addEarcon("silent", "com.taehokimmm.hapticvboard_android", R.raw.silent_quarter)
                 tts?.addEarcon("beep", "com.taehokimmm.hapticvboard_android", R.raw.beep)
                 tts?.addEarcon("start", "com.taehokimmm.hapticvboard_android", R.raw.correct)
@@ -199,21 +200,21 @@ fun Study2Test(
     fun speakSpelling(sentence: String) {
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-        delay(
-            {
-                for (index in 0 until sentence.length) {
-                    tts?.setSpeechRate(0.8f)
-                    var letter = sentence[index].toString()
-                    if (letter == " ") {
-                        playEarcon("silent")
-                    } else {
-                        tts?.speak(
-                            letter, TextToSpeech.QUEUE_ADD, params, "utteranceId"
-                        )
-                    }
-                }
-            }, 1000
-        )
+        val words = sentence.split(" ")
+        for (i in 0 until words.size) {
+            val word = words[i]
+            tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
+            playEarcon("silent")
+            for (index in 0 until word.length) {
+                tts?.setSpeechRate(0.8f)
+                var letter = word[index].toString()
+                tts?.speak(
+                    letter, TextToSpeech.QUEUE_ADD, params, "utteranceId"
+                )
+            }
+            if (i != words.size - 1)
+                playEarcon("swish")
+        }
     }
 
     fun addLogging() {
@@ -270,12 +271,15 @@ fun Study2Test(
     LaunchedEffect(isTypingMode) {
         if (testIter == -1) return@LaunchedEffect
         if (!isTypingMode) {
+            tts?.stop()
             val sentence = testList[testIter]
             speak(sentence)
             playEarcon("beep")
             speakSentence(sentence)
             playEarcon("beep")
             speakSpelling(sentence)
+            playEarcon("beep")
+            speak(sentence)
         }
     }
 
@@ -297,34 +301,35 @@ fun Study2Test(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            Column (
+//            Column (
+//
+//            ) {
+//                testList.forEach { sentence ->
+//                    Text(
+//                        text = sentence,
+//                        fontSize = 18.sp,
+//                        fontFamily = FontFamily.Monospace,
+//                        modifier = Modifier.align(Alignment.Start).padding(10.dp)
+//                    )
+//                }
+//            }
 
-            ) {
-                testList.forEach { sentence ->
+            if (countdown == 0)
+                Button(
+                    onClick = {
+                        testIter = 0
+                        isTypingMode = false
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.CenterHorizontally),
+                    shape = RoundedCornerShape(corner = CornerSize(0)),
+                    colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+                ) {
                     Text(
-                        text = sentence,
-                        fontSize = 18.sp,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.align(Alignment.Start).padding(10.dp)
+                        text = "Tap to Start \n Block : " + (testBlock + 1).toString(), fontSize = 20.sp
                     )
                 }
-            }
-
-            Button(
-                onClick = {
-                    testIter = 0
-                    isTypingMode = false
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.CenterHorizontally),
-                shape = RoundedCornerShape(corner = CornerSize(0)),
-                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
-            ) {
-                Text(
-                    text = "Tap to Start \n Block : " + (testBlock + 1).toString(), fontSize = 20.sp
-                )
-            }
         }
     } else if (testIter < testList.size) {
         Box(
@@ -467,7 +472,7 @@ fun Study2Test(
                         context,
                         onTap = {
                             tts?.stop()
-                            speakSentence(testList[testIter])
+                            speak(testList[testIter])
                         },
                         onDoubleTap = {
                             onConfirm()

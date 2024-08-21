@@ -157,7 +157,7 @@ fun Study1Test(
                                 Handler(Looper.getMainLooper()).postDelayed(
                                     {// Speak next target alphabet key
                                         testIter++
-                                    }, 200
+                                    }, 1000
                                 )
                                 isTypingMode = false
                             }

@@ -67,7 +67,7 @@ class HapticManager(context: Context) {
                 } else if (key == "Out of Bounds") {
                     vibrate = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
                 } else if (key == "rowchanged") {
-                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
                 } else {
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
                 }

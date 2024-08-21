@@ -371,16 +371,23 @@ fun generateCandidates(key: String, allowGroup: List<String>): List<String> {
 @Composable
 fun TestDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, soundManager: SoundManager, height: Dp = 200.dp) {
     Column(
-        modifier = Modifier.padding(top = 10.dp).clickable(onClick = {
-            soundManager.stop()
-            soundManager.speakOut(testLetter.toString())
-        })
+        modifier = Modifier.padding(top = 10.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Block : ${testBlock + 1} / $blockNumber", fontSize = 15.sp
+                text = "Block : ${testBlock/2 + 1} / ${blockNumber/2}", fontSize = 15.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Mode : ${listOf("Voice", "Phoneme")[testBlock%2]}", fontSize = 15.sp
             )
         }
 
@@ -397,12 +404,7 @@ fun TestDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int
         Spacer(modifier = Modifier.height(20.dp))
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(height)
-                .align(Alignment.CenterHorizontally)
-            ,
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
                 text = testLetter.uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold
