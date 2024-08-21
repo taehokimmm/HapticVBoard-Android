@@ -53,6 +53,7 @@ class SoundManager(context: Context) {
             } else {
                 Log.e("TTS", "Initialization Failed!")
             }
+            tts?.addEarcon("beep", "com.taehokimmm.hapticvboard_android", R.raw.beep)
             tts?.addEarcon("silent", "com.taehokimmm.hapticvboard_android", R.raw.silent_quarter)
         }
 

@@ -93,8 +93,6 @@ fun Study1TypingQuiz(
     var runnables = remember { mutableStateListOf<Runnable>() }
 
     fun explainKey(key: String, delay: Long = 0) {
-        Log.d("typingquiz", "explain key")
-
         // Clear any previous runnables before adding new ones
         runnables.clear()
         isExplaining = true
@@ -113,11 +111,11 @@ fun Study1TypingQuiz(
                     key,
                     HapticMode.PHONEME
                 )
-            }, 2200+delay, handler)
+            }, 2500+delay, handler)
         )
 
         runnables.add(
-            delay({isExplaining = false}, 2200, handler)
+            delay({isExplaining = false}, 2500, handler)
         )
     }
 
@@ -187,15 +185,18 @@ fun Study1TypingQuiz(
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = {
-                                Log.d("typingquiz", "on double tap : " + runnables.size)
                                 soundManager.stop()
                                 runnables.apply {
                                     forEach { handler.removeCallbacks(it) }
                                     clear()
                                 }
+                                soundManager.playEarcon("beep")
                                 isExplaining = false
-                                testIter++
-                                isTypingMode = true
+
+                                delay({
+                                    testIter++
+                                    isTypingMode = true
+                                }, 500)
                             },
                             onTap = {
                                 if (isExplaining) return@detectTapGestures

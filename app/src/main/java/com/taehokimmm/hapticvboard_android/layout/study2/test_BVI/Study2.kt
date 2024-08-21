@@ -183,7 +183,6 @@ fun Study2BVITest(
                         text = "Tap to Start \n Block : " + (testBlock + 1), fontSize = 20.sp
                     )
                 }
-
             }
         }
     } else if (testIter < testList.size) {

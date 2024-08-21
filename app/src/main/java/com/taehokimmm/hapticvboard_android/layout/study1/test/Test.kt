@@ -138,9 +138,8 @@ fun Study1Test(
                 if (isTypingMode) {
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
-                        onKeyPress = {key ->
-                            if (startTime == -1L)
-                                startTime = System.currentTimeMillis() },
+                        onKeyPress = {
+                            key -> startTime = System.currentTimeMillis() },
                         onKeyRelease = { key ->
                             if (keyboardAllowlist.contains(key)) {
                                 //--- Append Data to Database ---//

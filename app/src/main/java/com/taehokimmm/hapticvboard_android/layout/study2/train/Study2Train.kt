@@ -1,8 +1,11 @@
 package com.taehokimmm.hapticvboard_android.layout.study2.train
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -104,21 +108,67 @@ fun Study2Train(
     var countdown by remember { mutableStateOf(0) }
 
     fun onConfirm(inputText: String): Boolean {
-        var delay = 0L
         isTypingMode = false
         if (modeIter <= 1) {
             val isCorrect = (inputText == testList[testIter])
-            soundManager.playSound(isCorrect)
-            delay = 1000L
+            delay(
+                {// Correction Feedback
+                    soundManager.playSound(isCorrect)
+                }, 500
+            )
         }
 
         addLogging(inputText)
         timer = 0
-        delay({
-            testIter++
-            initMetric()
-        }, delay)
+
+        if (modeIter == 2) {
+            delay({
+                testIter++
+                initMetric()
+            }, 1000)
+        }
         return true
+    }
+
+
+    var isExplaining by remember {mutableStateOf(false)}
+    val handler = Handler(Looper.getMainLooper())
+    var runnables = remember { mutableStateListOf<Runnable>() }
+
+    fun explainKey(key: String, delay: Long = 0) {
+        Log.d("typingquiz", "explain key")
+
+        // Clear any previous runnables before adding new ones
+        runnables.clear()
+        isExplaining = true
+
+        runnables.add(
+            delay({soundManager?.speakOutChar(key)}, delay, handler)
+        )
+        // Phoneme
+        runnables.add(
+            delay({ soundManager.playPhoneme(key) }, 1500+delay, handler)
+        )
+
+        runnables.add(
+            delay({
+                hapticManager?.generateHaptic(
+                    key,
+                    HapticMode.PHONEME
+                )
+            }, 2200+delay, handler)
+        )
+
+        runnables.add(
+            delay({isExplaining = false}, 2200, handler)
+        )
+    }
+
+    LaunchedEffect(isTypingMode) {
+        if (isTypingMode == false && testIter != -1 && testIter < testList.size
+            && modeIter < 2) {
+            explainKey(testList[testIter], 1000)
+        }
     }
 
     LaunchedEffect(timer) {
@@ -212,7 +262,33 @@ fun Study2Train(
         ) {
             TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, testList[testIter], soundManager)
             Box(
-                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
+                modifier = when(isTypingMode) {
+                    true ->  Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+
+                    false ->  Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = {
+                                    soundManager.stop()
+                                    runnables.apply {
+                                        forEach { handler.removeCallbacks(it) }
+                                        clear()
+                                    }
+                                    isExplaining = false
+                                    testIter++
+                                    isTypingMode = true
+                                },
+                                onTap = {
+                                    if (isExplaining) return@detectTapGestures
+                                    explainKey(testList[testIter])
+                                }
+                            )
+                        }
+                }
             ) {
                 if (isTypingMode) {
                     KeyboardLayout(
@@ -224,8 +300,8 @@ fun Study2Train(
                                 startTime = System.currentTimeMillis()
                         },
                         onKeyRelease = { key ->
-                            onConfirm(key)
                             if (modeIter == 1) soundManager.speakOut(key)
+                            onConfirm(key)
                         },
                         enterKeyVisibility = false,
                         soundManager = soundManager,
