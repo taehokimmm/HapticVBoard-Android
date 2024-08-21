@@ -81,6 +81,16 @@ fun Study2Train(
 
     val databaseName = subject+ "_study2"
 
+    var timer by remember { mutableStateOf(0) }
+    var countdown by remember { mutableStateOf(0) }
+
+    var isExplaining by remember {mutableStateOf(false)}
+    val handler = Handler(Looper.getMainLooper())
+    var runnables = remember { mutableStateListOf<Runnable>() }
+
+    var inputKey by remember { mutableStateOf("") }
+    var isCorrect by remember { mutableStateOf(false) }
+
     fun initMetric() {
         startTime = System.currentTimeMillis()
     }
@@ -104,40 +114,7 @@ fun Study2Train(
         addStudy2TrainAnswer(context, databaseName, data)
     }
 
-    var timer by remember { mutableStateOf(0) }
-    var countdown by remember { mutableStateOf(0) }
-
-    fun onConfirm(inputText: String): Boolean {
-        isTypingMode = false
-        if (modeIter <= 1) {
-            val isCorrect = (inputText == testList[testIter])
-            delay(
-                {// Correction Feedback
-                    soundManager.playSound(isCorrect)
-                }, 500
-            )
-        }
-
-        addLogging(inputText)
-        timer = 0
-
-        if (modeIter == 2) {
-            delay({
-                testIter++
-                initMetric()
-            }, 1000)
-        }
-        return true
-    }
-
-
-    var isExplaining by remember {mutableStateOf(false)}
-    val handler = Handler(Looper.getMainLooper())
-    var runnables = remember { mutableStateListOf<Runnable>() }
-
     fun explainKey(key: String, delay: Long = 0) {
-        Log.d("typingquiz", "explain key")
-
         // Clear any previous runnables before adding new ones
         runnables.clear()
         isExplaining = true
@@ -164,12 +141,38 @@ fun Study2Train(
         )
     }
 
-    LaunchedEffect(isTypingMode) {
-        if (isTypingMode == false && testIter != -1 && testIter < testList.size
-            && modeIter < 2) {
-            explainKey(testList[testIter], 1000)
+
+    fun onConfirm(inputText: String): Boolean {
+        isTypingMode = false
+        inputKey = inputText
+        isCorrect = (inputText == testList[testIter])
+
+        if (!isCorrect) {
+            if (testIter != -1 && testIter < testList.size
+                && modeIter < 2) {
+                explainKey(testList[testIter], 1500)
+            }
         }
+        if (modeIter <= 1) {
+            delay(
+                {// Correction Feedback
+                    soundManager.playSound(isCorrect)
+                }, 500
+            )
+        }
+
+        addLogging(inputText)
+        timer = 0
+
+        if (modeIter == 2 || isCorrect) {
+            delay({
+                testIter++
+                initMetric()
+            }, 1000)
+        }
+        return true
     }
+
 
     LaunchedEffect(timer) {
         kotlinx.coroutines.delay(1000L)
@@ -181,7 +184,7 @@ fun Study2Train(
         } else if (modeIter == 0) {
             temp = 60 - timer
         } else {
-            temp = 10 - timer
+            temp = 3 - timer
         }
         if (temp < 0) temp = 0
         if (temp != countdown) countdown = temp
@@ -203,7 +206,6 @@ fun Study2Train(
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             testList = testAlphabets.shuffled()
-            Log.d("study2train", testList.toString())
             timer = 0
         } else if (testIter >= testList.size) {
             modeIter++
@@ -273,14 +275,18 @@ fun Study2Train(
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onDoubleTap = {
+                                    if (isExplaining) return@detectTapGestures
                                     soundManager.stop()
                                     runnables.apply {
                                         forEach { handler.removeCallbacks(it) }
                                         clear()
                                     }
+                                    soundManager.playEarcon("beep")
                                     isExplaining = false
-                                    testIter++
-                                    isTypingMode = true
+                                    delay({
+                                        testIter++
+                                        isTypingMode = true
+                                    }, 500)
                                 },
                                 onTap = {
                                     if (isExplaining) return@detectTapGestures
@@ -296,8 +302,7 @@ fun Study2Train(
                         onKeyPress = { key ->
                             if (modeIter == 0)
                                 soundManager.stop()
-                            if (startTime == -1L)
-                                startTime = System.currentTimeMillis()
+                            startTime = System.currentTimeMillis()
                         },
                         onKeyRelease = { key ->
                             if (modeIter == 1) soundManager.speakOut(key)
@@ -315,6 +320,18 @@ fun Study2Train(
                         ),
                         name = databaseName
                     )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(innerPadding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = inputKey.toUpperCase(),
+                            color = if (isCorrect) Color.Green else Color.Red,
+                            fontSize = 120.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }

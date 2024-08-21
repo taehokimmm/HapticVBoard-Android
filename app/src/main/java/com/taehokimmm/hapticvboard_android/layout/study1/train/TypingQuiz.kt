@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -87,6 +88,9 @@ fun Study1TypingQuiz(
         startTime = -1L
     }
 
+    var inputKey by remember { mutableStateOf("") }
+    var isCorrect by remember { mutableStateOf(false) }
+
 
     var isExplaining by remember {mutableStateOf(false)}
     val handler = Handler(Looper.getMainLooper())
@@ -130,12 +134,6 @@ fun Study1TypingQuiz(
             runnables.clear()
             isTypingMode = true
             speak()
-        }
-    }
-
-    LaunchedEffect(isTypingMode) {
-        if (isTypingMode == false && testIter != -1 && testIter < testList.size) {
-            explainKey(testList[testIter], 1500)
         }
     }
 
@@ -185,12 +183,12 @@ fun Study1TypingQuiz(
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = {
+                                if (isExplaining) return@detectTapGestures
                                 soundManager.stop()
                                 runnables.apply {
                                     forEach { handler.removeCallbacks(it) }
                                     clear()
                                 }
-                                soundManager.playEarcon("beep")
                                 isExplaining = false
 
                                 delay({
@@ -216,13 +214,14 @@ fun Study1TypingQuiz(
                         onKeyPress = {key ->
                             if (testBlock % 2 == 0)
                                 soundManager.stop()
-                            if(startTime == -1L) startTime = System.currentTimeMillis()
+                            startTime = System.currentTimeMillis()
                         },
                         onKeyRelease = { key ->
                             if (keyboardAllowlist.contains(key)) {
                                 if (testBlock % 2 == 1)
                                     soundManager.speakOut(key)
-                                val isCorrect = key == testList[testIter]
+                                isCorrect = key == testList[testIter]
+                                inputKey = key
                                 //--- Append Data to Database ---//
                                 val curTime = System.currentTimeMillis()
 
@@ -242,6 +241,14 @@ fun Study1TypingQuiz(
                                     }, 500
                                 )
                                 isTypingMode = false
+                                if (!isCorrect) {
+                                    explainKey(testList[testIter], 1500)
+                                } else {
+                                    delay({
+                                        testIter++
+                                        isTypingMode = true
+                                    }, 1000)
+                                }
                             }
                         },
                         soundManager = soundManager,
@@ -253,6 +260,18 @@ fun Study1TypingQuiz(
                         ),
                         name = subject + "_" + group.last()
                     )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(innerPadding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = inputKey.toUpperCase(),
+                            color = if (isCorrect) Color.Green else Color.Red,
+                            fontSize = 120.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
