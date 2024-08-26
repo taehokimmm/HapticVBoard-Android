@@ -48,7 +48,7 @@ fun Study1TrainInit(navController: NavHostController) {
     val subjectFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var subjects = listOf("test")
+    var subjects = listOf("test", "practice")
     for(i in 1 until 12) {
         subjects += listOf("P" + i)
     }

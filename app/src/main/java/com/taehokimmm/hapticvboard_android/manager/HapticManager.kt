@@ -59,13 +59,15 @@ class HapticManager(context: Context) {
 
                 var vibrate: VibrationEffect? = null
                 if (key == "Backspace"){
-                    vibrate = VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE)
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
                 } else if(key == "Space"){
-                    vibrate = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE)
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
                 } else if(key == "Replay"){
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
                 } else if (key == "Out of Bounds") {
                     vibrate = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+                } else if (key == "rowchanged") {
+                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
                 } else {
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
                 }
