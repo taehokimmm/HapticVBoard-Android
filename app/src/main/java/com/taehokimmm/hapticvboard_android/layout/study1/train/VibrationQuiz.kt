@@ -118,20 +118,20 @@ fun Study1VibrationQuiz(
 
         // Phoneme
         runnables.add(
-            delay({ soundManager.playPhoneme(key) }, delay+1800, handler)
+            delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
         )
 
         // Haptic
         if (isPhoneme) {
             runnables.add(
-                delay({ hapticManager.generateHaptic(key, HapticMode.PHONEME)}, delay + 2500)
+                delay({ hapticManager.generateHaptic(key, HapticMode.PHONEME)}, delay + 2200)
             )
             runnables.add(
-                delay({isExplaining = false}, delay+2500, handler)
+                delay({isExplaining = false}, delay+2200, handler)
             )
         } else {
             runnables.add(
-                delay({isExplaining = false}, delay+1800, handler)
+                delay({isExplaining = false}, delay+1500, handler)
             )
         }
 
@@ -358,7 +358,7 @@ fun Study1VibrationQuiz(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = { onConfirm() },
-                        onTap = { if (!isExplaining) explainKey(testList[testIter]) }
+                        onTap = { if (!isExplaining) explainKey(testList[testIter], isPhoneme = isShowAnswer) }
                     )
                 }
         ) {
