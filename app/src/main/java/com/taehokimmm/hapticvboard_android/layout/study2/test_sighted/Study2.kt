@@ -83,11 +83,7 @@ fun Study2Test(
 
     val totalBlock = when (isPractice) {
         true -> 1
-        false -> when (hapticMode) {
-            HapticMode.VOICE -> 2
-            HapticMode.PHONEME -> 4
-            else -> 1
-        }
+        false -> 2
     }
     val testNumber = when (isPractice) {
         true -> 3
