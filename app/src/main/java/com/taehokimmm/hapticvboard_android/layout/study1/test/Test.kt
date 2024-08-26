@@ -3,14 +3,19 @@ package com.taehokimmm.hapticvboard_android.layout.study1.test
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.MotionEvent
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
@@ -65,7 +72,7 @@ fun Study1Test(
 
     val totalBlock = 1
     var testBlock by remember { mutableStateOf(1) }
-    var testIter by remember { mutableStateOf(-1) }
+    var testIter by remember { mutableStateOf(0) }
 
     var testList = remember { allowlist.shuffled() }
 
@@ -80,46 +87,113 @@ fun Study1Test(
         startTime = -1L
     }
 
-    LaunchedEffect(testIter) {
-        if (testIter == -1) {
-            soundManager.speakOutKor("시작하려면 탭하세요")
-        } else if (testIter < testList.size) {
-            isTypingMode = true
-            speak()
+    var correctAnswer by remember {mutableStateOf(0)}
+    var wrongAnswer by remember {mutableStateOf(listOf(listOf("")))}
+
+    var isSpeakingDone by remember { mutableStateOf(true) }
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+
+    LaunchedEffect(Unit) {
+        // Initiate TTS
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.KOREAN
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                        isSpeakingDone = false
+                    }
+
+                    override fun onDone(utteranceId: String?) {
+                        isSpeakingDone = true
+                    }
+
+                    override fun onError(utteranceId: String?) {
+                    }
+                })
+            }
         }
     }
 
-    if (testIter == -1) {
-        // Layout
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            Button(
-                onClick = {
-                    testIter = 0
-                    speak()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                shape = RoundedCornerShape(corner = CornerSize(0)),
-                colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
-            ) {
-                Text(
-                    text = "Tap to Start \n Block : " + testBlock, fontSize = 20.sp
-                )
+    fun speakOutEng(word: String) {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.setLanguage(Locale.US)
+        tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
+    }
+
+    fun speakOutKor(word: String) {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.setLanguage(Locale.KOREA)
+        tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
+    }
+
+    fun explainResult() {
+        if (isSpeakingDone == false) return
+        // Explain Result
+        speakOutKor(testList.size.toString() + "개 중 " + correctAnswer.toString() + "개 정답")
+        speakOutKor("오답")
+
+        if (wrongAnswer.size == 1) {
+            speakOutKor("없음")
+        } else {
+            wrongAnswer.forEach { wrong ->
+                if (wrong.size == 1) return@forEach
+                speakOutEng(wrong[0])
             }
         }
-    } else if (testIter >= testList.size) {
-        testBlock++
-        testList = allowlist.shuffled()
-        if (testBlock > totalBlock) {
-            closeStudy1Database()
-            navController.navigate("study1/test/end/${subject}")
+    }
+
+    LaunchedEffect(testIter) {
+        if (testIter < testList.size) {
+            isTypingMode = true
+            speak()
         } else {
-            testIter = -1
+            explainResult()
+        }
+    }
+
+    if (testIter >= testList.size) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .padding(innerPadding)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onDoubleTap = {
+                            closeStudy1Database()
+                            navController.navigate("study1/test/end/${subject}")
+                        },
+                        onTap = {
+                            explainResult()
+                        }
+                    )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier.align(Alignment.TopCenter)
+            ) {
+                // Show countdown (MM:SS)
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text(
+                    text = "정답 : " + correctAnswer +" / " + testList.size,
+                    fontSize = 40.sp
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text (text = "눌러야하는 키 / 실제 누른 키")
+                wrongAnswer.forEach { wrong ->
+                    if (wrong.size == 2) {
+                        Text(text = wrong[0] + " : " + wrong[1], fontSize = 20.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(50.dp))
+            }
         }
     } else {
         Column(
@@ -142,6 +216,10 @@ fun Study1Test(
                             key -> startTime = System.currentTimeMillis() },
                         onKeyRelease = { key ->
                             if (keyboardAllowlist.contains(key)) {
+                                val isCorrect = key == testList[testIter]
+                                if (isCorrect) correctAnswer++
+                                else wrongAnswer += listOf(listOf(testList[testIter], key))
+
                                 //--- Append Data to Database ---//
                                 val curTime = System.currentTimeMillis()
                                 val data = Study1TestAnswer(

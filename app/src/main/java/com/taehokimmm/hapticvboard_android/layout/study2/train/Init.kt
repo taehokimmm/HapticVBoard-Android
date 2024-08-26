@@ -48,7 +48,7 @@ fun Study2TrainInit(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf("") }
 
 
-    var subjects = listOf("test")
+    var subjects = listOf("test", "practice")
     for(i in 1 until 12) {
         subjects += listOf("P" + i)
     }

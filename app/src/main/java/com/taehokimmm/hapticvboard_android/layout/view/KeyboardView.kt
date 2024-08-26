@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.addLog
+import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
@@ -86,21 +87,11 @@ fun KeyboardLayout(
             }
 
             Row {
-                if (enterKeyVisibility) {
-                    Spacer(modifier = Modifier.width(50.dp))
-                }
                 lastRow.forEach { key ->
                     DrawKey(key = key,
                         isPressed = activeTouches.values.contains(key) || (!(allow.contains(key))),
                         onPositioned = { coordinates ->
                             handlePositioned(key, coordinates, keyPositions)
-                        })
-                }
-                if (enterKeyVisibility) {
-                    DrawKey(key = "Replay",
-                        isPressed = activeTouches.values.contains("Replay"),
-                        onPositioned = { coordinates ->
-                            handlePositioned("Replay", coordinates, keyPositions)
                         })
                 }
             }
@@ -156,7 +147,7 @@ fun DrawKey(
             .border(1.dp, Color.Black)
             .size(
                 when (key) {
-                    "Space" -> width * 6 + spacing * 8
+                    "Space" -> width * 7
                     "Replay" -> width * 2.5f
                     "Shift", "Backspace", -> width * 1.5f
                     else -> width
@@ -324,7 +315,6 @@ fun processTouchEvent(
                             "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
                         )
                         activeTouches[pointerId] = "Out of Bounds"
-                        hapticManager?.generateVibration("Out of Bounds")
                         // Add Log
                         if (name != null && logData != null) {
                             addLog(
@@ -387,7 +377,6 @@ fun processTouchEvent(
 
                     if (pointerPosition.y > outOfBound && activeTouches[pointerId] == "Out of Bounds") {
                         activeTouches[pointerId] = ""
-                        hapticManager?.generateVibration("Out of Bounds")
                     }
 
                     if (key != null && activeTouches[pointerId] != key) {
@@ -397,11 +386,17 @@ fun processTouchEvent(
                             "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                         )
 
-                        if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true)
+                        if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true) {
                             hapticManager?.generateVibration("rowchanged")
+                        }
 
-                        if (allow.contains(key))
-                            hapticManager?.generateHaptic(key, hapticMode)
+                        if (allow.contains(key)) {
+                            if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true) {
+                                delay({hapticManager?.generateHaptic(key, hapticMode)}, 10)
+                            } else {
+                                hapticManager?.generateHaptic(key, hapticMode)
+                            }
+                        }
                         else {
                             if (hapticMode == HapticMode.VOICEPHONEME)
                                 hapticManager?.generateHaptic(key, HapticMode.VOICE)
@@ -429,7 +424,6 @@ fun processTouchEvent(
                             "TouchEvent",
                             "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
                         )
-                        hapticManager!!.generateVibration("Out of Bounds")
                         // Add Log
                         if (name != null && logData != null) {
                             addLog(

@@ -1,7 +1,10 @@
 package com.taehokimmm.hapticvboard_android.layout.study2.train
 
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.clickable
@@ -41,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.R
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.database.Study2TrainAnswer
@@ -50,6 +54,8 @@ import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
+import org.intellij.lang.annotations.Language
+import java.util.Locale
 
 @Composable
 fun Study2Train(
@@ -63,8 +69,7 @@ fun Study2Train(
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    val totalBlock = 4
-    val testNumber = 26
+    val totalBlock = 3
     val modeCnt = 3
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
@@ -72,6 +77,10 @@ fun Study2Train(
     var modeNames = listOf("음성 모드 학습", "진동 모드 학습", "테스트")
 
     var testAlphabets = ('a'..'z').map { it.toString() }
+    if (subject == "practice") {
+        testAlphabets = ('a'..'b').map { it.toString() }
+    }
+    val testNumber = testAlphabets.size
 
     var testList by remember { mutableStateOf(listOf("")) }
 
@@ -90,6 +99,9 @@ fun Study2Train(
 
     var inputKey by remember { mutableStateOf("") }
     var isCorrect by remember { mutableStateOf(false) }
+    var correctAnswer by remember {mutableStateOf(0)}
+    var wrongAnswer by remember {mutableStateOf(listOf(listOf("")))}
+
 
     fun initMetric() {
         startTime = System.currentTimeMillis()
@@ -120,11 +132,16 @@ fun Study2Train(
         isExplaining = true
 
         runnables.add(
-            delay({soundManager?.speakOutChar(key)}, delay, handler)
+            delay({
+                soundManager.stop()}, delay, handler)
+        )
+
+        runnables.add(
+            delay({soundManager?.speakOut(key)}, delay, handler)
         )
         // Phoneme
         runnables.add(
-            delay({ soundManager.playPhoneme(key) }, 1500+delay, handler)
+            delay({ soundManager.playPhoneme(key) }, 700+delay, handler)
         )
 
         runnables.add(
@@ -133,26 +150,22 @@ fun Study2Train(
                     key,
                     HapticMode.PHONEME
                 )
-            }, 2200+delay, handler)
+            }, 1400+delay, handler)
         )
 
         runnables.add(
-            delay({isExplaining = false}, 2200, handler)
+            delay({isExplaining = false}, 1400, handler)
         )
     }
 
 
-    fun onConfirm(inputText: String): Boolean {
+    fun onConfirm(key: String): Boolean {
         isTypingMode = false
-        inputKey = inputText
-        isCorrect = (inputText == testList[testIter])
+        inputKey = key
+        isCorrect = (key == testList[testIter])
+        if (isCorrect) correctAnswer++
+        else wrongAnswer += listOf(listOf(testList[testIter], inputKey))
 
-        if (!isCorrect) {
-            if (testIter != -1 && testIter < testList.size
-                && modeIter < 2) {
-                explainKey(testList[testIter], 1500)
-            }
-        }
         if (modeIter <= 1) {
             delay(
                 {// Correction Feedback
@@ -161,10 +174,10 @@ fun Study2Train(
             )
         }
 
-        addLogging(inputText)
-        timer = 0
+        addLogging(key)
 
-        if (modeIter == 2 || isCorrect) {
+        if (modeIter == 2) {
+            soundManager.playEarcon("beep")
             delay({
                 testIter++
                 initMetric()
@@ -173,27 +186,92 @@ fun Study2Train(
         return true
     }
 
+    var isSpeakingDone by remember { mutableStateOf(true) }
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+
+    LaunchedEffect(Unit) {
+        // Initiate TTS
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.KOREAN
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                        isSpeakingDone = false
+                    }
+
+                    override fun onDone(utteranceId: String?) {
+                        isSpeakingDone = true
+                    }
+
+                    override fun onError(utteranceId: String?) {
+                    }
+                })
+            }
+        }
+    }
+
+    fun speakOutEng(word: String) {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.setLanguage(Locale.US)
+        tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
+    }
+
+    fun speakOutKor(word: String) {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.setLanguage(Locale.KOREA)
+        tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
+    }
+
+    fun explainResult() {
+        if (isSpeakingDone == false) return
+        // Explain Result
+        speakOutKor(testList.size.toString() + "개 중 " + correctAnswer.toString() + "개 정답")
+        speakOutKor("오답")
+
+        if (wrongAnswer.size == 1) {
+            speakOutKor("없음")
+        } else {
+            wrongAnswer.forEach { wrong ->
+                if (wrong.size == 1) return@forEach
+                speakOutEng(wrong[0])
+            }
+        }
+    }
+
+    LaunchedEffect(isTypingMode) {
+        if (isTypingMode == false && modeIter < 2) {
+            if (testIter != -1 && testIter < testList.size
+                ) {
+                explainKey(testList[testIter], 1500)
+            }
+        }
+    }
 
     LaunchedEffect(timer) {
         kotlinx.coroutines.delay(1000L)
         timer++
 
         var temp: Int
-        if (testBlock == 0 && modeIter == 0) {
-            temp = 0
-        } else if (modeIter == 0) {
+        if (modeIter == 2) {
             temp = 60 - timer
         } else {
-            temp = 3 - timer
+            temp = 0
         }
         if (temp < 0) temp = 0
         if (temp != countdown) countdown = temp
     }
 
+
+
     LaunchedEffect(modeIter) {
+
         if (modeIter >= modeCnt) {
             testBlock++
-            if (testBlock > totalBlock) {
+            if (testBlock >= totalBlock) {
                 closeStudy2Database()
                 navController!!.navigate("study2/train/end/$subject")
             } else {
@@ -201,25 +279,24 @@ fun Study2Train(
             }
             return@LaunchedEffect
         }
+
+
     }
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             testList = testAlphabets.shuffled()
-            timer = 0
+            val modeName = modeNames[modeIter]
+            soundManager.stop()
+            soundManager.speakOut(modeName + " : 시작하려면 이중탭하세요.")
+
         } else if (testIter >= testList.size) {
-            modeIter++
-            testIter = -1
+            explainResult()
+            countdown = 1
+            timer = 0
         } else {
             isTypingMode = true
             speak(testList[testIter])
-        }
-    }
-
-    LaunchedEffect(countdown) {
-        if (countdown == 0) {
-            val modeName = modeNames[modeIter]
-            soundManager.speakOut(modeName + " : 시작하려면 탭하세요.")
         }
     }
 
@@ -234,36 +311,35 @@ fun Study2Train(
                 text = "%02d:%02d".format(countdown / 60, countdown % 60),
                 fontSize = 30.sp,
                 fontFamily = FontFamily.Monospace,
-                modifier = Modifier.align(Alignment.TopCenter)
             )
-
-            if (countdown == 0) {
-                Button(
-                    onClick = {
-                        testIter = 0
-                    },
+            if (modeIter < modeNames.size) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(500.dp)
-                        .align(Alignment.Center),
-                    shape = RoundedCornerShape(corner = CornerSize(0)),
-                    colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = {
+                                    testIter = 0
+                                },
+                                onTap = {
+                                    val modeName = modeNames[modeIter]
+                                    soundManager.stop()
+                                    soundManager.speakOut(modeName + " : 시작하려면 이중탭하세요.")
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Tap to Start \n Block : " + (testBlock + 1) + "\n Mode : " + modeNames[modeIter],
+                        text = "Start \n Block : " + (testBlock + 1) + "\n Mode : " + modeNames[modeIter],
                         fontSize = 20.sp
                     )
                 }
             }
         }
     } else if (testIter < testList.size) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            TrainTextDisplay(testBlock, totalBlock, testIter, testNumber, modeIter, testList[testIter], soundManager)
-            Box(
+       Box(
                 modifier = when(isTypingMode) {
                     true ->  Modifier
                         .fillMaxSize()
@@ -286,7 +362,7 @@ fun Study2Train(
                                     delay({
                                         testIter++
                                         isTypingMode = true
-                                    }, 500)
+                                    }, 800)
                                 },
                                 onTap = {
                                     if (isExplaining) return@detectTapGestures
@@ -296,45 +372,58 @@ fun Study2Train(
                         }
                 }
             ) {
-                if (isTypingMode) {
-                    KeyboardLayout(
-                        touchEvents = keyboardTouchEvents,
-                        onKeyPress = { key ->
-                            if (modeIter == 0)
-                                soundManager.stop()
-                            startTime = System.currentTimeMillis()
-                        },
-                        onKeyRelease = { key ->
-                            if (modeIter == 1) soundManager.speakOut(key)
-                            onConfirm(key)
-                        },
-                        enterKeyVisibility = false,
-                        soundManager = soundManager,
-                        hapticManager = hapticManager,
-                        hapticMode = if (modeIter == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
-                        logData = Study2TrainLog(
-                            block = testBlock,
-                            iteration = testIter,
-                            mode = modeIter,
-                            answer = testList[testIter]
-                        ),
-                        name = databaseName
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(innerPadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = inputKey.toUpperCase(),
-                            color = if (isCorrect) Color.Green else Color.Red,
-                            fontSize = 120.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
+           TrainTextDisplay(
+               testBlock,
+               totalBlock,
+               testIter,
+               testNumber,
+               modeIter,
+               testList[testIter],
+               soundManager
+           )
+           Box(
+               modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
+           ) {
+               if (isTypingMode) {
+                   KeyboardLayout(
+                       touchEvents = keyboardTouchEvents,
+                       onKeyPress = { key ->
+                           if (modeIter == 0)
+                               soundManager.stop()
+                           startTime = System.currentTimeMillis()
+                       },
+                       onKeyRelease = { key ->
+                           if (key == "Shift") return@KeyboardLayout
+                           if (modeIter == 1) soundManager.speakOut(key)
+                           onConfirm(key)
+                       },
+                       enterKeyVisibility = false,
+                       soundManager = soundManager,
+                       hapticManager = hapticManager,
+                       hapticMode = if (modeIter == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
+                       logData = Study2TrainLog(
+                           block = testBlock,
+                           iteration = testIter,
+                           mode = modeIter,
+                           answer = testList[testIter]
+                       ),
+                       name = databaseName
+                   )
+               } else {
+                   Box(
+                       modifier = Modifier.fillMaxSize().padding(innerPadding),
+                       contentAlignment = Alignment.Center
+                   ) {
+                       Text(
+                           text = inputKey.toUpperCase(),
+                           color = if (isCorrect) Color.Green else Color.Red,
+                           fontSize = 120.sp,
+                           fontWeight = FontWeight.Bold
+                       )
+                   }
+               }
+           }
+       }
         if (isTypingMode) {
             AndroidView(
                 modifier = Modifier
@@ -353,8 +442,58 @@ fun Study2Train(
                 }
             )
         }
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .padding(innerPadding)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onDoubleTap = {
+                            if (countdown > 0) return@detectTapGestures
+                            modeIter++
+                            testIter = -1
+                            correctAnswer = 0
+                            wrongAnswer = listOf(listOf(""))
+                            soundManager.playEarcon("beep")
+                        },
+                        onTap = {
+                            explainResult()
+                        }
+                    )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier.align(Alignment.TopCenter)
+            ) {
+                // Show countdown (MM:SS)
+                Text(
+                    text = "%02d:%02d".format(countdown / 60, countdown % 60),
+                    fontSize = 30.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text(
+                    text = "정답 : " + correctAnswer +" / " + testList.size,
+                    fontSize = 40.sp
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text (text = "눌러야하는 키 / 실제 누른 키")
+                wrongAnswer.forEach { wrong ->
+                    if (wrong.size == 2) {
+                        Text(text = wrong[0] + " : " + wrong[1], fontSize = 20.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(50.dp))
+            }
+        }
     }
 }
+
 
 @Composable
 fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, modeIter: Int, testString: String, soundManager: SoundManager) {
@@ -372,13 +511,15 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Mode : ${listOf("Train-Voice", "Train-Phoneme", "Test")[modeIter]}", fontSize = 15.sp
-            )
-        }
+        if (modeIter < 3)
+            Box(
+                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Mode : ${listOf("Train-Voice", "Train-Phoneme", "Test")[modeIter]}",
+                    fontSize = 15.sp
+                )
+            }
 
         Spacer(modifier = Modifier.height(20.dp))
 

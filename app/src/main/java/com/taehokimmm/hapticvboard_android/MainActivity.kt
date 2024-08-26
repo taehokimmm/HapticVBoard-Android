@@ -65,9 +65,6 @@ import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1IdentiQuiz
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
-import com.taehokimmm.hapticvboard_android.layout.study2.test_BVI.Study2BVITest
-import com.taehokimmm.hapticvboard_android.layout.study2.test_BVI.Study2BVITestEnd
-import com.taehokimmm.hapticvboard_android.layout.study2.test_BVI.Study2BVITestInit
 import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2End
 import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Init
 import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Test
@@ -269,11 +266,12 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study2/test/init"
                         Study2Init(navController)
                     }
-                    composable("study2/test/{subject}/{feedback}/{isPractice}") {
+                    composable("study2/test/{subject}/{feedback}/{isPractice}/{testBlock}") {
                         currentScreen = "study2/test"
                         val subject = it.arguments?.getString("subject")!!
                         val feedback = it.arguments?.getString("feedback")!!
                         val isPractice = it.arguments?.getString("isPractice")!!.toBoolean()
+                        val testBlock = it.arguments?.getString("testBlock")!!.toInt()
                         var hapticMode = HapticMode.NONE
                         if (feedback == "audio") hapticMode = HapticMode.VOICE
                         else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
@@ -287,7 +285,8 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             navController,
                             soundManager!!,
                             hapticManager!!,
-                            hapticMode
+                            hapticMode,
+                            testBlock
                         )
                     }
                     composable("study2/test/end/{subject}") {

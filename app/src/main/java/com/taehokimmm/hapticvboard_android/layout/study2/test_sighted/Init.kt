@@ -41,8 +41,13 @@ fun Study2Init(navController: NavHostController) {
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var options = listOf("audio", "phoneme", "audiophoneme", "vibration")
+    var options = listOf("audio", "phoneme")
     var selectedOption by remember { mutableStateOf("audio") }
+
+    var totalBlocks by remember{mutableStateOf(2)}
+    var selectedBlock by remember {
+        mutableStateOf("0")
+    }
 
     var subjects = listOf("test")
     for(i in 1 until 12) {
@@ -54,6 +59,18 @@ fun Study2Init(navController: NavHostController) {
 
     var isPractice by remember {
         mutableStateOf(false)
+    }
+
+    fun setTotalBlocks() {
+        if (isPractice) {
+            totalBlocks = 1
+        } else {
+            when (selectedOption) {
+                "audio" -> totalBlocks = 2
+                "phoneme" -> totalBlocks = 4
+                else -> totalBlocks = 1
+            }
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -87,13 +104,31 @@ fun Study2Init(navController: NavHostController) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(
                                 selected = selectedOption == option,
-                                onClick = { selectedOption = option }
+                                onClick = {
+                                    selectedOption = option
+                                    setTotalBlocks()
+                                }
                             )
                             Text(text = option)
                         }
                     )}
                 }
             }
+
+            // Test subject identifier
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Block",
+                fontSize = 16.sp
+            )
+
+            Spinner(
+                options = (0 until totalBlocks).map({i -> i.toString()}),
+                onOptionSelected = { selectedOption ->
+                    selectedBlock = selectedOption
+                    setTotalBlocks()
+                }
+            )
 
 
             Text(
@@ -108,7 +143,9 @@ fun Study2Init(navController: NavHostController) {
             ) {
                 CheckboxWithLabel(
                     checked = isPractice,
-                    onCheckedChange = { isPractice = it },
+                    onCheckedChange = {
+                        isPractice = it
+                    },
                     label = "Is Practice Session?"
                 )
             }
@@ -125,7 +162,7 @@ fun Study2Init(navController: NavHostController) {
                 onClick = {
                     closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
-                        navController.navigate("study2/test/$testSubjectIdentifier/$selectedOption/$isPractice")
+                        navController.navigate("study2/test/$testSubjectIdentifier/$selectedOption/$isPractice/$selectedBlock")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     }

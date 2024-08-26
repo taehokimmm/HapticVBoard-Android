@@ -6,11 +6,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.MotionEvent
-import android.widget.EditText
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -21,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,7 +64,8 @@ fun Study2Test(
     navController: NavHostController?,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
-    hapticMode: HapticMode
+    hapticMode: HapticMode,
+    testBlock: Int
 ) {
     val databaseName = subject + "_" + when(hapticMode) {
         HapticMode.TICK -> "vibration"
@@ -86,13 +81,17 @@ fun Study2Test(
 
     val totalBlock = when (isPractice) {
         true -> 1
-        false -> 2
+        false -> when (hapticMode) {
+            HapticMode.VOICE -> 2
+            HapticMode.PHONEME -> 4
+            else -> 1
+        }
     }
     val testNumber = when (isPractice) {
         true -> 3
         false -> 5
     }
-    var testBlock by remember { mutableStateOf(0) }
+    var testBlock by remember { mutableStateOf(testBlock) }
     var testIter by remember { mutableIntStateOf(-1) }
     var testWords by remember { mutableStateOf(listOf("")) }
     var testWordCnt by remember { mutableIntStateOf(-1) }
@@ -123,7 +122,7 @@ fun Study2Test(
     var horizontalDragEnd by remember {mutableStateOf(0f)}
     var verticalDragStart by remember {mutableStateOf(0f)}
     var verticalDragEnd by remember {mutableStateOf(0f)}
-    val swipeThreshold = 20
+    val swipeThreshold = 100
 
     var timer by remember { mutableStateOf(0) }
     var countdown by remember { mutableStateOf(30) }
@@ -136,22 +135,21 @@ fun Study2Test(
         if (testBlock == 0) {
             temp = 0
         } else {
-            temp = 60 - timer
+            temp = 120 - timer
         }
         if (temp < 0) temp = 0
         if (temp != countdown) countdown = temp
     }
 
     LaunchedEffect(Unit) {
-
         var phrases1 = when (isPractice) {
             true -> readTxtFile(context, R.raw.practice_phrase)
-            false -> readTxtFile(context, R.raw.phrase20)
+            false -> readTxtFile(context, R.raw.phrases30)
         }
-        if (hapticMode == HapticMode.VOICE) {
+        if (hapticMode == HapticMode.PHONEME) {
             phrases = phrases1.slice(0..totalBlock * testNumber - 1)
         } else {
-            phrases = phrases1.slice(totalBlock * testNumber..phrases1.size - 1)
+            phrases = phrases1.slice(phrases1.size - totalBlock * testNumber..phrases1.size - 1)
         }
 
         // Initiate TTS
@@ -179,6 +177,7 @@ fun Study2Test(
     }
 
     fun playEarcon(earcon: String) {
+        isSpeakingDone = false
         tts?.playEarcon(earcon, TextToSpeech.QUEUE_ADD, null, null)
     }
 
@@ -246,10 +245,17 @@ fun Study2Test(
         inputText = ""
     }
 
+    fun onSpace() {
+        if (testWordCnt < testWords.size - 1) {
+            testWordCnt ++
+            speak(testWords[testWordCnt])
+        }
+    }
+
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            countdown = 60
+            countdown = 120
             timer = 0
             testList = phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
@@ -271,15 +277,18 @@ fun Study2Test(
     LaunchedEffect(isTypingMode) {
         if (testIter == -1) return@LaunchedEffect
         if (!isTypingMode) {
-            tts?.stop()
-            val sentence = testList[testIter]
-            speak(sentence)
-            playEarcon("beep")
-            speakSentence(sentence)
-            playEarcon("beep")
-            speakSpelling(sentence)
-            playEarcon("beep")
-            speak(sentence)
+            isSpeakingDone = false
+            delay({
+                tts?.stop()
+                val sentence = testList[testIter]
+                speak(sentence)
+                playEarcon("beep")
+                speakSentence(sentence)
+                playEarcon("beep")
+                speakSpelling(sentence)
+                playEarcon("beep")
+                speak(sentence)
+            }, 1000)
         }
     }
 
@@ -301,18 +310,12 @@ fun Study2Test(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-//            Column (
-//
-//            ) {
-//                testList.forEach { sentence ->
-//                    Text(
-//                        text = sentence,
-//                        fontSize = 18.sp,
-//                        fontFamily = FontFamily.Monospace,
-//                        modifier = Modifier.align(Alignment.Start).padding(10.dp)
-//                    )
-//                }
-//            }
+            Button(onClick = {
+                testIter = 0
+                isTypingMode = false
+            }) {
+                Text("Skip")
+            }
 
             if (countdown == 0)
                 Button(
@@ -362,12 +365,14 @@ fun Study2Test(
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = {
-                                if (isSpeakingDone == false) return@detectTapGestures
                                 isTypingMode = true
                                 tts?.stop()
                                 isSpeakingDone = true
                                 initMetric()
                                 playEarcon("start")
+                                delay({
+                                    speak(testWords[testWordCnt])
+                                }, 500)
                             },
                             onTap = {
                                 if (isSpeakingDone == false) return@detectTapGestures
@@ -414,8 +419,8 @@ fun Study2Test(
 
             if (isTypingMode) {
                 Box (
-                    modifier = Modifier.align(Alignment.BottomEnd).fillMaxHeight(),
-                    contentAlignment = Alignment.BottomEnd
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
@@ -426,6 +431,13 @@ fun Study2Test(
                             pressStartTime = System.currentTimeMillis()
                         },
                         onKeyRelease = { key ->
+                            if (key == "Space") {
+                                onSpace()
+                            } else if (key == "Backspace") {
+                                if (inputText.last() == ' ') {
+                                    if (testWordCnt > 0)  testWordCnt --
+                                }
+                            }
                             inputText = when (key) {
                                 "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                                 "Space" -> "$inputText "
