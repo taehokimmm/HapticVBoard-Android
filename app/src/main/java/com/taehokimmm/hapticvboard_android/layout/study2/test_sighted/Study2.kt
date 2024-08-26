@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -55,6 +56,7 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.Locale
+import kotlin.math.roundToLong
 
 @Composable
 fun Study2Test(
@@ -99,9 +101,10 @@ fun Study2Test(
     var testList by remember { mutableStateOf(listOf("")) }
 
     // WPM
+    var wpm by remember { mutableDoubleStateOf(.0) }
+    var uer by remember { mutableDoubleStateOf(.0) }
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
-    var wordCount by remember { mutableIntStateOf(0) }
 
     // IKI
     val keystrokeTimestamps = remember { mutableStateListOf<Long>() }
@@ -117,7 +120,7 @@ fun Study2Test(
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var phrases by remember { mutableStateOf(listOf("")) }
 
-    var isTypingMode by remember {mutableStateOf(true)}
+    var modeIter by remember {mutableStateOf(-1)}
     var horizontalDragStart by remember {mutableStateOf(0f)}
     var horizontalDragEnd by remember {mutableStateOf(0f)}
     var verticalDragStart by remember {mutableStateOf(0f)}
@@ -170,6 +173,7 @@ fun Study2Test(
                 })
                 tts?.addEarcon("swish", "com.taehokimmm.hapticvboard_android", R.raw.swish)
                 tts?.addEarcon("silent", "com.taehokimmm.hapticvboard_android", R.raw.silent_quarter)
+                tts?.addEarcon("silent_short", "com.taehokimmm.hapticvboard_android", R.raw.silent_1)
                 tts?.addEarcon("beep", "com.taehokimmm.hapticvboard_android", R.raw.beep)
                 tts?.addEarcon("start", "com.taehokimmm.hapticvboard_android", R.raw.correct)
             }
@@ -185,7 +189,7 @@ fun Study2Test(
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-        tts?.setSpeechRate(0.8f)
+        tts?.setSpeechRate(1f)
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
     }
 
@@ -205,7 +209,7 @@ fun Study2Test(
             tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
             playEarcon("silent")
             for (index in 0 until word.length) {
-                tts?.setSpeechRate(0.8f)
+                tts?.setSpeechRate(1f)
                 var letter = word[index].toString()
                 tts?.speak(
                     letter, TextToSpeech.QUEUE_ADD, params, "utteranceId"
@@ -219,10 +223,10 @@ fun Study2Test(
     fun addLogging() {
         endTime = System.currentTimeMillis()
         val targetText = testList[testIter]
-        val wpm = calculateWPM(startTime, endTime, targetText)
+        wpm = calculateWPM(startTime, endTime, targetText)
         val iki = calculateIKI(keystrokeTimestamps)
         val pd = calculatePressDuration(pressDurations)
-        val uer = calculateUER(targetText, inputText)
+        uer = calculateUER(targetText, inputText)
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = Study2Metric(
             testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
@@ -239,10 +243,9 @@ fun Study2Test(
     fun onConfirm() {
         tts?.stop()
         isSpeakingDone = true
-        playEarcon("start")
+        playEarcon("beep")
         if (!isPractice) addLogging()
-        testIter++
-        inputText = ""
+        modeIter = 2
     }
 
     fun onSpace() {
@@ -252,6 +255,13 @@ fun Study2Test(
         }
     }
 
+    fun explainResult() {
+        val wpmFormatted = String.format("%.1f", wpm)
+        val uerFormatted = String.format("%.1f", uer)
+        speak(inputText)
+        speak("Speed : " + wpmFormatted + "Word Per Minute")
+        speak("Error : " + uerFormatted + "%")
+    }
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
@@ -262,7 +272,7 @@ fun Study2Test(
             val targetText = testList[testIter]
             testWords = targetText.split(" ")
             testWordCnt = 0
-            isTypingMode = false
+            modeIter = 0
         } else {
             testBlock++
             if (testBlock >= totalBlock) {
@@ -274,21 +284,27 @@ fun Study2Test(
         }
     }
 
-    LaunchedEffect(isTypingMode) {
+    fun explainSentence() {
+        isSpeakingDone = false
+        delay({
+            tts?.stop()
+            val sentence = testList[testIter]
+            speak(sentence)
+            playEarcon("start")
+            speakSentence(sentence)
+            playEarcon("start")
+            speakSpelling(sentence)
+            playEarcon("start")
+            speak(sentence)
+        }, 500)
+    }
+
+    LaunchedEffect(modeIter) {
         if (testIter == -1) return@LaunchedEffect
-        if (!isTypingMode) {
-            isSpeakingDone = false
-            delay({
-                tts?.stop()
-                val sentence = testList[testIter]
-                speak(sentence)
-                playEarcon("beep")
-                speakSentence(sentence)
-                playEarcon("beep")
-                speakSpelling(sentence)
-                playEarcon("beep")
-                speak(sentence)
-            }, 1000)
+        if (modeIter == 2) {
+            explainResult()
+        } else if (modeIter == 0) {
+            explainSentence()
         }
     }
 
@@ -312,7 +328,6 @@ fun Study2Test(
 
             Button(onClick = {
                 testIter = 0
-                isTypingMode = false
             }) {
                 Text("Skip")
             }
@@ -321,7 +336,6 @@ fun Study2Test(
                 Button(
                     onClick = {
                         testIter = 0
-                        isTypingMode = false
                     },
                     modifier = Modifier
                         .fillMaxSize()
@@ -336,47 +350,38 @@ fun Study2Test(
         }
     } else if (testIter < testList.size) {
         Box(
-            modifier = when(isTypingMode) {
-                true -> Modifier
+            modifier = when(modeIter) {
+                1 -> Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
 
-                false -> Modifier
+                else -> Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .pointerInput(Unit) {
-                        detectVerticalDragGestures(
-                            onDragStart = { offset ->
-                                verticalDragStart = offset.y
-                            },
-                            onVerticalDrag = { change, dragAmount ->
-                                verticalDragEnd = change.position.y
-
-                            },
-                            onDragEnd = {
-                                if (isSpeakingDone == false) return@detectVerticalDragGestures
-                                val amount = verticalDragEnd - verticalDragStart
-                                if (amount < -swipeThreshold) {
-                                    speakSpelling(testList[testIter])
-                                }
-                            }
-                        )
-                    }
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = {
-                                isTypingMode = true
                                 tts?.stop()
                                 isSpeakingDone = true
-                                initMetric()
-                                playEarcon("start")
-                                delay({
-                                    speak(testWords[testWordCnt])
-                                }, 500)
+                                playEarcon("beep")
+                                if (modeIter == 0) {
+                                    modeIter = 1
+                                    initMetric()
+                                    delay({
+                                        speak(testWords[testWordCnt])
+                                    }, 500)
+                                } else {
+                                    testIter++
+                                    inputText = ""
+                                }
                             },
                             onTap = {
                                 if (isSpeakingDone == false) return@detectTapGestures
-                                speak(testList[testIter])
+                                if (modeIter == 0) {
+                                    explainSentence()
+                                } else {
+                                    explainResult()
+                                }
                             }
                         )
                     }
@@ -415,9 +420,21 @@ fun Study2Test(
                         fontSize = 20.sp)
                 }
 
+                if (modeIter == 2) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    val wpmFormatted = String.format("%.1f", wpm)
+                    val uerFormatted = String.format("%.1f", uer)
+                    Box(
+                        modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "WPM : $wpmFormatted \n UER : $uerFormatted", fontSize = 20.sp
+                        )
+                    }
+                }
             }
 
-            if (isTypingMode) {
+            if (modeIter == 1) {
                 Box (
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.BottomCenter
@@ -425,7 +442,6 @@ fun Study2Test(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyPress = { key ->
-                            Log.d("study2", "on key press" + key)
                             tts?.stop()
                             isSpeakingDone = true
                             pressStartTime = System.currentTimeMillis()
@@ -473,8 +489,7 @@ fun Study2Test(
             }
         }
 
-        if (isTypingMode) {
-
+        if (modeIter == 1) {
             AndroidView(
                 modifier = Modifier
                     .fillMaxSize()

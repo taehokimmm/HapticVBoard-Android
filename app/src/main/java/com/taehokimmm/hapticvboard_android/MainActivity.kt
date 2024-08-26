@@ -65,6 +65,7 @@ import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1IdentiQuiz
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
+import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1VibrationQuiz
 import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2End
 import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Init
 import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Test
@@ -172,7 +173,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study1/train/phase1"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
-                        Study1IdentiQuiz(
+                        Study1VibrationQuiz(
                             innerPadding,
                             subject,
                             group,

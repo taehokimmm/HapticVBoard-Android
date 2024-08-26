@@ -123,7 +123,7 @@ fun Study1TrainInit(navController: NavHostController) {
                             "Please select a test group"
 
                         else -> {
-                            navController.navigate("study1/train/phase2/${testSubjectIdentifier}/${selectedOption}")
+                            navController.navigate("study1/train/phase1/${testSubjectIdentifier}/${selectedOption}")
                         }
                     }
                 }, modifier = Modifier
