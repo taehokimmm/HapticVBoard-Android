@@ -148,7 +148,7 @@ fun Study2Test(
         if (hapticMode == HapticMode.PHONEME) {
             phrases = phrases1.slice(0..totalBlock * testNumber - 1)
         } else {
-            phrases = phrases1.slice(phrases1.size - totalBlock * testNumber..phrases1.size - 1)
+            phrases = phrases1.slice(totalBlock * testNumber..totalBlock * testNumber * 2 - 1)
         }
 
         // Initiate TTS
@@ -220,9 +220,11 @@ fun Study2Test(
         endTime = System.currentTimeMillis()
         val targetText = testList[testIter]
         wpm = calculateWPM(startTime, endTime, targetText)
+        uer = calculateUER(targetText, inputText)
+
+        if (isPractice) return
         val iki = calculateIKI(keystrokeTimestamps)
         val pd = calculatePressDuration(pressDurations)
-        uer = calculateUER(targetText, inputText)
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = Study2Metric(
             testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
@@ -240,7 +242,7 @@ fun Study2Test(
         tts?.stop()
         isSpeakingDone = true
         playEarcon("beep")
-        if (!isPractice) addLogging()
+        addLogging()
         modeIter = 2
     }
 
@@ -446,7 +448,7 @@ fun Study2Test(
                             if (key == "Space") {
                                 onSpace()
                             } else if (key == "Backspace") {
-                                if (inputText.last() == ' ') {
+                                if (inputText.isNotEmpty() && inputText.last() == ' ') {
                                     if (testWordCnt > 0)  testWordCnt --
                                 }
                             }

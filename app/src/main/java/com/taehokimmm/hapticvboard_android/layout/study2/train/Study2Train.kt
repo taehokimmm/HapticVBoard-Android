@@ -64,13 +64,15 @@ fun Study2Train(
     navController: NavHostController?,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
+    day: Int,
 ) {
     val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    val totalBlock = 3
+    val totalBlock = 5
     val modeCnt = 3
+
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
     var modeIter by remember { mutableIntStateOf(0) }

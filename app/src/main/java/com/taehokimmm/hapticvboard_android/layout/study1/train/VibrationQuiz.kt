@@ -144,11 +144,15 @@ fun Study1VibrationQuiz(
             isExplaining = false
         }
         if (isShowAnswer) {
+            if (!isTypingMode) return
             isTypingMode = false
             soundManager.playEarcon("beep")
             testIter++
         } else {
             if (selectedIndex == -1) return
+
+            isTypingMode = false
+            delay({isTypingMode = true}, 2000)
             // Correct Feedback
             val selectedOption = options[selectedIndex]
             val targetOption = testList[testIter]
@@ -425,7 +429,7 @@ fun Study1VibrationQuiz(
                                     } }
                             .pointerInput(Unit) {
                                 detectTapGestures(
-                                    onDoubleTap = { onConfirm() },
+                                    onDoubleTap = {  },
                                 )
                             },
                         horizontalArrangement = Arrangement.Start,

@@ -47,6 +47,8 @@ fun Study2TrainInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
+    var options = listOf("Day 1", "Day2")
+    var selectedOption by remember { mutableStateOf(0) }
 
     var subjects = listOf("test", "practice")
     for(i in 1 until 12) {
@@ -87,11 +89,32 @@ fun Study2TrainInit(navController: NavHostController) {
                 )
             }
 
+            // Select Modality
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column {
+                    options.forEachIndexed{index, option -> (
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(
+                                    selected = selectedOption == index,
+                                    onClick = {
+                                        selectedOption = index
+                                    }
+                                )
+                                Text(text = option)
+                            }
+                            )}
+                }
+            }
+
             Button(
                 onClick = {
                     closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
-                        navController.navigate("study2/train/$testSubjectIdentifier")
+                        navController.navigate("study2/train/$testSubjectIdentifier/$selectedOption")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     }

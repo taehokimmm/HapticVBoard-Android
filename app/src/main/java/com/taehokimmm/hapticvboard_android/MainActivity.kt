@@ -244,9 +244,11 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "study2/train/init"
                         Study2TrainInit(navController)
                     }
-                    composable("study2/train/{subject}") {
+
+                    composable("study2/train/{subject}/{day}") {
                         currentScreen = "study2/train"
                         val subject = it.arguments?.getString("subject")!!
+                        val day = it.arguments?.getString("day")!!.toInt()
 
                         Study2Train(
                             innerPadding,
@@ -254,8 +256,10 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             navController,
                             soundManager!!,
                             hapticManager!!,
+                            day
                         )
                     }
+
                     composable("study2/train/end/{subject}") {
                         currentScreen = "study2/train/end"
                         val subject = it.arguments?.getString("subject")!!
