@@ -456,20 +456,18 @@ fun Study2Test(
                                 "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                                 "Space" -> "$inputText "
                                 "Shift" -> inputText
-                                "Replay" -> {
-                                    inputText
-                                }
                                 else -> {
                                     inputText + key
                                 }
                             }
-                            if (key != "Replay") {
-                                val curTime = System.currentTimeMillis()
+                            val curTime = System.currentTimeMillis()
+                            if (pressStartTime != -1L) {
                                 val pressDur = curTime - pressStartTime
                                 pressDurations += pressDur
-                                keystrokeTimestamps += curTime
-                                keyStrokeNum += 1
                             }
+                            keystrokeTimestamps += curTime
+                            keyStrokeNum += 1
+                            pressStartTime = -1L
                         },
                         enterKeyVisibility = false,
                         soundManager = soundManager,

@@ -47,8 +47,8 @@ fun Study2TrainInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var options = listOf("Day 1", "Day2")
-    var selectedOption by remember { mutableStateOf(0) }
+    var options = listOf("1", "2", "3", "123")
+    var selectedOption by remember { mutableStateOf("1") }
 
     var subjects = listOf("test", "practice")
     for(i in 1 until 12) {
@@ -99,9 +99,9 @@ fun Study2TrainInit(navController: NavHostController) {
                     options.forEachIndexed{index, option -> (
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 RadioButton(
-                                    selected = selectedOption == index,
+                                    selected = selectedOption == option,
                                     onClick = {
-                                        selectedOption = index
+                                        selectedOption = option
                                     }
                                 )
                                 Text(text = option)

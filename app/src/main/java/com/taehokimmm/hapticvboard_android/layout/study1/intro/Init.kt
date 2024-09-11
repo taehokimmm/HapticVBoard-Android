@@ -42,7 +42,7 @@ fun IntroInit(navController: NavHostController) {
     val context = LocalContext.current
     var errorMessage by remember { mutableStateOf("") }
 
-    var options = listOf("A", "B", "C", "D")
+    var options = listOf("1", "2", "3", "123")
     var selectedOption by remember { mutableStateOf(setOf("")) }
 
     var categories = listOf("phoneme", "location")

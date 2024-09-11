@@ -245,10 +245,10 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         Study2TrainInit(navController)
                     }
 
-                    composable("study2/train/{subject}/{day}") {
+                    composable("study2/train/{subject}/{option}") {
                         currentScreen = "study2/train"
                         val subject = it.arguments?.getString("subject")!!
-                        val day = it.arguments?.getString("day")!!.toInt()
+                        val option = it.arguments?.getString("option")!!
 
                         Study2Train(
                             innerPadding,
@@ -256,7 +256,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             navController,
                             soundManager!!,
                             hapticManager!!,
-                            day
+                            option
                         )
                     }
 
@@ -343,13 +343,13 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "study1/train"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 1 Test") },
-                selected = selectedItem == "study1/test",
-                onClick = {
-                    navController.navigate("study1/test/init")
-                    selectedItem = "study1/test"
-                    onItemClicked()
-                })
+//            NavigationDrawerItem(label = { Text("Study 1 Test") },
+//                selected = selectedItem == "study1/test",
+//                onClick = {
+//                    navController.navigate("study1/test/init")
+//                    selectedItem = "study1/test"
+//                    onItemClicked()
+//                })
             NavigationDrawerItem(label = { Text("Study 2 Train") },
                 selected = selectedItem == "study2/train",
                 onClick = {

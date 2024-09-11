@@ -52,6 +52,7 @@ import com.taehokimmm.hapticvboard_android.database.Study2TrainLog
 import com.taehokimmm.hapticvboard_android.database.addStudy2TrainAnswer
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
+import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import org.intellij.lang.annotations.Language
@@ -64,7 +65,7 @@ fun Study2Train(
     navController: NavHostController?,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
-    day: Int,
+    options: String,
 ) {
     val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
@@ -78,7 +79,9 @@ fun Study2Train(
     var modeIter by remember { mutableIntStateOf(0) }
     var modeNames = listOf("음성 모드 학습", "진동 모드 학습", "테스트")
 
-    var testAlphabets = ('a'..'z').map { it.toString() }
+    var testAlphabets = getAllowGroup(options)
+    Log.d("study2train", options)
+    Log.d("study2train", testAlphabets.toString())
     if (subject == "practice") {
         testAlphabets = ('a'..'b').map { it.toString() }
     }
@@ -409,7 +412,8 @@ fun Study2Train(
                            mode = modeIter,
                            answer = testList[testIter]
                        ),
-                       name = databaseName
+                       name = databaseName,
+                       allow = testAlphabets
                    )
                } else {
                    Box(

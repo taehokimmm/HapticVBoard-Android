@@ -5,10 +5,8 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
+import android.util.DisplayMetrics
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,17 +15,12 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,11 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.changedToDown
-import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase2Answer
 import com.taehokimmm.hapticvboard_android.database.Study1Phase2Answer
+import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase2Answer
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -75,7 +65,7 @@ fun Study1VibrationQuiz(
     val context = LocalContext.current
     val allowlist = getAllowGroup(group)
 
-    val totalBlock = 3
+    val totalBlock = 5
     var testIter by remember { mutableStateOf(-1) }
     var testBlock by remember { mutableStateOf(1) }
     var testList by remember { mutableStateOf(allowlist.shuffled()) }
@@ -94,7 +84,10 @@ fun Study1VibrationQuiz(
     var horizontalDragEnd by remember {mutableStateOf(0f)}
     val swipeThreshold = 100
 
-    val boxWidth = 41.dp
+    val screenWidth = DisplayMetrics().widthPixels;
+    val boxWidth = 82.dp//132.dp
+    val boxHeight = 339.dp//113.dp
+    val topMargin = 395.dp
 
     var correctAnswer by remember {mutableStateOf(0)}
     var wrongAnswer by remember {mutableStateOf(listOf(listOf("")))}
@@ -111,25 +104,33 @@ fun Study1VibrationQuiz(
 
         // Clear any previous runnables before adding new ones
 
-        // Word
-        runnables.add(
-            delay({ soundManager.speakOutChar(key) },delay+0, handler)
-        )
-
-        // Phoneme
-        runnables.add(
-            delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
-        )
-
         // Haptic
         if (isPhoneme) {
+            // Word
             runnables.add(
-                delay({ hapticManager.generateHaptic(key, HapticMode.PHONEME)}, delay + 2200)
+                delay({ soundManager.speakOut(key) },delay+0, handler)
+            )
+            // Phoneme
+            runnables.add(
+                delay({ soundManager.playPhoneme(key) }, delay+700, handler)
             )
             runnables.add(
-                delay({isExplaining = false}, delay+2200, handler)
+                delay({ hapticManager.generateHaptic(key, HapticMode.PHONEME)}, delay + 1500)
+            )
+            runnables.add(
+                delay({isExplaining = false}, delay+1500, handler)
             )
         } else {
+            // Word
+            runnables.add(
+                delay({ soundManager.speakOutChar(key) },delay+0, handler)
+            )
+
+            // Phoneme
+            runnables.add(
+                delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
+            )
+
             runnables.add(
                 delay({isExplaining = false}, delay+1500, handler)
             )
@@ -270,13 +271,24 @@ fun Study1VibrationQuiz(
         }
     }
 
+    fun getOptions(key : String): List<String> {
+        var idx = allowlist.indexOf(key);
+        var options: List<String> = emptyList()
+        for (i in idx - 2 .. idx+2) {
+            if (i >= 0 && i < allowlist.size) {
+                options += listOf(allowlist[i])
+            }
+        }
+        return options.shuffled()
+    }
+
     LaunchedEffect (testIter) {
         if (testIter == -1) {
             soundManager.speakOut("시작하려면 이중탭하세요.")
         } else if (testIter < testList.size) {
             selectedAnswer = -1
             selectedIndex = -1
-            options = allowlist.shuffled()
+            options = getOptions(testList[testIter])
             delay({
                 explainKey(testList[testIter])
             }, 500)
@@ -305,7 +317,7 @@ fun Study1VibrationQuiz(
                         },
                         onTap = {
                             soundManager.stop()
-                            soundManager.speakOut( "시작하려면 이중탭하세요.")
+                            soundManager.speakOut("시작하려면 이중탭하세요.")
                         }
                     )
                 },
@@ -318,7 +330,8 @@ fun Study1VibrationQuiz(
         }
     } else if (testIter == testNumber) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
                 .pointerInput(Unit) {
                     detectTapGestures(
@@ -362,7 +375,12 @@ fun Study1VibrationQuiz(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = { onConfirm() },
-                        onTap = { if (!isExplaining) explainKey(testList[testIter], isPhoneme = isShowAnswer) }
+                        onTap = {
+                            if (!isExplaining) explainKey(
+                                testList[testIter],
+                                isPhoneme = isShowAnswer
+                            )
+                        }
                     )
                 }
         ) {
@@ -376,8 +394,8 @@ fun Study1VibrationQuiz(
                 Text("Skip")
             }
 
-            QuizDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], height = 460.dp)
-            if(isTypingMode)
+            QuizDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], height = topMargin)
+            if(isTypingMode) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -409,13 +427,22 @@ fun Study1VibrationQuiz(
                                             val position = pointerChange.position
 
                                             // Check if the pointer is over the current box
-                                            val index = position.x.toDp().div(boxWidth).toInt()
-                                            val isPointerInCurrentBox = index < options.size
-                                            Log.d("vibration quiz", pointerChange.previousPressed.toString())
+                                            val x_index = position.x
+                                                .toDp()
+                                                .div(boxWidth)
+                                                .toInt()
+                                            //val y_index = (position.y.toDp()).div(boxHeight).toInt()
+                                            val index = x_index// + y_index * 3
+
+                                            val isPointerInCurrentBox =
+                                                index < options.size && index >= 0
                                             if (isPointerInCurrentBox && (
-                                                !pointerChange.previousPressed || selectedIndex != index
-                                                )) {
+                                                        !pointerChange.previousPressed || selectedIndex != index
+                                                        )
+                                            ) {
                                                 // Update selectedIndex when pointer enters a new box
+                                                //if (selectedIndex != index && !isShowAnswer)
+                                                //    soundManager.speakOut((index + 1).toString())
                                                 onSelect(index)
                                                 selectedIndex = index
                                             }
@@ -423,23 +450,24 @@ fun Study1VibrationQuiz(
                                             pointerChange.consume()
                                         }
                                         // Handle pointer up event
-                                        if (pointerChange.changedToUp())
-                                            onSelect(selectedIndex)
-                                        }
-                                    } }
+//                                        if (pointerChange.changedToUp() && selectedIndex >= 0)
+//                                            onSelect(selectedIndex)
+                                    }
+                                }
+                            }
                             .pointerInput(Unit) {
                                 detectTapGestures(
-                                    onDoubleTap = {  },
+                                    onDoubleTap = { },
                                 )
                             },
                         horizontalArrangement = Arrangement.Start,
                         verticalArrangement = Arrangement.Center,
-                        ) {
+                    ) {
                         options.forEachIndexed { index, alphabet ->
-                            Box (
+                            Box(
                                 modifier = Modifier
                                     .width(boxWidth)
-                                    .fillMaxHeight()
+                                    .height(boxHeight)
                                     .align(Alignment.CenterVertically)
                                     .background(
                                         if (index == selectedIndex) Color.Blue else Color.White
@@ -447,22 +475,22 @@ fun Study1VibrationQuiz(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = if (isShowAnswer) alphabet.toUpperCase() else (index+1).toString(),
-                                    color =  (
-                                        if (isShowAnswer) {
-                                            if (options[index] == testList[testIter]) {
-                                                Color.Green
-                                            } else if (index == selectedAnswer) {
-                                                Color.Red
-                                            } else if(index == selectedIndex) {
-                                                Color.White
+                                    text = if (isShowAnswer) alphabet.toUpperCase() else (index + 1).toString(),
+                                    color = (
+                                            if (isShowAnswer) {
+                                                if (options[index] == testList[testIter]) {
+                                                    Color.Green
+                                                } else if (index == selectedAnswer) {
+                                                    Color.Red
+                                                } else if (index == selectedIndex) {
+                                                    Color.White
+                                                } else {
+                                                    Color.Blue
+                                                }
                                             } else {
-                                                Color.Blue
+                                                if (index == selectedIndex) Color.White else Color.Blue
                                             }
-                                        } else {
-                                            if (index == selectedIndex) Color.White else Color.Blue
-                                        }
-                                    ),
+                                            ),
                                     fontSize = 40.sp,
                                     textAlign = TextAlign.Center,
                                 )
@@ -470,7 +498,16 @@ fun Study1VibrationQuiz(
                         }
                     }
                 }
-
+            } else if (selectedAnswer != -1){
+                Box(
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = options[selectedAnswer].uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold,
+                        color =  if (options[selectedAnswer] == testList[testIter]) Color.Green else Color.Red
+                    )
+                }
+            }
         }
     }
 }
@@ -479,7 +516,9 @@ fun Study1VibrationQuiz(
 @Composable
 fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, height: Dp = 200.dp) {
     Column(
-        modifier = Modifier.padding(top = 10.dp).height(height)
+        modifier = Modifier
+            .padding(top = 10.dp)
+            .height(height)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
