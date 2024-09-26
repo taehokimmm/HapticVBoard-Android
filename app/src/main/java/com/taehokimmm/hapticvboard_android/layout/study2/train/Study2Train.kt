@@ -7,7 +7,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.MotionEvent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,10 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.R
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.database.Study2TrainAnswer
@@ -55,7 +49,6 @@ import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
-import org.intellij.lang.annotations.Language
 import java.util.Locale
 
 @Composable
@@ -65,23 +58,22 @@ fun Study2Train(
     navController: NavHostController?,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
-    options: String,
+    group: String,
 ) {
     val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    val totalBlock = 5
-    val modeCnt = 3
+    val totalBlock = 3
+    val modeCnt = 2
 
     var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
     var modeIter by remember { mutableIntStateOf(0) }
-    var modeNames = listOf("음성 모드 학습", "진동 모드 학습", "테스트")
+    var modeNames = listOf("학습", "테스트")
 
-    var testAlphabets = getAllowGroup(options)
-    Log.d("study2train", options)
-    Log.d("study2train", testAlphabets.toString())
+    var testAlphabets = getAllowGroup(group)
+
     if (subject == "practice") {
         testAlphabets = ('a'..'b').map { it.toString() }
     }
@@ -171,7 +163,7 @@ fun Study2Train(
         if (isCorrect) correctAnswer++
         else wrongAnswer += listOf(listOf(testList[testIter], inputKey))
 
-        if (modeIter <= 1) {
+        if (modeIter == 0) {
             delay(
                 {// Correction Feedback
                     soundManager.playSound(isCorrect)
@@ -181,7 +173,7 @@ fun Study2Train(
 
         addLogging(key)
 
-        if (modeIter == 2) {
+        if (modeIter == 1) {
             soundManager.playEarcon("beep")
             delay({
                 testIter++
@@ -191,7 +183,7 @@ fun Study2Train(
         return true
     }
 
-    var isSpeakingDone by remember { mutableStateOf(true) }
+    var isSpeakingNum by remember { mutableStateOf(0) }
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
 
     LaunchedEffect(Unit) {
@@ -201,11 +193,10 @@ fun Study2Train(
                 tts?.language = Locale.KOREAN
                 tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {
-                        isSpeakingDone = false
                     }
 
                     override fun onDone(utteranceId: String?) {
-                        isSpeakingDone = true
+                        isSpeakingNum -= 1
                     }
 
                     override fun onError(utteranceId: String?) {
@@ -216,7 +207,7 @@ fun Study2Train(
     }
 
     fun speakOutEng(word: String) {
-        isSpeakingDone = false
+        isSpeakingNum += 1
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
         tts?.setLanguage(Locale.US)
@@ -224,7 +215,7 @@ fun Study2Train(
     }
 
     fun speakOutKor(word: String) {
-        isSpeakingDone = false
+        isSpeakingNum += 1
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
         tts?.setLanguage(Locale.KOREA)
@@ -232,7 +223,7 @@ fun Study2Train(
     }
 
     fun explainResult() {
-        if (isSpeakingDone == false) return
+        if (isSpeakingNum > 0) return
         // Explain Result
         speakOutKor(testList.size.toString() + "개 중 " + correctAnswer.toString() + "개 정답")
         speakOutKor("오답")
@@ -247,8 +238,12 @@ fun Study2Train(
         }
     }
 
+    LaunchedEffect(isSpeakingNum) {
+        Log.d("study2train", "speaking NUm : "+isSpeakingNum)
+    }
+
     LaunchedEffect(isTypingMode) {
-        if (isTypingMode == false && modeIter < 2) {
+        if (isTypingMode == false && modeIter == 0) {
             if (testIter != -1 && testIter < testList.size
                 ) {
                 explainKey(testList[testIter], 1500)
@@ -261,11 +256,8 @@ fun Study2Train(
         timer++
 
         var temp: Int
-        if (modeIter == 2) {
-            temp = 60 - timer
-        } else {
-            temp = 0
-        }
+        temp = 3 - timer
+
         if (temp < 0) temp = 0
         if (temp != countdown) countdown = temp
     }
@@ -278,17 +270,25 @@ fun Study2Train(
             testBlock++
             if (testBlock >= totalBlock) {
                 closeStudy2Database()
-                navController!!.navigate("study2/train/end/$subject")
+                val nextGroup = when(group) {
+                    "1" -> "2"
+                    "2" -> "3"
+                    else -> null
+                }
+                Log.d("study2train", group + " -> " + nextGroup)
+                if (nextGroup == null)
+                    navController!!.navigate("study2/train/end/$subject")
+                else
+                    navController!!.navigate("study2/train/freeplay/$subject/$nextGroup")
             } else {
-                modeIter = 0
+                modeIter = 1
             }
             return@LaunchedEffect
         }
-
-
     }
 
     LaunchedEffect(testIter) {
+        if (modeIter >= modeCnt) return@LaunchedEffect
         if (testIter == -1) {
             testList = testAlphabets.shuffled()
             val modeName = modeNames[modeIter]
@@ -393,19 +393,17 @@ fun Study2Train(
                    KeyboardLayout(
                        touchEvents = keyboardTouchEvents,
                        onKeyPress = { key ->
-                           if (modeIter == 0)
-                               soundManager.stop()
                            startTime = System.currentTimeMillis()
                        },
                        onKeyRelease = { key ->
                            if (key == "Shift") return@KeyboardLayout
-                           if (modeIter == 1) soundManager.speakOut(key)
+                           if (modeIter == 0) soundManager.speakOut(key)
                            onConfirm(key)
                        },
                        enterKeyVisibility = false,
                        soundManager = soundManager,
                        hapticManager = hapticManager,
-                       hapticMode = if (modeIter == 0) HapticMode.VOICEPHONEME else HapticMode.PHONEME,
+                       hapticMode = HapticMode.PHONEME,
                        logData = Study2TrainLog(
                            block = testBlock,
                            iteration = testIter,
@@ -455,7 +453,8 @@ fun Study2Train(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
-                            if (countdown > 0) return@detectTapGestures
+                            Log.d("study2train", "double tap " + isSpeakingNum.toString())
+                            if (countdown > 0 || isSpeakingNum > 0) return@detectTapGestures
                             modeIter++
                             testIter = -1
                             correctAnswer = 0
@@ -517,12 +516,12 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        if (modeIter < 3)
+        if (modeIter < 2)
             Box(
                 modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Mode : ${listOf("Train-Voice", "Train-Phoneme", "Test")[modeIter]}",
+                    text = "Mode : ${listOf("Train", "Test")[modeIter]}",
                     fontSize = 15.sp
                 )
             }

@@ -63,6 +63,7 @@ class SerialManager(context: Context) {
             try {
                 port?.write(data, 10)
                 Log.d("SerialWrite", "Data written: ${String(data)}")
+                //read()
             } catch (e: IOException) {
                 Log.e("SerialError", "Error writing to serial port", e)
             }
@@ -73,13 +74,15 @@ class SerialManager(context: Context) {
         return port != null
     }
 
-    fun read(data: ByteArray, timeout: Int = WAIT): Int {
+    fun read(timeout: Int = WAIT): Int {
         if (port == null) {
             throw IOException("Port is not open")
         }
 
         return try {
+            var data: ByteArray = ByteArray(10000);
             port?.read(data, timeout) ?: throw IOException("Failed to read data")
+            Log.d("SerialRead", "Data Read : ${String(data)}")
         } catch (e: IOException) {
             throw IOException("Error occurred during reading.", e)
         }

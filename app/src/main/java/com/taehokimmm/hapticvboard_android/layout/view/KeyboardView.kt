@@ -294,19 +294,6 @@ fun processTouchEvent(
                             HapticMode.VOICE
                         )
                         Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
-
-                        // Add Log
-                        if (name != null && logData != null) {
-                            addLog(
-                                context,
-                                name,
-                                logData,
-                                "DOWN",
-                                key,
-                                pointerPosition.x,
-                                pointerPosition.y
-                            )
-                        }
                     }
                     else if (pointerPosition.y < outOfBound) {
                         // Key pressed out of bounds
@@ -315,18 +302,20 @@ fun processTouchEvent(
                             "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
                         )
                         activeTouches[pointerId] = "Out of Bounds"
-                        // Add Log
-                        if (name != null && logData != null) {
-                            addLog(
-                                context,
-                                name,
-                                logData,
-                                "DOWN",
-                                "Out of Bounds",
-                                pointerPosition.x,
-                                pointerPosition.y
-                            )
-                        }
+                    }
+
+
+                    // Add Log
+                    if (name != null && logData != null) {
+                        addLog(
+                            context,
+                            name,
+                            logData,
+                            "DOWN",
+                            key ?: "Out of Bounds",
+                            pointerPosition.x,
+                            pointerPosition.y
+                        )
                     }
                 }
             }
@@ -386,9 +375,9 @@ fun processTouchEvent(
                             "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
                         )
 
-                        if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true) {
-                            hapticManager?.generateVibration("rowchanged")
-                        }
+//                        if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true) {
+//                            hapticManager?.generateVibration("rowchanged")
+//                        }
 
                         if (allow.contains(key)) {
                             if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true) {
@@ -406,18 +395,6 @@ fun processTouchEvent(
                             if (onKeyPressed != null)
                                 onKeyPressed(key)
                         }
-
-                        // Add Log
-                        if (name != null && logData != null) {
-                            addLog(
-                                context, name, logData,
-                                if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
-                                key,
-                                pointerPosition.x, pointerPosition.y
-                            )
-                        }
-
-                        activeTouches[pointerId] = key
                     } else if (key == null && pointerPosition.y < outOfBound && activeTouches[pointerId] != "Out of Bounds") {
                         // Key moved out of bounds, need to fix random number 1533
                         Log.d(
@@ -433,8 +410,19 @@ fun processTouchEvent(
                                 pointerPosition.x, pointerPosition.y
                             )
                         }
-                        activeTouches[pointerId] = "Out of Bounds"
                     }
+
+
+                    // Add Log
+                    if (name != null && logData != null) {
+                        addLog(
+                            context, name, logData,
+                            if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
+                            key ?: "Out of Bounds",
+                            pointerPosition.x, pointerPosition.y
+                        )
+                    }
+                    activeTouches[pointerId] = key?: "Out of Bounds"
                 }
             }
         }

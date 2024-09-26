@@ -16,6 +16,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
@@ -24,10 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
+import com.taehokimmm.hapticvboard_android.manager.HapticManager
 
 @Composable
 fun SettingScreen(
+    hapticManager: HapticManager? = null
 ) {
     val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
@@ -74,6 +81,33 @@ fun SettingScreen(
                 Text(
                     "DELETE DATABASE", color = Color.White
                 )
+            }
+
+            Spacer(modifier = Modifier.height(200.dp))
+            Row (
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ){
+                Text(text = "Volume",
+                    modifier = Modifier.align(Alignment.CenterVertically))
+                Button(
+                    onClick = {
+                        hapticManager?.setVolumeUp()
+                    }, colors = ButtonColors(Color.Black, Color.White, Color.White, Color.White)
+                ) {
+                    Text(
+                        "+", color = Color.White
+                    )
+                }
+                Button(
+                    onClick = {
+                        hapticManager?.setVolumeDown()
+                    }, colors = ButtonColors(Color.Black, Color.White, Color.White, Color.White)
+                ) {
+                    Text(
+                        "-", color = Color.White
+                    )
+                }
+
             }
         }
     }

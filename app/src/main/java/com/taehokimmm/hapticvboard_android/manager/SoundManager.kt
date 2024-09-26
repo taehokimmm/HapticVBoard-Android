@@ -118,6 +118,12 @@ class SoundManager(context: Context) {
         tts.setSpeechRate(2F)
         tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
     }
+
+    fun speakOutKeyboardPhoneme(key: String) {
+        tts.setSpeechRate(2F)
+        tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
+
     fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH) {
         tts.speak(text, mode, null, null)
     }
@@ -165,23 +171,23 @@ class SoundManager(context: Context) {
             "f" to "five",
             "g" to "game",
             "h" to "hotel",
-            "i" to "ice cream",
+            "i" to "image",
             "j" to "juice",
             "k" to "korea",
             "l" to "lemon",
             "m" to "mike",
             "n" to "number",
-            "o" to "orange",
+            "o" to "ocean",
             "p" to "people",
             "q" to "queen",
             "r" to "red",
             "s" to "summer",
             "t" to "time",
-            "u" to "uniform",
+            "u" to "unicorn",
             "v" to "video",
-            "w" to "wow",
+            "w" to "window",
             "x" to "x-ray",
-            "y" to "yellowy",
+            "y" to "yesterday",
             "z" to "zero",
         )
         speakOut(key, TextToSpeech.QUEUE_ADD)

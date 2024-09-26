@@ -1,6 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_sighted
-
-import android.util.Log
+package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
 
 
 fun calculateTouchDuration(startTime: Long, endTime: Long): Long {

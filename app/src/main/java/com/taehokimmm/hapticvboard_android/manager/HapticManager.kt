@@ -87,5 +87,13 @@ class HapticManager(context: Context) {
         return serialManager.isOpen()
     }
 
+    fun setVolumeUp() {
+        serialManager.write("+\n".toByteArray())
+    }
+
+    fun setVolumeDown() {
+        serialManager.write("-\n".toByteArray())
+    }
+
 
 }

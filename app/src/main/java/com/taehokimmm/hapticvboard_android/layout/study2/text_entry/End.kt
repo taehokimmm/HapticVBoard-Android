@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_sighted
+package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

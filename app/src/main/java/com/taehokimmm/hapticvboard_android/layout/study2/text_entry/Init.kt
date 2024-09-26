@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_sighted
+package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
 import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
 import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 

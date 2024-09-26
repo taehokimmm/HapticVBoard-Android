@@ -361,6 +361,7 @@ fun getAllowGroup(group: String): List<String> {
     if (group.contains("1")) allow += listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p")
     if (group.contains("2")) allow +=listOf("a", "s", "d", "f", "g", "h", "j", "k", "l")
     if (group.contains("3")) allow +=listOf("z", "x", "c", "v", "b", "n", "m")
+    if (group == "123") allow += listOf("Space", "Backspace")
     allow = allow.toSet().toMutableList()
     return allow
 }

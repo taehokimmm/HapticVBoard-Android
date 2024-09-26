@@ -9,18 +9,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,9 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,12 +56,12 @@ import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainEnd
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1IdentiQuiz
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
 import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1VibrationQuiz
-import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2End
-import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Init
-import com.taehokimmm.hapticvboard_android.layout.study2.test_sighted.Study2Test
+import com.taehokimmm.hapticvboard_android.layout.study2.text_entry.Study2End
+import com.taehokimmm.hapticvboard_android.layout.study2.text_entry.Study2Init
+import com.taehokimmm.hapticvboard_android.layout.study2.text_entry.Study3
+import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2FreePlay
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2Train
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainEnd
 import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainInit
@@ -94,7 +87,7 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class HapticMode {
-    VOICE, PHONEME, TICK, NONE, VOICEPHONEME, VOICETICK
+    VOICE, PHONEME, TICK, NONE, VOICEPHONEME, VOICETICK, VOICEPHONEMEPLUS
 }
 
 @Composable
@@ -245,7 +238,22 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         Study2TrainInit(navController)
                     }
 
-                    composable("study2/train/{subject}/{option}") {
+                    composable("study2/train/freeplay/{subject}/{option}") {
+                        currentScreen = "study2/train"
+                        val subject = it.arguments?.getString("subject")!!
+                        val option = it.arguments?.getString("option")!!
+
+                        Study2FreePlay(
+                            innerPadding,
+                            subject,
+                            navController,
+                            soundManager!!,
+                            hapticManager!!,
+                            option
+                        )
+                    }
+
+                    composable("study2/train/train/{subject}/{option}") {
                         currentScreen = "study2/train"
                         val subject = it.arguments?.getString("subject")!!
                         val option = it.arguments?.getString("option")!!
@@ -283,7 +291,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         else if(feedback == "audiophoneme") hapticMode = HapticMode.VOICEPHONEME
                         else if(feedback == "vibration") hapticMode = HapticMode.TICK
 
-                        Study2Test(
+                        Study3(
                             innerPadding,
                             subject,
                             isPractice,
@@ -301,7 +309,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                     }
                     composable("setting") {
                         currentScreen = "setting"
-                        SettingScreen()
+                        SettingScreen(hapticManager)
                     }
                 }
             },
@@ -336,7 +344,7 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     selectedItem = "intro/init"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 1 Train") },
+            NavigationDrawerItem(label = { Text("1. Vibration Test") },
                 selected = selectedItem == "study1/train",
                 onClick = {
                     navController.navigate("study1/train/init")
@@ -350,14 +358,14 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
 //                    selectedItem = "study1/test"
 //                    onItemClicked()
 //                })
-            NavigationDrawerItem(label = { Text("Study 2 Train") },
+            NavigationDrawerItem(label = { Text("2. Typing Test") },
                 selected = selectedItem == "study2/train",
                 onClick = {
                     navController.navigate("study2/train/init")
                     selectedItem = "study2/train"
                     onItemClicked()
                 })
-            NavigationDrawerItem(label = { Text("Study 2 Test") },
+            NavigationDrawerItem(label = { Text("3. Text Entry") },
                 selected = selectedItem == "study2/test",
                 onClick = {
                     navController.navigate("study2/test/init")

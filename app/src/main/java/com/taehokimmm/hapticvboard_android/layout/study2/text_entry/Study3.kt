@@ -1,13 +1,11 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_sighted
+package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
 
 import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -56,10 +54,9 @@ import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.Locale
-import kotlin.math.roundToLong
 
 @Composable
-fun Study2Test(
+fun Study3(
     innerPadding: PaddingValues,
     subject: String,
     isPractice: Boolean,

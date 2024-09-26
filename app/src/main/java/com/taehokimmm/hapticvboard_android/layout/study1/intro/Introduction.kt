@@ -19,22 +19,20 @@ fun GroupIntro(
     var names = listOf("")
     if (category == "phoneme") {
         phonemeGroups = listOf(
-            listOf("f", "s", "h"),
-            listOf("v", "z"),
-            listOf("p", "t", "k", "c", "q"),
-            listOf("b", "d", "g"),
-            listOf("j"),
-            listOf("n", "m"),
-            listOf("l", "r"),
-            listOf("x"),
-            listOf("a", "e", "i", "o", "u"),
-            listOf("w", "y")
+            listOf("f", "s", "h", "v", "z"),
+            listOf("b", "d", "g", "p", "t", "q", "k", "c"),
+            listOf("j", "x"),
+            listOf("m", "n", "l", "r"),
+            listOf("e", "i", "a", "u"),
+            listOf("y", "o", "w")
         )
         names = listOf(
-                "마찰음 - 무성", "마찰음 - 유성",
-                "파열음 - 무성", "파열음 - 유성",
-                "파찰음", "비음", "유음", "합성음",
-                "단모음", "이중모음"
+            "마찰음",
+            "파열음",
+            "파열음+마찰음",
+            "비음+접근음",
+            "모음",
+            "이중모음"
         )
     } else if(category == "location") {
 //        phonemeGroups = listOf(
