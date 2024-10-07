@@ -15,11 +15,10 @@ class MultiTouchView @JvmOverloads constructor(
     private val touchPoints = mutableMapOf<Int, Pair<Float, Float>>()
     var onMultiTouchEvent: ((MotionEvent) -> Unit)? = null
 
-    private val outOfBound = 1533
+    private val outOfBound = 1566
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onDoubleTap(e: MotionEvent): Boolean {
             // Handle double-tap event
-            Log.d("touchevent", "on double tap" + e.y)
             if (onDoubleTap != null && e.y < outOfBound) {
                 onDoubleTap()
             }
@@ -28,7 +27,6 @@ class MultiTouchView @JvmOverloads constructor(
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
             // Handle double-tap event
-            Log.d("touchevent", "on tap" + e.y)
 
             if (onTap != null && e.y < outOfBound) {
                 onTap()
@@ -62,4 +60,6 @@ class MultiTouchView @JvmOverloads constructor(
         invalidate()
         return true
     }
+
+
 }

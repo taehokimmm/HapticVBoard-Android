@@ -42,7 +42,7 @@ fun Study1TrainInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var options = listOf("1", "2", "3")
+    var options = listOf("1", "2", "3", "123")
     var selectedOption by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -144,8 +145,10 @@ fun Study3(
         }
         if (hapticMode == HapticMode.PHONEME) {
             phrases = phrases1.slice(0..totalBlock * testNumber - 1)
-        } else {
+        } else if (hapticMode == HapticMode.VOICE) {
             phrases = phrases1.slice(totalBlock * testNumber..totalBlock * testNumber * 2 - 1)
+        } else {
+            phrases = phrases1.slice(totalBlock * testNumber * 2..totalBlock * testNumber * 3 - 1)
         }
 
         // Initiate TTS
@@ -214,8 +217,8 @@ fun Study3(
     }
 
     fun addLogging() {
-        endTime = System.currentTimeMillis()
         val targetText = testList[testIter]
+
         wpm = calculateWPM(startTime, endTime, targetText)
         uer = calculateUER(targetText, inputText)
 
@@ -230,7 +233,7 @@ fun Study3(
     }
 
     fun initMetric() {
-        startTime = System.currentTimeMillis()
+        startTime = -1
         keystrokeTimestamps.clear()
         keyStrokeNum = 0
     }
@@ -437,11 +440,15 @@ fun Study3(
                     KeyboardLayout(
                         touchEvents = keyboardTouchEvents,
                         onKeyPress = { key ->
+                            if (startTime == -1L) {
+                                startTime = System.currentTimeMillis()
+                            }
                             tts?.stop()
                             isSpeakingDone = true
                             pressStartTime = System.currentTimeMillis()
                         },
                         onKeyRelease = { key ->
+                            endTime = System.currentTimeMillis()
                             if (key == "Space") {
                                 onSpace()
                             } else if (key == "Backspace") {

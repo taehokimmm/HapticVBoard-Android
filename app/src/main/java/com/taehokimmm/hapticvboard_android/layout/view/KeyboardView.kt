@@ -50,7 +50,7 @@ fun KeyboardLayout(
     // Root coordinates for global positioning
     var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
-    val outOfBound = 1533
+    val outOfBound = 1566
     Box(modifier = Modifier
         .fillMaxWidth()
         .background(
@@ -255,7 +255,7 @@ fun processTouchEvent(
     name: String?
 ) {
 
-    val outOfBound = 1533
+    val outOfBound = 1566
     for(event in events) {
         if (event.pointerCount == 1) {
             val pointerId = event.getPointerId(event.actionIndex)
@@ -396,7 +396,7 @@ fun processTouchEvent(
                                 onKeyPressed(key)
                         }
                     } else if (key == null && pointerPosition.y < outOfBound && activeTouches[pointerId] != "Out of Bounds") {
-                        // Key moved out of bounds, need to fix random number 1533
+                        // Key moved out of bounds, need to fix random number 1566
                         Log.d(
                             "TouchEvent",
                             "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
