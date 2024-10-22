@@ -20,8 +20,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.MotionEvent
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -48,6 +51,9 @@ fun FreeTypeMode(
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
+    var options = listOf("yes", "no")
+    var selectedOption by remember { mutableStateOf("yes") }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -56,8 +62,29 @@ fun FreeTypeMode(
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.align(Alignment.BottomStart)
+            modifier = Modifier.align(Alignment.BottomCenter)
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(300.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text(text = "Is Tick?")
+                Column {
+                    options.forEachIndexed{index, option -> (
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(
+                                    selected = selectedOption == option,
+                                    onClick = {
+                                        selectedOption = option
+                                    }
+                                )
+                                Text(text = option)
+                            }
+                            )}
+                }
+            }
+
             TextButton(onClick = { inputText = "" }) {
                 Text("Clear", color = Color(0xFF006AFF), fontSize = 20.sp)
             }
@@ -66,7 +93,7 @@ fun FreeTypeMode(
                     .fillMaxWidth(0.9f)
                     .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
                     .padding(20.dp, 16.dp)
-                    .heightIn(min = 30.dp, max = 200.dp),
+                    .height(30.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
@@ -74,30 +101,37 @@ fun FreeTypeMode(
                     fontSize = 20.sp,
                 )
             }
-            Spacer(modifier = Modifier.height(20.dp))
-            KeyboardLayout(
-                touchEvents = keyboardTouchEvents,
-                onKeyRelease = { key ->
-                    inputText = when (key) {
-                        "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
-                        "Space" -> "$inputText "
-                        "Shift" -> inputText
-                        else -> inputText + key
+
+            Box(
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
+            ) {
+                KeyboardLayout(
+                    touchEvents = keyboardTouchEvents,
+                    onKeyRelease = { key ->
+                        inputText = when (key) {
+                            "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                            "Space" -> "$inputText "
+                            "Shift" -> inputText
+                            else -> inputText + key
+                        }
+                    },
+                    soundManager = soundManager,
+                    hapticManager = hapticManager,
+                    hapticMode = if (selectedOption == "yes")
+                                        HapticMode.VOICEPHONEMETICK
+                                    else HapticMode.VOICEPHONEME
+                )
+                AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
+                    MultiTouchView(context).apply {
+                        onMultiTouchEvent = { event ->
+                            keyboardTouchEvents.clear()
+                            keyboardTouchEvents.add(event)
+                        }
                     }
-                },
-                soundManager = soundManager,
-                hapticManager = hapticManager,
-                hapticMode = HapticMode.VOICEPHONEME
-            )
-        }
-        AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
-            MultiTouchView(context).apply {
-                onMultiTouchEvent = { event ->
-                    keyboardTouchEvents.clear()
-                    keyboardTouchEvents.add(event)
-                }
+                })
+
             }
-        })
+        }
     }
 }
 

@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.R
+import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
 
 
 class HapticManager(context: Context) {
@@ -24,7 +25,8 @@ class HapticManager(context: Context) {
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
             hapticMode == HapticMode.VOICEPHONEME ||
-            hapticMode == HapticMode.VOICETICK
+            hapticMode == HapticMode.VOICETICK ||
+            hapticMode == HapticMode.VOICEPHONEMETICK
         ) {
             soundManager.speakOutKeyboard(key)
         }
@@ -49,7 +51,30 @@ class HapticManager(context: Context) {
         }
         Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
         Log.d("HapticFeedback", "P${formattedKey}WAV")
-        serialManager.write("P${formattedKey}WAV\n".toByteArray())
+
+        if (hapticMode == HapticMode.VOICEPHONEMETICK && getRow(key) == 1) {
+            generateVibration(key)
+            delay(
+                {serialManager.write("P${formattedKey}WAV\n".toByteArray())}, 50)
+        } else {
+            serialManager.write("P${formattedKey}WAV\n".toByteArray())
+
+        }
+    }
+
+
+    fun getRow(key: String): Int {
+        val phonemeGroups = listOf(
+            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
+            listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
+            listOf("z", "x", "c", "v", "b", "n", "m", "Shift", "Backspace"),
+            listOf("Space")
+        )
+        var idx = -1
+        phonemeGroups.forEachIndexed( {index, group ->
+            if (group.contains(key)) idx = index
+        })
+        return idx
     }
 
     fun generateVibration(key: String) {
@@ -69,9 +94,11 @@ class HapticManager(context: Context) {
                 } else if (key == "rowchanged") {
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
                 } else {
-                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                    vibrate = VibrationEffect.createOneShot(10, 50)
                 }
                 vibrator.vibrate(vibrate)
+
+
             } else {
                 // Deprecated in API 26
                 vibrator.vibrate(100)

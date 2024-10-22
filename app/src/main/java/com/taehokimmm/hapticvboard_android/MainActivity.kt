@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class HapticMode {
-    VOICE, PHONEME, TICK, NONE, VOICEPHONEME, VOICETICK, VOICEPHONEMEPLUS
+    VOICE, PHONEME, TICK, NONE, VOICEPHONEME, VOICETICK, VOICEPHONEMETICK
 }
 
 @Composable

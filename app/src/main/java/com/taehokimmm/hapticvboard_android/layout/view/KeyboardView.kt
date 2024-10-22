@@ -222,23 +222,6 @@ fun replaySound(
     }
 }
 
-fun getRow(key: String): Int {
-    val phonemeGroups = listOf(
-        listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
-        listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-        listOf("z", "x", "c", "v", "b", "n", "m", "Shift", "Backspace"),
-        listOf("Space")
-    )
-    var idx = -1
-    phonemeGroups.forEachIndexed( {index, group ->
-        if (group.contains(key)) idx = index
-    })
-    return idx
-}
-
-fun isRowChanged(from: String, to: String): Boolean {
-    return getRow(from) != getRow(to)
-}
 
 fun processTouchEvent(
     events: MutableList<MotionEvent>,
@@ -380,11 +363,7 @@ fun processTouchEvent(
 //                        }
 
                         if (allow.contains(key)) {
-                            if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true) {
-                                delay({hapticManager?.generateHaptic(key, hapticMode)}, 10)
-                            } else {
-                                hapticManager?.generateHaptic(key, hapticMode)
-                            }
+                            hapticManager?.generateHaptic(key, hapticMode)
                         }
                         else {
                             if (hapticMode == HapticMode.VOICEPHONEME)

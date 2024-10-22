@@ -98,10 +98,10 @@ fun Study1IdentiQuiz(
             delay({ soundManager.speakOut(key) },delay+0, handler)
         )
 
-        // Phoneme
-        runnables.add(
-            delay({ soundManager.playPhoneme(key) }, delay+700, handler)
-        )
+//        // Phoneme
+//        runnables.add(
+//            delay({ soundManager.playPhoneme(key) }, delay+700, handler)
+//        )
 
         runnables.add(
             delay({
@@ -109,7 +109,7 @@ fun Study1IdentiQuiz(
                 key,
                 HapticMode.PHONEME
             )
-        }, delay+1500, handler)
+        }, delay+700, handler)
         )
 
         runnables.add(

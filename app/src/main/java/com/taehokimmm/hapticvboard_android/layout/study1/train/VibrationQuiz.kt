@@ -126,10 +126,10 @@ fun Study1VibrationQuiz(
                 delay({ soundManager.speakOutChar(key) },delay+0, handler)
             )
 
-            // Phoneme
-            runnables.add(
-                delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
-            )
+//            // Phoneme
+//            runnables.add(
+//                delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
+//            )
 
             runnables.add(
                 delay({isExplaining = false}, delay+1500, handler)
