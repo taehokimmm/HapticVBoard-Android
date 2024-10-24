@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study1.train
+package com.taehokimmm.hapticvboard_android.layout.vibrationtest
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -20,24 +19,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
-import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
-import com.taehokimmm.hapticvboard_android.database.resetData
-import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
-import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
+import com.taehokimmm.hapticvboard_android.layout.textentry.Spinner
 
 
 @Composable
-fun Study1TrainInit(navController: NavHostController) {
+fun VibrationTestInit(navController: NavHostController) {
     var context = LocalContext.current
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
@@ -123,7 +115,7 @@ fun Study1TrainInit(navController: NavHostController) {
                             "Please select a test group"
 
                         else -> {
-                            navController.navigate("study1/train/phase1/${testSubjectIdentifier}/${selectedOption}")
+                            navController.navigate("vibrationTest/train/${testSubjectIdentifier}/${selectedOption}")
                         }
                     }
                 }, modifier = Modifier

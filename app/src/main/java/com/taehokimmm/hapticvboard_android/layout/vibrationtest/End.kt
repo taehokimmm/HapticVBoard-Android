@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.test_BVI
+package com.taehokimmm.hapticvboard_android.layout.vibrationtest
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,16 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2BVIDatabase
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
+
 
 @Composable
-fun Study2BVITestEnd(
-    subject: String, navController: NavHostController
-) {
+fun VibrationTestEnd(subject: String, navController: NavHostController) {
     LaunchedEffect(Unit) {
-        closeStudy2BVIDatabase()
+        closeStudy1Database()
     }
     
     Column(
@@ -33,13 +29,13 @@ fun Study2BVITestEnd(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Study2 Test Completed for $subject!", fontSize = 20.sp
+            text = "Vibration Test Completed for $subject!", fontSize = 20.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
-            navController.navigate("study2/BVI/init")
+            navController.navigate("vibrationTest/init")
         }) {
-            Text("Return to Study2 Test Selection")
+            Text("Return to Test Selection")
         }
         Spacer(modifier = Modifier.height(20.dp))
     }

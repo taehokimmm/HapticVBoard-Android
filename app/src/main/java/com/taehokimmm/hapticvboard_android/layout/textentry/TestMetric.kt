@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
+package com.taehokimmm.hapticvboard_android.layout.textentry
 
 
 fun calculateTouchDuration(startTime: Long, endTime: Long): Long {

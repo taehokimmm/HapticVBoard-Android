@@ -10,7 +10,7 @@ import android.os.Environment
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import com.taehokimmm.hapticvboard_android.R
-import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 import java.io.File
 import java.util.Locale
 import java.util.Timer

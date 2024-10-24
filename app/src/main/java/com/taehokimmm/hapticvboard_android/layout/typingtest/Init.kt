@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.train
+package com.taehokimmm.hapticvboard_android.layout.typingtest
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,48 +7,30 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
-import com.taehokimmm.hapticvboard_android.database.resetData
-import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
-import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
+import com.taehokimmm.hapticvboard_android.layout.textentry.Spinner
 
 
 @Composable
-fun Study2TrainInit(navController: NavHostController) {
+fun TypingTestInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
     var options = listOf("1", "2", "3", "123")
-    var selectedOption by remember { mutableStateOf("1") }
+    var selectedOption by remember { mutableStateOf("") }
 
     var subjects = listOf("test", "practice")
     for(i in 1 until 12) {
@@ -60,6 +42,10 @@ fun Study2TrainInit(navController: NavHostController) {
     for(i in 1 until 8) {
         subjects += listOf("Pilot" + i)
     }
+
+
+    var days = listOf("1", "2")
+    var selectedDay by remember { mutableStateOf("1") }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
@@ -89,6 +75,20 @@ fun Study2TrainInit(navController: NavHostController) {
                 )
             }
 
+            // Test subject identifier
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Day",
+                fontSize = 16.sp
+            )
+
+            Spinner(
+                options = days,
+                onOptionSelected = { selectedOption ->
+                    selectedDay = selectedOption.trim()
+                }
+            )
+
             // Select Modality
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -114,9 +114,13 @@ fun Study2TrainInit(navController: NavHostController) {
                 onClick = {
                     closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
-                        navController.navigate("study2/train/freeplay/$testSubjectIdentifier/$selectedOption")
+                        navController.navigate("typingTest/freeplay/$testSubjectIdentifier/$selectedOption/$selectedDay")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
+                    }
+
+                    if (selectedDay.isEmpty()) {
+                        errorMessage += "Please enter the day"
                     }
                 }, modifier = Modifier
                     .padding(top = 20.dp)

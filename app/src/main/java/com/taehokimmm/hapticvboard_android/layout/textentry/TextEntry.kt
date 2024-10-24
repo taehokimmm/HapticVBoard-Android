@@ -1,10 +1,9 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
+package com.taehokimmm.hapticvboard_android.layout.textentry
 
 import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -49,7 +48,7 @@ import com.taehokimmm.hapticvboard_android.database.Study2Metric
 import com.taehokimmm.hapticvboard_android.database.Study2TestLog
 import com.taehokimmm.hapticvboard_android.database.addStudy2Metric
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.io.BufferedReader
@@ -275,7 +274,7 @@ fun Study3(
             testBlock++
             if (testBlock >= totalBlock) {
                 closeStudy2Database()
-                navController!!.navigate("study2/test/end/$subject")
+                navController!!.navigate("textEntry/end/$subject")
             } else {
                 testIter = -1
             }

@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.train
+package com.taehokimmm.hapticvboard_android.layout.textentry
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,15 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
+import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
 
 @Composable
-fun Study2TrainEnd(
+fun Study2End(
     subject: String, navController: NavHostController
 ) {
     LaunchedEffect(Unit) {
-        closeStudy2TrainDatabase()
+        closeStudy2Database()
     }
 
     Column(
@@ -31,13 +30,13 @@ fun Study2TrainEnd(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Study2 Train Completed for $subject!", fontSize = 20.sp
+            text = "Test Completed for $subject!", fontSize = 20.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
-            navController.navigate("study2/train/init")
+            navController.navigate("textEntry/init")
         }) {
-            Text("Return to Study2 Train Selection")
+            Text("Return to Test Selection")
         }
         Spacer(modifier = Modifier.height(20.dp))
     }

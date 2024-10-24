@@ -1,17 +1,11 @@
 package com.taehokimmm.hapticvboard_android.manager
 
 import android.content.Context
-import android.media.AudioTrack
-import android.media.MediaPlayer
-import android.media.audiofx.HapticGenerator
-import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.R
-import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 
 
 class HapticManager(context: Context) {

@@ -52,7 +52,7 @@ fun FreeTypeMode(
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
     var options = listOf("yes", "no")
-    var selectedOption by remember { mutableStateOf("yes") }
+    var selectedOption by remember { mutableStateOf("no") }
 
     Box(
         modifier = Modifier

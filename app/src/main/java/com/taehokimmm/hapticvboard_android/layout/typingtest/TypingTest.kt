@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.train
+package com.taehokimmm.hapticvboard_android.layout.typingtest
 
 import android.os.Bundle
 import android.os.Handler
@@ -43,16 +43,20 @@ import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.database.Study2TrainAnswer
 import com.taehokimmm.hapticvboard_android.database.Study2TrainLog
+import com.taehokimmm.hapticvboard_android.database.TypingTestAnswer
+import com.taehokimmm.hapticvboard_android.database.TypingTestLog
 import com.taehokimmm.hapticvboard_android.database.addStudy2TrainAnswer
+import com.taehokimmm.hapticvboard_android.database.addTypingTestAnswer
 import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
-import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.getAllowGroup
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.util.Locale
 
 @Composable
-fun Study2Train(
+fun TypingTest(
+    day: String = "1",
     innerPadding: PaddingValues,
     subject: String,
     navController: NavHostController?,
@@ -72,7 +76,8 @@ fun Study2Train(
     var modeIter by remember { mutableIntStateOf(0) }
     var modeNames = listOf("학습", "테스트")
 
-    var testAlphabets = getAllowGroup(group)
+    var testAlphabets = getAllowGroup(group, true)
+
 
     if (subject == "practice") {
         testAlphabets = ('a'..'b').map { it.toString() }
@@ -85,7 +90,7 @@ fun Study2Train(
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
 
-    val databaseName = subject+ "_study2"
+    val databaseName = subject
 
     var timer by remember { mutableStateOf(0) }
     var countdown by remember { mutableStateOf(0) }
@@ -112,15 +117,21 @@ fun Study2Train(
 
     fun addLogging(inputText: String) {
         endTime = System.currentTimeMillis()
-        val data = Study2TrainAnswer(
-            answer = testList[testIter],
-            perceived = inputText,
-            iteration = testIter,
-            mode = modeIter,
-            block = testBlock,
-            duration = endTime - startTime
-        )
-        addStudy2TrainAnswer(context, databaseName, data)
+
+        if (day == "1") {
+            val data = TypingTestAnswer(
+                row = group,
+                answer = testList[testIter],
+                perceived = inputText,
+                iter = testIter,
+                mode = modeIter,
+                block = testBlock,
+                duration = endTime - startTime
+            )
+            addTypingTestAnswer(context, databaseName, data)
+        } else {
+
+        }
     }
 
     fun explainKey(key: String, delay: Long = 0) {
@@ -264,22 +275,21 @@ fun Study2Train(
 
 
 
-    LaunchedEffect(modeIter) {
+    LaunchedEffect(testBlock) {
 
-        if (modeIter >= modeCnt) {
-            testBlock++
-            if (testBlock >= totalBlock) {
+        if (testBlock >= totalBlock) {
+            modeIter++
+            if (modeIter >= modeCnt) {
                 closeStudy2Database()
                 val nextGroup = when(group) {
                     "1" -> "2"
                     "2" -> "3"
                     else -> null
                 }
-                Log.d("study2train", group + " -> " + nextGroup)
                 if (nextGroup == null)
-                    navController!!.navigate("study2/train/end/$subject")
+                    navController!!.navigate("typingTest/end/$subject")
                 else
-                    navController!!.navigate("study2/train/freeplay/$subject/$nextGroup")
+                    navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/$day")
             } else {
                 modeIter = 1
             }
@@ -396,7 +406,8 @@ fun Study2Train(
                            startTime = System.currentTimeMillis()
                        },
                        onKeyRelease = { key ->
-                           if (key == "Shift") return@KeyboardLayout
+                           if (!(testAlphabets.contains(key))) return@KeyboardLayout
+
                            if (modeIter == 0) soundManager.speakOut(key)
                            onConfirm(key)
                        },
@@ -404,9 +415,10 @@ fun Study2Train(
                        soundManager = soundManager,
                        hapticManager = hapticManager,
                        hapticMode = HapticMode.PHONEME,
-                       logData = Study2TrainLog(
+                       logData = TypingTestLog(
+                           row = group,
                            block = testBlock,
-                           iteration = testIter,
+                           iter = testIter,
                            mode = modeIter,
                            answer = testList[testIter]
                        ),
@@ -455,7 +467,10 @@ fun Study2Train(
                         onDoubleTap = {
                             Log.d("study2train", "double tap " + isSpeakingNum.toString())
                             if (countdown > 0 || isSpeakingNum > 0) return@detectTapGestures
-                            modeIter++
+
+                            //modeIter++
+                            testBlock++
+
                             testIter = -1
                             correctAnswer = 0
                             wrongAnswer = listOf(listOf(""))

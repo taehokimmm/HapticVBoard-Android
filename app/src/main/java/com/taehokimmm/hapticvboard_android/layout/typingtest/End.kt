@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
+package com.taehokimmm.hapticvboard_android.layout.typingtest
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,14 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
+import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
 
 @Composable
-fun Study2End(
+fun TypingTestEnd(
     subject: String, navController: NavHostController
 ) {
     LaunchedEffect(Unit) {
-        closeStudy2Database()
+        closeStudy2TrainDatabase()
     }
 
     Column(
@@ -30,13 +30,13 @@ fun Study2End(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Test Completed for $subject!", fontSize = 20.sp
+            text = "Typing Test Completed for $subject!", fontSize = 20.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
-            navController.navigate("study2/test/init")
+            navController.navigate("typingTest/init")
         }) {
-            Text("Return to Test Selection")
+            Text("Return to Typing Test Selection")
         }
         Spacer(modifier = Modifier.height(20.dp))
     }

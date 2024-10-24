@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study1.intro
+package com.taehokimmm.hapticvboard_android.layout.intro
 
 import android.os.Handler
 import android.os.Looper
@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.layout.study1.train.delay
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 

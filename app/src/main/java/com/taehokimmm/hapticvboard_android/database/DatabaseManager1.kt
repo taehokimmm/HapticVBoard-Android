@@ -1,8 +1,6 @@
 package com.taehokimmm.hapticvboard_android.database
 
 import android.content.Context
-import android.os.AsyncTask
-import android.util.Log
 import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,9 +19,9 @@ fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1
     }
 }
 
-fun addStudy1Answer(context: Context, subject: String, group: String, data: Study1TestAnswer){
-    addData(context, subject + "_" + group.last(), data
-    ) { dao, answer -> dao.addTest(answer) }
+fun addTypingTestAnswer(context: Context, subject: String, data: TypingTestAnswer){
+    addData(context, subject, data
+    ) { dao, answer -> dao.addTypingTestAnswer(answer) }
 }
 
 fun closeStudy1Database() {
@@ -33,52 +31,31 @@ fun closeStudy1Database() {
 
 fun closeAllDatabases() {
     Study1Database.closeDatabase()
-    Study2BVIDatabase.closeDatabase()
     Study2Database.closeDatabase()
     Study2TrainDatabase.closeDatabase()
 }
 
-fun addStudy1TrainPhase3Answer(context: Context, subject: String, group: String, data: Study1Phase3Answer){
-    addData(context, subject + "_" + group, data
-    ) { dao, answer -> dao.addTrainPhase3(answer) }
+fun addVibrationTestAnswer(context: Context, subject: String, group: String, data: VibrationTestAnswer){
+    addData(context, subject, data
+    ) { dao, answer -> dao.addVibrationTestAnswer(answer) }
 }
 
-fun addStudy1TrainPhase2Answer(context: Context, subject: String, group: String, data: Study1Phase2Answer){
-    addData(context, subject+"_"+group, data
-    ) { dao, answer -> dao.addTrainPhase2(answer) }
-}
-
-fun addStudy1TestLog(context: Context, name: String, data: Study1TestLog){
+fun addTypingTestLog(context: Context, name: String, data: TypingTestLog){
     addData(context, name, data
-    ) { dao, answer -> dao.addTestLog(answer) }
-}
-
-fun addStudy1Phase3Log(context: Context, name: String, data: Study1Phase3Log){
-    addData(context, name, data
-    ) { dao, answer -> dao.addPhase3Log(answer) }
+    ) { dao, answer -> dao.addTypingTestLog(answer) }
 }
 
 fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touchedKey: String, x: Float, y:Float) {
     when (data) {
-        is Study1TestLog -> {
-            // Handle Study1TestLog specific logic here
+        is TypingTestLog -> {
+            // Handle TypingTestLog specific logic here
             data.x = x
             data.y = y
             data.state = state
             data.touchedKey = touchedKey
             data.timestamp = System.currentTimeMillis()
             data.date = System.currentTimeMillis().toFormattedDateString()
-            addStudy1TestLog(context, name, data)
-        }
-        is Study1Phase3Log -> {
-            // Handle Study1TestLog specific logic here
-            data.x = x
-            data.y = y
-            data.state = state
-            data.touchedKey = touchedKey
-            data.timestamp = System.currentTimeMillis()
-            data.date = System.currentTimeMillis().toFormattedDateString()
-            addStudy1Phase3Log(context, name, data)
+            addTypingTestLog(context, name, data)
         }
         is Study2TestLog -> {
             data.x = x
@@ -97,15 +74,6 @@ fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touc
             data.timestamp = System.currentTimeMillis()
             data.date = System.currentTimeMillis().toFormattedDateString()
             addStudy2TrainLog(context, name, data)
-        }
-        is Study2BVITestLog -> {
-            data.x = x
-            data.y = y
-            data.state = state
-            data.touchedKey = touchedKey
-            data.timestamp = System.currentTimeMillis()
-            data.date = System.currentTimeMillis().toFormattedDateString()
-            addStudy2BVILog(context, name, data)
         }
         else -> {
             // Handle unknown type

@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study1.test
+package com.taehokimmm.hapticvboard_android.layout.intro
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,52 +34,48 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
-import com.taehokimmm.hapticvboard_android.database.closeStudy2TrainDatabase
 import com.taehokimmm.hapticvboard_android.database.resetData
 
 
 @Composable
-fun Study1TestInit(navController: NavHostController) {
+fun IntroInit(navController: NavHostController) {
     val context = LocalContext.current
-    var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var options = listOf("A", "AB", "ABC", "ABCD")
-    var selectedOption by remember { mutableStateOf("") }
+    var options = listOf("1", "2", "3", "123")
+    var selectedOption by remember { mutableStateOf(setOf("")) }
 
+    var categories = listOf("phoneme", "location")
+    var selectedCategory by remember { mutableStateOf("phoneme") }
 
-    val subjectFocusRequester = FocusRequester()
-    val focusManager = LocalFocusManager.current
-
-    var subjects = listOf("test")
-    for(i in 1 until 12) {
-        subjects += listOf("P" + i)
-    }
-    for(i in 1 until 6) {
-        subjects += listOf("VP" + i)
-    }
-    for(i in 1 until 8) {
-        subjects += listOf("Pilot" + i)
-    }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Test subject identifier
+            // Select Group Category
             Text(
                 modifier = Modifier.padding(start = 14.dp),
-                text = "Select Subject",
+                text = "Select Group Category",
                 fontSize = 16.sp
             )
-
-            Spinner(
-                options = subjects,
-                onOptionSelected = { selectedOption ->
-                    testSubjectIdentifier = selectedOption.trim()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column {
+                    categories.forEach{option -> (
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(
+                                    selected = selectedCategory == option,
+                                    onClick = { selectedCategory = option }
+                                )
+                                Text(text = option)
+                            }
+                            )}
                 }
-            )
+            }
 
             // Select Test Group
             Text(
@@ -92,17 +88,15 @@ fun Study1TestInit(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Column {
-                    options.forEach{option -> (
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = selectedOption == option,
-                                onClick = { selectedOption = option }
-                            )
-                            Text(text = option)
-                        }
-                    )}
-                }
+                    options.forEach{option ->
+                        CheckboxWithLabel(
+                            checked = selectedOption.contains(option),
+                            onCheckedChange = {
+                                if (it) selectedOption = selectedOption.plus(option)
+                                else selectedOption = selectedOption.minus(option)},
+                            label = option
+                        )
+                    }
             }
 
             if (errorMessage.isNotEmpty()) {
@@ -117,72 +111,22 @@ fun Study1TestInit(navController: NavHostController) {
                 onClick = {
                     closeAllDatabases()
                     when {
-                        testSubjectIdentifier.isEmpty() -> errorMessage =
-                            "Please enter a test subject"
-
                         selectedOption.isEmpty() -> errorMessage =
                             "Please select a test group"
 
                         else -> {
-                            navController.navigate("study1/test/${testSubjectIdentifier}/${selectedOption}")
+                            navController.navigate("intro/intro/${selectedCategory}/${selectedOption.joinToString("")}")
                         }
                     }
                 }, modifier = Modifier
                     .padding(top = 20.dp)
                     .fillMaxWidth()
             ) {
-                Text("Start Test")
-            }
-
-//            Button(onClick = {
-//                resetData(context, testSubjectIdentifier, selectedOption)
-//            }, colors = ButtonColors(Color.Red, Color.White, Color.White, Color.White)
-//            ) {
-//                Text("DELETE DATABASE", color = Color.White)
-//            }
-        }
-    }
-}
-
-@Composable
-fun Spinner(options: List<String>, onOptionSelected: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf(options[0]) }
-
-    Box {
-        Text(
-            text = selectedOption,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = { expanded = true })
-                .background(
-                    color = Color.LightGray
-                )
-                .padding(16.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .padding(16.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        selectedOption = option
-                        expanded = false
-                        onOptionSelected(option)
-                    })
+                Text("Start")
             }
         }
     }
 }
-
 
 
 @Composable

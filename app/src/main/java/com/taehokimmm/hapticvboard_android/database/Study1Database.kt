@@ -6,9 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Study1TestAnswer::class, Study1Phase2Answer::class, Study1Phase3Answer::class,
-               Study1TestLog::class, Study1Phase3Log::class],
-    version = 1
+    entities = [VibrationTestAnswer::class,
+        TypingTestAnswer::class,
+        TypingTestLog::class],
+    version = 2
 )
 abstract class Study1Database : RoomDatabase() {
     abstract fun getDao() : Study1Dao

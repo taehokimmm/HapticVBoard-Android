@@ -1,13 +1,19 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.text_entry
+package com.taehokimmm.hapticvboard_android.layout.textentry
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,14 +24,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
-import com.taehokimmm.hapticvboard_android.layout.study1.test.CheckboxWithLabel
-import com.taehokimmm.hapticvboard_android.layout.study1.test.Spinner
 
 
 @Composable
@@ -159,7 +164,7 @@ fun Study2Init(navController: NavHostController) {
                 onClick = {
                     closeAllDatabases()
                     if (testSubjectIdentifier.isNotEmpty()) {
-                        navController.navigate("study2/test/$testSubjectIdentifier/$selectedOption/$isPractice/$selectedBlock")
+                        navController.navigate("textEntry/$testSubjectIdentifier/$selectedOption/$isPractice/$selectedBlock")
                     } else if (testSubjectIdentifier.isEmpty()) {
                         errorMessage = "Please enter a test subject"
                     }
@@ -180,5 +185,54 @@ fun Study2Init(navController: NavHostController) {
 //                    color = Color.White)
 //            }
         }
+    }
+}
+
+@Composable
+fun Spinner(options: List<String>, onOptionSelected: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf(options[0]) }
+
+    Box {
+        Text(
+            text = selectedOption,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = { expanded = true })
+                .background(
+                    color = Color.LightGray
+                )
+                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        selectedOption = option
+                        expanded = false
+                        onOptionSelected(option)
+                    })
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun CheckboxWithLabel(checked: Boolean, onCheckedChange: (Boolean) -> Unit, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+        Text(text = label, fontSize = 16.sp)
     }
 }

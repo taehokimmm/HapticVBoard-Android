@@ -7,38 +7,28 @@ import java.util.Date
 import java.util.Locale
 
 
-@Entity("study1TestAnswer")
-data class Study1TestAnswer(
+@Entity("VibrationTestAnswer")
+data class VibrationTestAnswer(
+    val row: String,
     val answer: String,
     val perceived: String,
     val iter: Int,
     val block: Int,
-    val duration: Long,
     var timestamp: String = System.currentTimeMillis().toFormattedDateString()
 ) {
     @PrimaryKey(autoGenerate = true)
     var id : Int = 0
 }
 
-@Entity("study1Phase3Answer")
-data class Study1Phase3Answer(
+@Entity("TypingTestAnswer")
+data class TypingTestAnswer(
+    val row: String,
     val answer: String,
     val perceived: String,
     val iter: Int,
     val block: Int,
     val duration: Long,
-    var timestamp: String = System.currentTimeMillis().toFormattedDateString()
-) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
-}
-
-@Entity("study1Phase2Answer")
-data class Study1Phase2Answer(
-    val answer: String,
-    val perceived: String,
-    val iter: Int,
-    val block: Int,
+    val mode: Int,
     var timestamp: String = System.currentTimeMillis().toFormattedDateString()
 ) {
     @PrimaryKey(autoGenerate = true)
@@ -51,27 +41,13 @@ fun Long.toFormattedDateString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String 
     return format.format(date)
 }
 
-@Entity("study1TestLog")
-data class Study1TestLog(
+@Entity("TypingTestLog")
+data class TypingTestLog(
+    val row: String,
     val answer: String,
     val iter: Int,
     val block: Int,
-    var state: String = "", // DOWN, UP, MOVE
-    var touchedKey: String = "",
-    var x : Float = 0.0f,
-    var y : Float = 0.0f,
-    var timestamp: Long = System.currentTimeMillis(),
-    var date: String = System.currentTimeMillis().toFormattedDateString()
-) {
-    @PrimaryKey(autoGenerate = true)
-    var id : Int = 0
-}
-
-@Entity("study1Phase3Log")
-data class Study1Phase3Log(
-    val answer: String,
-    val iter: Int,
-    val block: Int,
+    val mode: Int,
     var state: String = "", // DOWN, UP, MOVE
     var touchedKey: String = "",
     var x : Float = 0.0f,

@@ -48,23 +48,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.taehokimmm.hapticvboard_android.layout.study1.intro.GroupIntro
-import com.taehokimmm.hapticvboard_android.layout.study1.intro.IntroInit
-import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1Test
-import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestEnd
-import com.taehokimmm.hapticvboard_android.layout.study1.test.Study1TestInit
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainEnd
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TrainInit
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1FreePlay
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1TypingQuiz
-import com.taehokimmm.hapticvboard_android.layout.study1.train.Study1VibrationQuiz
-import com.taehokimmm.hapticvboard_android.layout.study2.text_entry.Study2End
-import com.taehokimmm.hapticvboard_android.layout.study2.text_entry.Study2Init
-import com.taehokimmm.hapticvboard_android.layout.study2.text_entry.Study3
-import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2FreePlay
-import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2Train
-import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainEnd
-import com.taehokimmm.hapticvboard_android.layout.study2.train.Study2TrainInit
+import com.taehokimmm.hapticvboard_android.layout.intro.GroupIntro
+import com.taehokimmm.hapticvboard_android.layout.intro.IntroInit
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.VibrationTestEnd
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.VibrationTestInit
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.Study1VibrationQuiz
+import com.taehokimmm.hapticvboard_android.layout.textentry.Study2End
+import com.taehokimmm.hapticvboard_android.layout.textentry.Study2Init
+import com.taehokimmm.hapticvboard_android.layout.textentry.Study3
+import com.taehokimmm.hapticvboard_android.layout.typingtest.TypingTestFreePlay
+import com.taehokimmm.hapticvboard_android.layout.typingtest.TypingTest
+import com.taehokimmm.hapticvboard_android.layout.typingtest.TypingTestEnd
+import com.taehokimmm.hapticvboard_android.layout.typingtest.TypingTestInit
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 //import com.taehokimmm.hapticvboard_android.manager.SerialMonitorScreen
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -148,6 +143,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         currentScreen = "freeType"
                         FreeTypeMode(innerPadding, soundManager, hapticManager, hapticMode)
                     }
+                    //------ Introduction -----//
                     composable("intro/init") {
                         currentScreen = "intro/init"
                         IntroInit(navController)
@@ -158,12 +154,14 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         val group = it.arguments?.getString("Group")!!
                         GroupIntro(innerPadding, soundManager, hapticManager, category, group)
                     }
-                    composable("study1/train/init") {
-                        currentScreen = "study1/train/init"
-                        Study1TrainInit(navController)
+
+                    //------ Vibration Test -----//
+                    composable("vibrationTest/init") {
+                        currentScreen = "vibrationTest/init"
+                        VibrationTestInit(navController)
                     }
-                    composable("study1/train/phase1/{subject}/{Group}") {
-                        currentScreen = "study1/train/phase1"
+                    composable("vibrationTest/train/{subject}/{Group}") {
+                        currentScreen = "vibrationTest/train"
                         val subject = it.arguments?.getString("subject")!!
                         val group = it.arguments?.getString("Group")!!
                         Study1VibrationQuiz(
@@ -176,74 +174,45 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             hapticMode
                         )
                     }
-                    composable("study1/train/phase2/{subject}/{Group}") {
-                        currentScreen = "study1/train/phase2"
+                    composable("vibrationTest/end/{subject}") {
+                        currentScreen = "vibrationTest/end"
                         val subject = it.arguments?.getString("subject")!!
-                        val group = it.arguments?.getString("Group")!!
-                        Study1FreePlay(
-                            innerPadding,
-                            subject,
-                            group,
-                            navController,
-                            soundManager!!,
-                            hapticManager!!,
-                            hapticMode
-                        )
-                    }
-                    composable("study1/train/phase3/{subject}/{Group}") {
-                        currentScreen = "study1/train/phase3"
-                        val subject = it.arguments?.getString("subject")!!
-                        val group = it.arguments?.getString("Group")!!
-                        Study1TypingQuiz(
-                            innerPadding,
-                            subject,
-                            group,
-                            navController,
-                            soundManager!!,
-                            hapticManager!!,
-                            HapticMode.PHONEME
-                        )
-                    }
-                    composable("study1/train/end/{subject}") {
-                        currentScreen = "study1/train/end"
-                        val subject = it.arguments?.getString("subject")!!
-                        Study1TrainEnd(subject, navController)
-                    }
-                    composable("study1/test/init") {
-                        currentScreen = "study1/test/init"
-                        Study1TestInit(navController)
-                    }
-                    composable("study1/test/{subject}/{Group}") {
-                        currentScreen = "study1/test"
-                        val subject = it.arguments?.getString("subject")!!
-                        val group = it.arguments?.getString("Group")!!
-                        Study1Test(
-                            innerPadding,
-                            subject,
-                            group,
-                            navController,
-                            soundManager!!,
-                            hapticManager!!,
-                            HapticMode.PHONEME
-                        )
-                    }
-                    composable("study1/test/end/{subject}") {
-                        currentScreen = "study1/test/end"
-                        val subject = it.arguments?.getString("subject")!!
-                        Study1TestEnd(subject, navController)
+                        VibrationTestEnd(subject, navController)
                     }
 
-                    composable("study2/train/init") {
-                        currentScreen = "study2/train/init"
-                        Study2TrainInit(navController)
+                    //------ Typing Test -----//
+
+                    composable("typingTest/init") {
+                        currentScreen = "typingTest/init"
+                        TypingTestInit(navController)
                     }
 
-                    composable("study2/train/freeplay/{subject}/{option}") {
-                        currentScreen = "study2/train"
+                    composable("typingTest/freeplay/{subject}/{option}/{day}") {
+                        currentScreen = "typingTest"
                         val subject = it.arguments?.getString("subject")!!
                         val option = it.arguments?.getString("option")!!
+                        val day = it.arguments?.getString("day")!!
 
-                        Study2FreePlay(
+
+                        TypingTestFreePlay(
+                            innerPadding,
+                            subject,
+                            navController,
+                            soundManager!!,
+                            hapticManager!!,
+                            option,
+                            day
+                        )
+                    }
+
+                    composable("typingTest/train/{subject}/{option}/{day}") {
+                        currentScreen = "typingTest"
+                        val subject = it.arguments?.getString("subject")!!
+                        val option = it.arguments?.getString("option")!!
+                        val day = it.arguments?.getString("day")!!
+
+                        TypingTest(
+                            day,
                             innerPadding,
                             subject,
                             navController,
@@ -253,34 +222,19 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         )
                     }
 
-                    composable("study2/train/train/{subject}/{option}") {
-                        currentScreen = "study2/train"
+                    composable("typingTest/end/{subject}") {
+                        currentScreen = "typingTest/end"
                         val subject = it.arguments?.getString("subject")!!
-                        val option = it.arguments?.getString("option")!!
-
-                        Study2Train(
-                            innerPadding,
-                            subject,
-                            navController,
-                            soundManager!!,
-                            hapticManager!!,
-                            option
-                        )
+                        TypingTestEnd(subject, navController)
                     }
 
-                    composable("study2/train/end/{subject}") {
-                        currentScreen = "study2/train/end"
-                        val subject = it.arguments?.getString("subject")!!
-                        Study2TrainEnd(subject, navController)
-                    }
-
-                    //------ Study 2 Test -----//
-                    composable("study2/test/init") {
-                        currentScreen = "study2/test/init"
+                    //------ Text Entry -----//
+                    composable("textEntry/init") {
+                        currentScreen = "textEntry/init"
                         Study2Init(navController)
                     }
-                    composable("study2/test/{subject}/{feedback}/{isPractice}/{testBlock}") {
-                        currentScreen = "study2/test"
+                    composable("textEntry/{subject}/{feedback}/{isPractice}/{testBlock}") {
+                        currentScreen = "textEntry"
                         val subject = it.arguments?.getString("subject")!!
                         val feedback = it.arguments?.getString("feedback")!!
                         val isPractice = it.arguments?.getString("isPractice")!!.toBoolean()
@@ -302,8 +256,8 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             testBlock
                         )
                     }
-                    composable("study2/test/end/{subject}") {
-                        currentScreen = "study2/test/end"
+                    composable("textEntry/end/{subject}") {
+                        currentScreen = "textEntry/end"
                         val subject = it.arguments?.getString("subject")!!
                         Study2End(subject, navController)
                     }
@@ -345,10 +299,10 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("1. Vibration Test") },
-                selected = selectedItem == "study1/train",
+                selected = selectedItem == "vibrationTest",
                 onClick = {
-                    navController.navigate("study1/train/init")
-                    selectedItem = "study1/train"
+                    navController.navigate("vibrationTest/init")
+                    selectedItem = "vibrationTest"
                     onItemClicked()
                 })
 //            NavigationDrawerItem(label = { Text("Study 1 Test") },
@@ -359,17 +313,17 @@ fun DrawerContent(navController: NavHostController, onItemClicked: () -> Unit) {
 //                    onItemClicked()
 //                })
             NavigationDrawerItem(label = { Text("2. Typing Test") },
-                selected = selectedItem == "study2/train",
+                selected = selectedItem == "typingTest",
                 onClick = {
-                    navController.navigate("study2/train/init")
-                    selectedItem = "study2/train"
+                    navController.navigate("typingTest/init")
+                    selectedItem = "typingTest"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("3. Text Entry") },
-                selected = selectedItem == "study2/test",
+                selected = selectedItem == "textEntry",
                 onClick = {
-                    navController.navigate("study2/test/init")
-                    selectedItem = "study2/test"
+                    navController.navigate("textEntry/init")
+                    selectedItem = "textEntry"
                     onItemClicked()
                 })
             NavigationDrawerItem(label = { Text("Setting") },
@@ -396,13 +350,9 @@ fun DrawTopAppBar(
         "intro/init" -> "Introduction"
         "intro/intro/init" -> "Introduction"
         "train" -> "Train"
-        "study1/train/init" -> "Study 1 Train"
-        "study1/train/phase1" -> "Identification Quiz"
-        "study1/train/phase2" -> "Free Play"
-        "study1/train/phase3" -> "Typing Quiz"
-        "study1/test/init" -> "Study 1 Test"
-        "study2/train/init" -> "Study 2 Train"
-        "study2/test/init" -> "Study 2 Test"
+        "vibrationTest/init" -> "Vibration Test"
+        "typingTest/init" -> "Typing Test"
+        "textEntry/init" -> "Text Entry"
         "setting" -> "Setting"
         else -> ""
     }

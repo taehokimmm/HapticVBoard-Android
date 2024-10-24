@@ -6,17 +6,11 @@ import androidx.room.Insert
 @Dao
 interface Study1Dao {
     @Insert
-    fun addTest(data: Study1TestAnswer)
+    fun addVibrationTestAnswer(data: VibrationTestAnswer)
 
     @Insert
-    fun addTrainPhase3(data: Study1Phase3Answer)
+    fun addTypingTestAnswer(data: TypingTestAnswer)
 
     @Insert
-    fun addTrainPhase2(data: Study1Phase2Answer)
-
-    @Insert
-    fun addTestLog(data: Study1TestLog)
-
-    @Insert
-    fun addPhase3Log(data: Study1Phase3Log)
+    fun addTypingTestLog(data: TypingTestLog)
 }

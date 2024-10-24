@@ -1,10 +1,9 @@
-package com.taehokimmm.hapticvboard_android.layout.study2.train
+package com.taehokimmm.hapticvboard_android.layout.typingtest
 
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,7 +24,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
-import com.taehokimmm.hapticvboard_android.layout.study1.train.getAllowGroup
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.getAllowGroup
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -35,13 +34,14 @@ import kotlinx.coroutines.delay
 
 // PHASE 1 : FREE PLAY
 @Composable
-fun Study2FreePlay(
+fun TypingTestFreePlay(
     innerPadding: PaddingValues,
     subject: String,
     navController: NavHostController?,
     soundManager: SoundManager,
     hapticManager: HapticManager?,
     group: String,
+    day: String = "1",
 ) {
 
     var allowGroup = getAllowGroup(group)
@@ -70,7 +70,7 @@ fun Study2FreePlay(
             Button(
                 onClick = {
                     closeStudy1Database()
-                    navController?.navigate("study2/train/train/${subject}/${group}")
+                    navController?.navigate("typingTest/train/${subject}/${group}/${day}")
                 }, modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 Text("Skip")

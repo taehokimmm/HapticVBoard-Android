@@ -1,4 +1,4 @@
-package com.taehokimmm.hapticvboard_android.layout.study1.train
+package com.taehokimmm.hapticvboard_android.layout.vibrationtest
 
 import android.os.Bundle
 import android.os.Handler
@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.database.Study1Phase2Answer
-import com.taehokimmm.hapticvboard_android.database.addStudy1TrainPhase2Answer
+import com.taehokimmm.hapticvboard_android.database.VibrationTestAnswer
+import com.taehokimmm.hapticvboard_android.database.addVibrationTestAnswer
 import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -126,10 +126,10 @@ fun Study1VibrationQuiz(
                 delay({ soundManager.speakOutChar(key) },delay+0, handler)
             )
 
-//            // Phoneme
-//            runnables.add(
-//                delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
-//            )
+            // Phoneme
+            runnables.add(
+                delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
+            )
 
             runnables.add(
                 delay({isExplaining = false}, delay+1500, handler)
@@ -168,13 +168,14 @@ fun Study1VibrationQuiz(
             isShowAnswer = true
 
             //--- Append Data to Database ---//
-            val data = Study1Phase2Answer(
+            val data = VibrationTestAnswer(
+                row = group,
                 answer = targetOption,
                 perceived = selectedOption,
                 iter = testIter,
                 block = testBlock
             )
-            addStudy1TrainPhase2Answer(context, subject, group, data)
+            addVibrationTestAnswer(context, subject, group, data)
             // ------------------------------//
             explainKey(targetOption, 500, isPhoneme = true)
         }
@@ -264,7 +265,7 @@ fun Study1VibrationQuiz(
         testBlock++
         if (testBlock > totalBlock) {
             closeStudy1Database()
-            navController.navigate("study1/train/phase2/${subject}/${group}")
+            navController.navigate("vibrationTest/end/${subject}")
         } else {
             testList = allowlist.shuffled()
             testIter = -1
@@ -387,7 +388,7 @@ fun Study1VibrationQuiz(
             Button(
                 onClick = {
                     closeStudy1Database()
-                    navController.navigate("study1/train/phase2/${subject}/${group}")
+                    navController.navigate("vibrationTest/train/${subject}/${group}")
                 },
                 modifier = Modifier.align(Alignment.Start)
             ) {
@@ -512,6 +513,41 @@ fun Study1VibrationQuiz(
     }
 }
 
+
+
+fun getAllowGroup(group: String, isAlphabet: Boolean = false): List<String> {
+    var allow = emptyList<String>().toMutableList()
+//    if (group.contains("A")) allow += listOf("q", "w", "e", "a", "s", "d", "z", "x")
+//    if (group.contains("B")) allow += listOf("e", "d", "x", "r", "t", "f", "g", "c", "v")
+//    if (group.contains("C")) allow += listOf("t", "y", "u", "g", "h", "j", "v", "b", "n")
+//    if (group.contains("D")) allow += listOf("u", "i", "o", "p", "j", "k", "l", "n", "m")
+
+    if (group.contains("1")) allow += listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p")
+    if (group.contains("2")) allow +=listOf("a", "s", "d", "f", "g", "h", "j", "k", "l")
+    if (group.contains("3")) allow +=listOf("z", "x", "c", "v", "b", "n", "m")
+    if (group == "123" && isAlphabet) allow += listOf("Space", "Backspace")
+    allow = allow.toSet().toMutableList()
+    return allow
+}
+
+fun delay(function: () -> Unit, delayMillis: Long, handler: Handler? = null): Runnable {
+    val runnable = Runnable {
+        function()
+    }
+    if (handler == null) {
+        Handler(Looper.getMainLooper()).postDelayed(
+            runnable,
+            delayMillis
+        )
+    } else {
+        handler.postDelayed(
+            runnable,
+            delayMillis
+        )
+    }
+
+    return runnable
+}
 
 @Composable
 fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, height: Dp = 200.dp) {
