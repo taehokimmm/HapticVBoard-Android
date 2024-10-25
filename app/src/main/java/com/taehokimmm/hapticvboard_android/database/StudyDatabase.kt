@@ -6,20 +6,26 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Study2Metric::class, Study2TestLog::class],
+    entities = [VibrationTestAnswer::class,
+        TypingTestAnswer::class,
+        TypingTestLog::class,
+               TypingTest2Log::class,
+               TypingTest2Answer::class,
+               TextEntryLog::class,
+               TextEntryMetric::class],
     version = 1
 )
-abstract class Study2Database : RoomDatabase() {
-    abstract fun getDao() : Study2Dao
+abstract class StudyDatabase : RoomDatabase() {
+    abstract fun getDao() : StudyDao
 
     companion object{
-        @Volatile private var INSTANCE: Study2Database? = null
+        @Volatile private var INSTANCE: StudyDatabase? = null
 
-        fun getInstance(context: Context, name: String): Study2Database {
+        fun getInstance(context: Context, name: String): StudyDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    Study2Database::class.java,
+                    StudyDatabase::class.java,
                     name
                 ).build()
                 INSTANCE = instance
@@ -35,5 +41,6 @@ abstract class Study2Database : RoomDatabase() {
                 INSTANCE = null
             }
         }
+
     }
 }

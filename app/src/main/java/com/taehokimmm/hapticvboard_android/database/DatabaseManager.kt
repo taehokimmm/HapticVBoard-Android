@@ -9,9 +9,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 // INSERT DATA FOR STUDY1
-fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1Dao, data: T) -> Unit) {
+fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: StudyDao, data: T) -> Unit) {
     CoroutineScope(Dispatchers.IO).launch {
-        val dao = Study1Database.getInstance(context, name).getDao()
+        val dao = StudyDatabase.getInstance(context, name).getDao()
         addFunction(dao, data)
         withContext(Dispatchers.Main) {
             // You can update UI here if needed
@@ -19,20 +19,8 @@ fun <T> addData(context: Context, name:String, data:T, addFunction: (dao: Study1
     }
 }
 
-fun addTypingTestAnswer(context: Context, subject: String, data: TypingTestAnswer){
-    addData(context, subject, data
-    ) { dao, answer -> dao.addTypingTestAnswer(answer) }
-}
-
-fun closeStudy1Database() {
-    Study1Database.closeDatabase()
-}
-
-
-fun closeAllDatabases() {
-    Study1Database.closeDatabase()
-    Study2Database.closeDatabase()
-    Study2TrainDatabase.closeDatabase()
+fun closeStudyDatabase() {
+    StudyDatabase.closeDatabase()
 }
 
 fun addVibrationTestAnswer(context: Context, subject: String, group: String, data: VibrationTestAnswer){
@@ -40,9 +28,35 @@ fun addVibrationTestAnswer(context: Context, subject: String, group: String, dat
     ) { dao, answer -> dao.addVibrationTestAnswer(answer) }
 }
 
+fun addTypingTestAnswer(context: Context, subject: String, data: TypingTestAnswer){
+    addData(context, subject, data
+    ) { dao, answer -> dao.addTypingTestAnswer(answer) }
+}
+
 fun addTypingTestLog(context: Context, name: String, data: TypingTestLog){
     addData(context, name, data
     ) { dao, answer -> dao.addTypingTestLog(answer) }
+}
+
+
+fun addTypingTest2Answer(context: Context, subject: String, data: TypingTest2Answer){
+    addData(context, subject, data
+    ) { dao, answer -> dao.addTypingTest2Answer(answer) }
+}
+
+fun addTypingTest2Log(context: Context, name: String, data: TypingTest2Log){
+    addData(context, name, data
+    ) { dao, answer -> dao.addTypingTest2Log(answer) }
+}
+
+fun addTextEntryMetric(context: Context, subject: String, data: TextEntryMetric){
+    addData(context, subject, data
+    ) { dao, answer -> dao.addTextEntryMetric(answer) }
+}
+
+fun addTextEntryLog(context: Context, name: String, data: TextEntryLog){
+    addData(context, name, data
+    ) { dao, answer -> dao.addTextEntryLog(answer) }
 }
 
 fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touchedKey: String, x: Float, y:Float) {
@@ -57,23 +71,23 @@ fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touc
             data.date = System.currentTimeMillis().toFormattedDateString()
             addTypingTestLog(context, name, data)
         }
-        is Study2TestLog -> {
+        is TypingTest2Log -> {
             data.x = x
             data.y = y
             data.state = state
             data.touchedKey = touchedKey
             data.timestamp = System.currentTimeMillis()
             data.date = System.currentTimeMillis().toFormattedDateString()
-            addStudy2Log(context, name, data)
+            addTypingTest2Log(context, name, data)
         }
-        is Study2TrainLog -> {
+        is TextEntryLog -> {
             data.x = x
             data.y = y
             data.state = state
             data.touchedKey = touchedKey
             data.timestamp = System.currentTimeMillis()
             data.date = System.currentTimeMillis().toFormattedDateString()
-            addStudy2TrainLog(context, name, data)
+            addTextEntryLog(context, name, data)
         }
         else -> {
             // Handle unknown type
@@ -86,7 +100,7 @@ fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touc
 fun deleteDatabaseByName(context: Context, databaseName: String) {
     var myDatabase = Room.databaseBuilder(
         context,
-        Study1Database::class.java, databaseName
+        StudyDatabase::class.java, databaseName
     ).build()
 
     // Example usage: Delete the database when a certain condition is met
@@ -99,7 +113,7 @@ fun resetData(context: Context, subject: String, group: String) {
     val databaseName = subject+"_"+group
     var myDatabase = Room.databaseBuilder(
         context,
-        Study1Database::class.java, databaseName
+        StudyDatabase::class.java, databaseName
     ).build()
 
     // Example usage: Delete the database when a certain condition is met

@@ -41,13 +41,13 @@ import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
-import com.taehokimmm.hapticvboard_android.database.Study2TrainAnswer
-import com.taehokimmm.hapticvboard_android.database.Study2TrainLog
+import com.taehokimmm.hapticvboard_android.database.TypingTest2Answer
+import com.taehokimmm.hapticvboard_android.database.TypingTest2Log
 import com.taehokimmm.hapticvboard_android.database.TypingTestAnswer
 import com.taehokimmm.hapticvboard_android.database.TypingTestLog
-import com.taehokimmm.hapticvboard_android.database.addStudy2TrainAnswer
+import com.taehokimmm.hapticvboard_android.database.addTypingTest2Answer
 import com.taehokimmm.hapticvboard_android.database.addTypingTestAnswer
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
+import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 import com.taehokimmm.hapticvboard_android.layout.vibrationtest.getAllowGroup
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -56,7 +56,7 @@ import java.util.Locale
 
 @Composable
 fun TypingTest(
-    day: String = "1",
+    testBlock: Int,
     innerPadding: PaddingValues,
     subject: String,
     navController: NavHostController?,
@@ -71,7 +71,6 @@ fun TypingTest(
     val totalBlock = 3
     val modeCnt = 2
 
-    var testBlock by remember { mutableStateOf(0) }
     var testIter by remember { mutableIntStateOf(-1) }
     var modeIter by remember { mutableIntStateOf(0) }
     var modeNames = listOf("학습", "테스트")
@@ -109,29 +108,19 @@ fun TypingTest(
         startTime = System.currentTimeMillis()
     }
 
-    fun speak(word: String) {
-        soundManager.stop()
-        soundManager.speakOutChar(word)
-        startTime = -1L
-    }
-
     fun addLogging(inputText: String) {
         endTime = System.currentTimeMillis()
 
-        if (day == "1") {
-            val data = TypingTestAnswer(
-                row = group,
-                answer = testList[testIter],
-                perceived = inputText,
-                iter = testIter,
-                mode = modeIter,
-                block = testBlock,
-                duration = endTime - startTime
-            )
-            addTypingTestAnswer(context, databaseName, data)
-        } else {
-
-        }
+        val data = TypingTestAnswer(
+            row = group,
+            answer = testList[testIter],
+            perceived = inputText,
+            iter = testIter,
+            mode = modeIter,
+            block = testBlock,
+            duration = endTime - startTime
+        )
+        addTypingTestAnswer(context, databaseName, data)
     }
 
     fun explainKey(key: String, delay: Long = 0) {
@@ -144,25 +133,40 @@ fun TypingTest(
                 soundManager.stop()}, delay, handler)
         )
 
-        runnables.add(
-            delay({soundManager?.speakOut(key)}, delay, handler)
-        )
-        // Phoneme
-        runnables.add(
-            delay({ soundManager.playPhoneme(key) }, 700+delay, handler)
-        )
+        var delay1 = 0;
+        if (isTypingMode) {
+            runnables.add(
+                delay({soundManager?.speakOutChar(key)}, delay, handler)
+            )
+            delay1 += 1000;
+        } else {
+            runnables.add(
+                delay({soundManager?.speakOut(key)}, delay, handler)
+            )
+        }
+
+        if (modeIter == 0 || isTypingMode == false) {
+            delay1 += 700;
+            // Phoneme
+            runnables.add(
+                delay({ soundManager.playPhoneme(key) }, delay1+delay, handler)
+            )
+        }
+
+        if (isTypingMode == false) {
+            delay1 += 700;
+            runnables.add(
+                delay({
+                    hapticManager?.generateHaptic(
+                        key,
+                        HapticMode.PHONEME
+                    )
+                }, delay1+delay, handler)
+            )
+        }
 
         runnables.add(
-            delay({
-                hapticManager?.generateHaptic(
-                    key,
-                    HapticMode.PHONEME
-                )
-            }, 1400+delay, handler)
-        )
-
-        runnables.add(
-            delay({isExplaining = false}, 1400, handler)
+            delay({isExplaining = false}, delay1+delay, handler)
         )
     }
 
@@ -249,8 +253,27 @@ fun TypingTest(
         }
     }
 
-    LaunchedEffect(isSpeakingNum) {
-        Log.d("study2train", "speaking NUm : "+isSpeakingNum)
+    fun onEnd() {
+        val nextBlock = testBlock + 1
+        if (nextBlock >= totalBlock) {
+            modeIter++
+            if (modeIter >= modeCnt) {
+                closeStudyDatabase()
+                val nextGroup = when(group) {
+                    "1" -> "2"
+                    "2" -> "3"
+                    else -> null
+                }
+                if (nextGroup == null)
+                    navController!!.navigate("typingTest/end/$subject")
+                else
+                    navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/0")
+            } else {
+                modeIter = 1
+            }
+        } else {
+            navController!!.navigate("typingTest/train/$subject/$group/$nextBlock")
+        }
     }
 
     LaunchedEffect(isTypingMode) {
@@ -273,30 +296,6 @@ fun TypingTest(
         if (temp != countdown) countdown = temp
     }
 
-
-
-    LaunchedEffect(testBlock) {
-
-        if (testBlock >= totalBlock) {
-            modeIter++
-            if (modeIter >= modeCnt) {
-                closeStudy2Database()
-                val nextGroup = when(group) {
-                    "1" -> "2"
-                    "2" -> "3"
-                    else -> null
-                }
-                if (nextGroup == null)
-                    navController!!.navigate("typingTest/end/$subject")
-                else
-                    navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/$day")
-            } else {
-                modeIter = 1
-            }
-            return@LaunchedEffect
-        }
-    }
-
     LaunchedEffect(testIter) {
         if (modeIter >= modeCnt) return@LaunchedEffect
         if (testIter == -1) {
@@ -304,14 +303,13 @@ fun TypingTest(
             val modeName = modeNames[modeIter]
             soundManager.stop()
             soundManager.speakOut(modeName + " : 시작하려면 이중탭하세요.")
-
         } else if (testIter >= testList.size) {
             explainResult()
             countdown = 1
             timer = 0
         } else {
             isTypingMode = true
-            speak(testList[testIter])
+            explainKey(testList[testIter])
         }
     }
 
@@ -448,7 +446,7 @@ fun TypingTest(
                 factory = { context ->
                     MultiTouchView(
                         context,
-                        onTap = {speak(testList[testIter])}
+                        onTap = {explainKey(testList[testIter])}
                     ).apply {
                         onMultiTouchEvent = { event ->
                             keyboardTouchEvents.clear()
@@ -467,14 +465,7 @@ fun TypingTest(
                         onDoubleTap = {
                             Log.d("study2train", "double tap " + isSpeakingNum.toString())
                             if (countdown > 0 || isSpeakingNum > 0) return@detectTapGestures
-
-                            //modeIter++
-                            testBlock++
-
-                            testIter = -1
-                            correctAnswer = 0
-                            wrongAnswer = listOf(listOf(""))
-                            soundManager.playEarcon("beep")
+                            onEnd()
                         },
                         onTap = {
                             explainResult()

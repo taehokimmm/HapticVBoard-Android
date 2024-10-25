@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Bundle
+import android.util.Log
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -187,12 +188,11 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         TypingTestInit(navController)
                     }
 
-                    composable("typingTest/freeplay/{subject}/{option}/{day}") {
+                    composable("typingTest/freeplay/{subject}/{option}/{block}") {
                         currentScreen = "typingTest"
                         val subject = it.arguments?.getString("subject")!!
                         val option = it.arguments?.getString("option")!!
-                        val day = it.arguments?.getString("day")!!
-
+                        val block = it.arguments?.getString("block")!!
 
                         TypingTestFreePlay(
                             innerPadding,
@@ -201,18 +201,18 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             soundManager!!,
                             hapticManager!!,
                             option,
-                            day
+                            block.toInt()
                         )
                     }
 
-                    composable("typingTest/train/{subject}/{option}/{day}") {
+                    composable("typingTest/train/{subject}/{option}/{block}") {
                         currentScreen = "typingTest"
                         val subject = it.arguments?.getString("subject")!!
                         val option = it.arguments?.getString("option")!!
-                        val day = it.arguments?.getString("day")!!
+                        val block = it.arguments?.getString("block")!!
 
                         TypingTest(
-                            day,
+                            block.toInt(),
                             innerPadding,
                             subject,
                             navController,

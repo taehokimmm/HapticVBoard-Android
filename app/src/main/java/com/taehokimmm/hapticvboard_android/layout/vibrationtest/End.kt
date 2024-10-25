@@ -14,13 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
+import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 
 
 @Composable
 fun VibrationTestEnd(subject: String, navController: NavHostController) {
     LaunchedEffect(Unit) {
-        closeStudy1Database()
+        closeStudyDatabase()
     }
     
     Column(

@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
+import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 import com.taehokimmm.hapticvboard_android.layout.textentry.Spinner
 
 
@@ -34,7 +34,7 @@ fun VibrationTestInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var options = listOf("1", "2", "3", "123")
+    var options = listOf("1", "2", "3")
     var selectedOption by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()
@@ -106,7 +106,7 @@ fun VibrationTestInit(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    closeAllDatabases()
+                    closeStudyDatabase()
                     when {
                         testSubjectIdentifier.isEmpty() -> errorMessage =
                             "Please enter a test subject"

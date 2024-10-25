@@ -44,7 +44,7 @@ import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.VibrationTestAnswer
 import com.taehokimmm.hapticvboard_android.database.addVibrationTestAnswer
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
+import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.util.Locale
@@ -264,7 +264,7 @@ fun Study1VibrationQuiz(
         wrongAnswer = listOf(listOf(""))
         testBlock++
         if (testBlock > totalBlock) {
-            closeStudy1Database()
+            closeStudyDatabase()
             navController.navigate("vibrationTest/end/${subject}")
         } else {
             testList = allowlist.shuffled()
@@ -387,7 +387,7 @@ fun Study1VibrationQuiz(
         ) {
             Button(
                 onClick = {
-                    closeStudy1Database()
+                    closeStudyDatabase()
                     navController.navigate("vibrationTest/train/${subject}/${group}")
                 },
                 modifier = Modifier.align(Alignment.Start)
@@ -525,7 +525,7 @@ fun getAllowGroup(group: String, isAlphabet: Boolean = false): List<String> {
     if (group.contains("1")) allow += listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p")
     if (group.contains("2")) allow +=listOf("a", "s", "d", "f", "g", "h", "j", "k", "l")
     if (group.contains("3")) allow +=listOf("z", "x", "c", "v", "b", "n", "m")
-    if (group == "123" && isAlphabet) allow += listOf("Space", "Backspace")
+    if (group == "123" && !isAlphabet) allow += listOf("Space", "Backspace")
     allow = allow.toSet().toMutableList()
     return allow
 }

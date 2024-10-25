@@ -30,7 +30,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.taehokimmm.hapticvboard_android.database.closeAllDatabases
+import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 
 
 @Composable
@@ -162,7 +162,7 @@ fun Study2Init(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    closeAllDatabases()
+                    closeStudyDatabase()
                     if (testSubjectIdentifier.isNotEmpty()) {
                         navController.navigate("textEntry/$testSubjectIdentifier/$selectedOption/$isPractice/$selectedBlock")
                     } else if (testSubjectIdentifier.isEmpty()) {

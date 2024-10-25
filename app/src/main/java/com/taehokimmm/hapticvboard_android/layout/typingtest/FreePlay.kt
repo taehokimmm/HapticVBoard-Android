@@ -1,5 +1,6 @@
 package com.taehokimmm.hapticvboard_android.layout.typingtest
 
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.database.closeStudy1Database
+import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 import com.taehokimmm.hapticvboard_android.layout.vibrationtest.getAllowGroup
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
@@ -41,7 +42,7 @@ fun TypingTestFreePlay(
     soundManager: SoundManager,
     hapticManager: HapticManager?,
     group: String,
-    day: String = "1",
+    block: Int,
 ) {
 
     var allowGroup = getAllowGroup(group)
@@ -69,8 +70,9 @@ fun TypingTestFreePlay(
 
             Button(
                 onClick = {
-                    closeStudy1Database()
-                    navController?.navigate("typingTest/train/${subject}/${group}/${day}")
+                    closeStudyDatabase()
+                    Log.d("TypingTest", "free type " + block.toString())
+                    navController?.navigate("typingTest/train/${subject}/${group}/${block}")
                 }, modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 Text("Skip")

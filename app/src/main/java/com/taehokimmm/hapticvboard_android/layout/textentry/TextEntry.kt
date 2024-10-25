@@ -44,10 +44,10 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
 import com.taehokimmm.hapticvboard_android.R
-import com.taehokimmm.hapticvboard_android.database.Study2Metric
-import com.taehokimmm.hapticvboard_android.database.Study2TestLog
-import com.taehokimmm.hapticvboard_android.database.addStudy2Metric
-import com.taehokimmm.hapticvboard_android.database.closeStudy2Database
+import com.taehokimmm.hapticvboard_android.database.TextEntryLog
+import com.taehokimmm.hapticvboard_android.database.TextEntryMetric
+import com.taehokimmm.hapticvboard_android.database.addTextEntryMetric
+import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -225,10 +225,10 @@ fun Study3(
         val iki = calculateIKI(keystrokeTimestamps)
         val pd = calculatePressDuration(pressDurations)
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
-        val data = Study2Metric(
+        val data = TextEntryMetric(
             testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
         )
-        addStudy2Metric(context, databaseName, data)
+        addTextEntryMetric(context, databaseName, data)
     }
 
     fun initMetric() {
@@ -273,7 +273,7 @@ fun Study3(
         } else {
             testBlock++
             if (testBlock >= totalBlock) {
-                closeStudy2Database()
+                closeStudyDatabase()
                 navController!!.navigate("textEntry/end/$subject")
             } else {
                 testIter = -1
@@ -476,7 +476,7 @@ fun Study3(
                         soundManager = soundManager,
                         hapticManager = hapticManager,
                         hapticMode = hapticMode,
-                        logData = Study2TestLog(
+                        logData = TextEntryLog(
                             iteration = testIter,
                             block = testBlock,
                             targetText = testList[testIter],
