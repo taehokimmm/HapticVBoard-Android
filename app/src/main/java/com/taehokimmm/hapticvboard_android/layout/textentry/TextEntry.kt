@@ -66,7 +66,7 @@ fun Study3(
     hapticMode: HapticMode,
     testBlock: Int
 ) {
-    val databaseName = subject + "_" + when(hapticMode) {
+    val hapticName = when(hapticMode) {
         HapticMode.TICK -> "vibration"
         HapticMode.PHONEME -> "phoneme"
         HapticMode.VOICE -> "audio"
@@ -80,7 +80,11 @@ fun Study3(
 
     val totalBlock = when (isPractice) {
         true -> 1
-        false -> 2
+        false -> when(hapticMode) {
+            HapticMode.VOICE -> 2
+            HapticMode.PHONEME -> 4
+            else -> 1
+        }
     }
     val testNumber = when (isPractice) {
         true -> 3
@@ -114,11 +118,6 @@ fun Study3(
     var phrases by remember { mutableStateOf(listOf("")) }
 
     var modeIter by remember {mutableStateOf(-1)}
-    var horizontalDragStart by remember {mutableStateOf(0f)}
-    var horizontalDragEnd by remember {mutableStateOf(0f)}
-    var verticalDragStart by remember {mutableStateOf(0f)}
-    var verticalDragEnd by remember {mutableStateOf(0f)}
-    val swipeThreshold = 100
 
     var timer by remember { mutableStateOf(0) }
     var countdown by remember { mutableStateOf(30) }
@@ -142,12 +141,15 @@ fun Study3(
             true -> readTxtFile(context, R.raw.practice_phrase)
             false -> readTxtFile(context, R.raw.phrases30)
         }
-        if (hapticMode == HapticMode.PHONEME) {
-            phrases = phrases1.slice(0..totalBlock * testNumber - 1)
-        } else if (hapticMode == HapticMode.VOICE) {
-            phrases = phrases1.slice(totalBlock * testNumber..totalBlock * testNumber * 2 - 1)
+
+        if (isPractice) {
+            phrases = phrases1
         } else {
-            phrases = phrases1.slice(totalBlock * testNumber * 2..totalBlock * testNumber * 3 - 1)
+            if (hapticMode == HapticMode.PHONEME) {
+                phrases = phrases1.slice(0..4 * testNumber - 1)
+            } else if (hapticMode == HapticMode.VOICE) {
+                phrases = phrases1.slice(4 * testNumber..6 * testNumber - 1)
+            }
         }
 
         // Initiate TTS
@@ -218,7 +220,7 @@ fun Study3(
     fun addLogging() {
         val targetText = testList[testIter]
 
-        wpm = calculateWPM(startTime, endTime, targetText)
+        wpm = calculateWPM(startTime, endTime, inputText)
         uer = calculateUER(targetText, inputText)
 
         if (isPractice) return
@@ -226,9 +228,9 @@ fun Study3(
         val pd = calculatePressDuration(pressDurations)
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = TextEntryMetric(
-            testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
+            hapticName, testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
         )
-        addTextEntryMetric(context, databaseName, data)
+        addTextEntryMetric(context, subject, data)
     }
 
     fun initMetric() {
@@ -272,7 +274,7 @@ fun Study3(
             modeIter = 0
         } else {
             testBlock++
-            if (testBlock >= totalBlock) {
+            if (testBlock >= totalBlock || hapticMode == HapticMode.VOICE) {
                 closeStudyDatabase()
                 navController!!.navigate("textEntry/end/$subject")
             } else {
@@ -327,6 +329,14 @@ fun Study3(
                 testIter = 0
             }) {
                 Text("Skip")
+            }
+
+            Box(
+                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Block : ${testBlock + 1} / $totalBlock", fontSize = 20.sp
+                )
             }
 
             if (countdown == 0)
@@ -392,7 +402,7 @@ fun Study3(
                     modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "${testIter + 1} / $testNumber", fontSize = 20.sp
+                        text = "Block : ${testBlock + 1} / $totalBlock", fontSize = 20.sp
                     )
                 }
 
@@ -402,7 +412,17 @@ fun Study3(
                     modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = testList[testIter], fontSize = 20.sp, color = Color.Blue
+                        text = "Trial : ${testIter + 1} / $testNumber", fontSize = 20.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Box(
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = testList[testIter], fontSize = 30.sp, color = Color.Blue
                     )
                 }
 
@@ -477,12 +497,13 @@ fun Study3(
                         hapticManager = hapticManager,
                         hapticMode = hapticMode,
                         logData = TextEntryLog(
+                            mode = hapticName,
                             iteration = testIter,
                             block = testBlock,
                             targetText = testList[testIter],
                             inputText = inputText
                         ),
-                        name = databaseName
+                        name = subject
                     )
                 }
             }
@@ -501,6 +522,8 @@ fun Study3(
                             speak(testList[testIter])
                         },
                         onDoubleTap = {
+
+                            if (inputText.isEmpty()) return@MultiTouchView
                             onConfirm()
                         }
                     ).apply {

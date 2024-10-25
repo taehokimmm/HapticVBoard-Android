@@ -59,42 +59,10 @@ data class TypingTestLog(
     var id : Int = 0
 }
 
-@Entity("TypingTest2Answer")
-data class TypingTest2Answer(
-    val row: String,
-    val answer: String,
-    val perceived: String,
-    val iter: Int,
-    val block: Int,
-    val duration: Long,
-    val mode: Int,
-    var timestamp: String = System.currentTimeMillis().toFormattedDateString()
-) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
-}
 
-@Entity("TypingTest2Log")
-data class TypingTest2Log(
-    val row: String,
-    val answer: String,
-    val iter: Int,
-    val block: Int,
-    val mode: Int,
-    var state: String = "", // DOWN, UP, MOVE
-    var touchedKey: String = "",
-    var x : Float = 0.0f,
-    var y : Float = 0.0f,
-    var timestamp: Long = System.currentTimeMillis(),
-    var date: String = System.currentTimeMillis().toFormattedDateString()
-) {
-    @PrimaryKey(autoGenerate = true)
-    var id : Int = 0
-}
-
-
-@Entity(tableName = "textEntryMetric")
+@Entity("textEntryMetric")
 data class TextEntryMetric(
+    val mode: String,
     val block: Int,
     val iteration: Int,
     val wpm: Double,
@@ -111,6 +79,7 @@ data class TextEntryMetric(
 
 @Entity("textEntryLog")
 data class TextEntryLog(
+    val mode: String,
     val block: Int,
     val iteration: Int,
     val targetText: String,

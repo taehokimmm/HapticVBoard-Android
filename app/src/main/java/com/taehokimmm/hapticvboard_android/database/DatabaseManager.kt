@@ -38,17 +38,6 @@ fun addTypingTestLog(context: Context, name: String, data: TypingTestLog){
     ) { dao, answer -> dao.addTypingTestLog(answer) }
 }
 
-
-fun addTypingTest2Answer(context: Context, subject: String, data: TypingTest2Answer){
-    addData(context, subject, data
-    ) { dao, answer -> dao.addTypingTest2Answer(answer) }
-}
-
-fun addTypingTest2Log(context: Context, name: String, data: TypingTest2Log){
-    addData(context, name, data
-    ) { dao, answer -> dao.addTypingTest2Log(answer) }
-}
-
 fun addTextEntryMetric(context: Context, subject: String, data: TextEntryMetric){
     addData(context, subject, data
     ) { dao, answer -> dao.addTextEntryMetric(answer) }
@@ -70,15 +59,6 @@ fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touc
             data.timestamp = System.currentTimeMillis()
             data.date = System.currentTimeMillis().toFormattedDateString()
             addTypingTestLog(context, name, data)
-        }
-        is TypingTest2Log -> {
-            data.x = x
-            data.y = y
-            data.state = state
-            data.touchedKey = touchedKey
-            data.timestamp = System.currentTimeMillis()
-            data.date = System.currentTimeMillis().toFormattedDateString()
-            addTypingTest2Log(context, name, data)
         }
         is TextEntryLog -> {
             data.x = x

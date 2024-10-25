@@ -43,7 +43,7 @@ fun Study2Init(navController: NavHostController) {
     val questionsFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var options = listOf("audio", "phoneme", "vibration")
+    var options = listOf("audio", "phoneme")
     var selectedOption by remember { mutableStateOf("audio") }
 
     var totalBlocks by remember{mutableStateOf(2)}

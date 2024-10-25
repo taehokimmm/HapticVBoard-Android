@@ -7,9 +7,9 @@ fun calculateTouchDuration(startTime: Long, endTime: Long): Long {
 
 
 fun calculateWPM(startTime: Long, endTime: Long, sentence: String): Double {
-    val wordCount = (sentence.length - 1) / 5
+    val wordCount = (sentence.length - 1) / 5.0
     val duration = (endTime - startTime) / 1000.0
-    return (wordCount / duration) * 60
+    return (wordCount / duration) * 60.0
 }
 
 fun calculateAccuracy(typedText: String, referenceText: String): Double {

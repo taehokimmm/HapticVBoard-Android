@@ -15,12 +15,6 @@ interface StudyDao {
     fun addTypingTestLog(data: TypingTestLog)
 
     @Insert
-    fun addTypingTest2Answer(data: TypingTest2Answer)
-
-    @Insert
-    fun addTypingTest2Log(data: TypingTest2Log)
-
-    @Insert
     fun addTextEntryMetric(data: TextEntryMetric)
 
     @Insert

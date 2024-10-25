@@ -9,10 +9,8 @@ import androidx.room.RoomDatabase
     entities = [VibrationTestAnswer::class,
         TypingTestAnswer::class,
         TypingTestLog::class,
-               TypingTest2Log::class,
-               TypingTest2Answer::class,
-               TextEntryLog::class,
-               TextEntryMetric::class],
+        TextEntryLog::class,
+        TextEntryMetric::class],
     version = 1
 )
 abstract class StudyDatabase : RoomDatabase() {

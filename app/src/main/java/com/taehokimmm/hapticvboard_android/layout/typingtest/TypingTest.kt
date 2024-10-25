@@ -41,11 +41,8 @@ import androidx.navigation.NavHostController
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.view.KeyboardLayout
 import com.taehokimmm.hapticvboard_android.layout.view.MultiTouchView
-import com.taehokimmm.hapticvboard_android.database.TypingTest2Answer
-import com.taehokimmm.hapticvboard_android.database.TypingTest2Log
 import com.taehokimmm.hapticvboard_android.database.TypingTestAnswer
 import com.taehokimmm.hapticvboard_android.database.TypingTestLog
-import com.taehokimmm.hapticvboard_android.database.addTypingTest2Answer
 import com.taehokimmm.hapticvboard_android.database.addTypingTestAnswer
 import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
 import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay

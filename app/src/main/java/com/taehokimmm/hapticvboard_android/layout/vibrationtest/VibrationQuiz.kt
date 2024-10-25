@@ -499,10 +499,12 @@ fun Study1VibrationQuiz(
                         }
                     }
                 }
-            } else if (selectedAnswer != -1){
+            } else {
+                val inputKey = if (selectedAnswer == -1) "" else options[selectedAnswer]
+                val isCorrect = if (selectedAnswer == -1) false else options[selectedAnswer] == testList[testIter]
 
                 QuizDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], height = topMargin,
-                    inputKey = options[selectedAnswer], isCorrect = options[selectedAnswer] == testList[testIter])
+                    inputKey = inputKey, isCorrect = isCorrect)
 
             }
         }
