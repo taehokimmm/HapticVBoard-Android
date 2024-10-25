@@ -133,34 +133,6 @@ class SoundManager(context: Context) {
     }
 
     fun speakOutChar(key: String) {
-        var keyToResource: Map<String, Int> = mapOf(
-            "a" to R.raw.tts_a,
-            "b" to R.raw.tts_b,
-            "c" to R.raw.tts_c,
-            "d" to R.raw.tts_d,
-            "e" to R.raw.tts_e,
-            "f" to R.raw.tts_f,
-            "g" to R.raw.tts_g,
-            "h" to R.raw.tts_h,
-            "i" to R.raw.tts_i,
-            "j" to R.raw.tts_j,
-            "k" to R.raw.tts_k,
-            "l" to R.raw.tts_l,
-            "m" to R.raw.tts_m,
-            "n" to R.raw.tts_n,
-            "o" to R.raw.tts_o,
-            "p" to R.raw.tts_p,
-            "q" to R.raw.tts_q,
-            "r" to R.raw.tts_r,
-            "s" to R.raw.tts_s,
-            "t" to R.raw.tts_t,
-            "u" to R.raw.tts_u,
-            "v" to R.raw.tts_v,
-            "w" to R.raw.tts_w,
-            "x" to R.raw.tts_x,
-            "y" to R.raw.tts_y,
-            "z" to R.raw.tts_z
-        )
 
         var avaiation: Map<String, String> = mapOf(
             "a" to "apple",

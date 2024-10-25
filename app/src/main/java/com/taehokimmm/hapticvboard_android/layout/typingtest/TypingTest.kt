@@ -72,7 +72,7 @@ fun TypingTest(
     val modeCnt = 2
 
     var testIter by remember { mutableIntStateOf(-1) }
-    var modeIter by remember { mutableIntStateOf(0) }
+    var modeIter = if (testBlock < 3) 0 else 1
     var modeNames = listOf("학습", "테스트")
 
     var testAlphabets = getAllowGroup(group, true)
@@ -123,9 +123,14 @@ fun TypingTest(
         addTypingTestAnswer(context, databaseName, data)
     }
 
+    fun resetSound() {
+        runnables.clear()
+        soundManager?.releaseMediaPlayer()
+    }
+
     fun explainKey(key: String, delay: Long = 0) {
         // Clear any previous runnables before adding new ones
-        runnables.clear()
+        resetSound()
         isExplaining = true
 
         runnables.add(
@@ -134,15 +139,17 @@ fun TypingTest(
         )
 
         var delay1 = 0;
+
         if (isTypingMode) {
             runnables.add(
                 delay({soundManager?.speakOutChar(key)}, delay, handler)
             )
-            delay1 += 1000;
+            delay1 += 700;
         } else {
             runnables.add(
                 delay({soundManager?.speakOut(key)}, delay, handler)
             )
+
         }
 
         if (modeIter == 0 || isTypingMode == false) {
@@ -255,25 +262,35 @@ fun TypingTest(
 
     fun onEnd() {
         val nextBlock = testBlock + 1
-        if (nextBlock >= totalBlock) {
-            modeIter++
-            if (modeIter >= modeCnt) {
-                closeStudyDatabase()
-                val nextGroup = when(group) {
-                    "1" -> "2"
-                    "2" -> "3"
-                    else -> null
-                }
-                if (nextGroup == null)
-                    navController!!.navigate("typingTest/end/$subject")
-                else
-                    navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/0")
-            } else {
-                modeIter = 1
+        if (nextBlock > totalBlock) {
+            closeStudyDatabase()
+            val nextGroup = when(group) {
+                "1" -> "2"
+                "2" -> "3"
+                else -> null
             }
+            if (nextGroup == null)
+                navController!!.navigate("typingTest/end/$subject")
+            else
+                navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/0")
+
         } else {
             navController!!.navigate("typingTest/train/$subject/$group/$nextBlock")
         }
+    }
+
+    fun onDoubleTap() {
+        if (isTypingMode) return
+        if (isExplaining) return
+        testIter++
+        isTypingMode = true
+        soundManager.stop()
+        runnables.apply {
+            forEach { handler.removeCallbacks(it) }
+            clear()
+        }
+        soundManager.playEarcon("beep")
+        isExplaining = false
     }
 
     LaunchedEffect(isTypingMode) {
@@ -309,7 +326,9 @@ fun TypingTest(
             timer = 0
         } else {
             isTypingMode = true
-            explainKey(testList[testIter])
+            delay({
+                explainKey(testList[testIter])
+            }, 800)
         }
     }
 
@@ -352,110 +371,96 @@ fun TypingTest(
             }
         }
     } else if (testIter < testList.size) {
-       Box(
-                modifier = when(isTypingMode) {
-                    true ->  Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-
-                    false ->  Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onDoubleTap = {
-                                    if (isExplaining) return@detectTapGestures
-                                    soundManager.stop()
-                                    runnables.apply {
-                                        forEach { handler.removeCallbacks(it) }
-                                        clear()
-                                    }
-                                    soundManager.playEarcon("beep")
-                                    isExplaining = false
-                                    delay({
-                                        testIter++
-                                        isTypingMode = true
-                                    }, 800)
-                                },
-                                onTap = {
-                                    if (isExplaining) return@detectTapGestures
-                                    explainKey(testList[testIter])
-                                }
-                            )
-                        }
-                }
-            ) {
-           TrainTextDisplay(
-               testBlock,
-               totalBlock,
-               testIter,
-               testNumber,
-               modeIter,
-               testList[testIter],
-               soundManager
-           )
+       Box(modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+        ) {
+           if (isTypingMode) {
+               TrainTextDisplay(
+                   testBlock,
+                   totalBlock,
+                   testIter,
+                   testNumber,
+                   modeIter,
+                   testList[testIter]
+               )
+           } else {
+               Log.d("typinetest", inputKey)
+               TrainTextDisplay(
+                   testBlock,
+                   totalBlock,
+                   testIter,
+                   testNumber,
+                   modeIter,
+                   testList[testIter],
+                   inputKey,
+                   isCorrect
+               )
+           }
            Box(
                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
            ) {
-               if (isTypingMode) {
-                   KeyboardLayout(
-                       touchEvents = keyboardTouchEvents,
-                       onKeyPress = { key ->
-                           startTime = System.currentTimeMillis()
-                       },
-                       onKeyRelease = { key ->
-                           if (!(testAlphabets.contains(key))) return@KeyboardLayout
+               KeyboardLayout(
+                   touchEvents = keyboardTouchEvents,
+                   onKeyPress = { key ->
+                       if (!isTypingMode) return@KeyboardLayout
+                       startTime = System.currentTimeMillis()
+                   },
+                   onKeyRelease = { key ->
+                       if (!isTypingMode) return@KeyboardLayout
+                       if (!(testAlphabets.contains(key))) return@KeyboardLayout
 
-                           if (modeIter == 0) soundManager.speakOut(key)
-                           onConfirm(key)
-                       },
-                       enterKeyVisibility = false,
-                       soundManager = soundManager,
-                       hapticManager = hapticManager,
-                       hapticMode = HapticMode.PHONEME,
-                       logData = TypingTestLog(
-                           row = group,
-                           block = testBlock,
-                           iter = testIter,
-                           mode = modeIter,
-                           answer = testList[testIter]
-                       ),
-                       name = databaseName,
-                       allow = testAlphabets
-                   )
-               } else {
-                   Box(
-                       modifier = Modifier.fillMaxSize().padding(innerPadding),
-                       contentAlignment = Alignment.Center
-                   ) {
-                       Text(
-                           text = inputKey.toUpperCase(),
-                           color = if (isCorrect) Color.Green else Color.Red,
-                           fontSize = 120.sp,
-                           fontWeight = FontWeight.Bold
-                       )
-                   }
-               }
+                       resetSound()
+                       if (modeIter == 0) soundManager.speakOut(key)
+                       onConfirm(key)
+                   },
+                   enterKeyVisibility = false,
+                   soundManager = soundManager,
+                   hapticManager = hapticManager,
+                   hapticMode = if (isTypingMode) HapticMode.PHONEME else HapticMode.VOICEPHONEME,
+                   logData = TypingTestLog(
+                       row = group,
+                       block = testBlock,
+                       iter = testIter,
+                       mode = modeIter,
+                       answer = testList[testIter]
+                   ),
+                   name = databaseName,
+                   allow = testAlphabets
+               )
+//               } else {
+//                   Box(
+//                       modifier = Modifier.fillMaxSize().padding(innerPadding),
+//                       contentAlignment = Alignment.Center
+//                   ) {
+//                       Text(
+//                           text = inputKey.toUpperCase(),
+//                           color = if (isCorrect) Color.Green else Color.Red,
+//                           fontSize = 120.sp,
+//                           fontWeight = FontWeight.Bold
+//                       )
+//                   }
+//               }
            }
        }
-        if (isTypingMode) {
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .fillMaxHeight(),
-                factory = { context ->
-                    MultiTouchView(
-                        context,
-                        onTap = {explainKey(testList[testIter])}
-                    ).apply {
-                        onMultiTouchEvent = { event ->
-                            keyboardTouchEvents.clear()
-                            keyboardTouchEvents.add(event)
-                        }
+        AndroidView(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight(),
+            factory = { context ->
+                MultiTouchView(
+                    context,
+                    onDoubleTap = {
+                        onDoubleTap()
+                    }
+                ).apply {
+                    onMultiTouchEvent = { event ->
+                        keyboardTouchEvents.clear()
+                        keyboardTouchEvents.add(event)
                     }
                 }
-            )
-        }
+            }
+        )
     } else {
         Box(
             modifier = Modifier.fillMaxSize()
@@ -463,7 +468,6 @@ fun TypingTest(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
-                            Log.d("study2train", "double tap " + isSpeakingNum.toString())
                             if (countdown > 0 || isSpeakingNum > 0) return@detectTapGestures
                             onEnd()
                         },
@@ -507,7 +511,7 @@ fun TypingTest(
 
 
 @Composable
-fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, modeIter: Int, testString: String, soundManager: SoundManager) {
+fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, modeIter: Int, testString: String, inputKey: String = "", isCorrect: Boolean = false) {
     Column(
         modifier = Modifier
             .padding(top = 10.dp)
@@ -549,6 +553,18 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
         ) {
             Text(
                 text = testString.uppercase(), fontSize = 120.sp, fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = inputKey.toUpperCase(),
+                color = if (isCorrect) Color.Green else Color.Red,
+                fontSize = 120.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

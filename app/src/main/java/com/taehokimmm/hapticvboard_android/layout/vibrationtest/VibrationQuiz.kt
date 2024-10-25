@@ -395,8 +395,8 @@ fun Study1VibrationQuiz(
                 Text("Skip")
             }
 
-            QuizDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], height = topMargin)
             if(isTypingMode) {
+                QuizDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], height = topMargin)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -500,14 +500,10 @@ fun Study1VibrationQuiz(
                     }
                 }
             } else if (selectedAnswer != -1){
-                Box(
-                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = options[selectedAnswer].uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold,
-                        color =  if (options[selectedAnswer] == testList[testIter]) Color.Green else Color.Red
-                    )
-                }
+
+                QuizDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], height = topMargin,
+                    inputKey = options[selectedAnswer], isCorrect = options[selectedAnswer] == testList[testIter])
+
             }
         }
     }
@@ -550,7 +546,7 @@ fun delay(function: () -> Unit, delayMillis: Long, handler: Handler? = null): Ru
 }
 
 @Composable
-fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, height: Dp = 200.dp) {
+fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, height: Dp = 200.dp, inputKey: String = "", isCorrect: Boolean = false) {
     Column(
         modifier = Modifier
             .padding(top = 10.dp)
@@ -581,6 +577,17 @@ fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int
         ) {
             Text(
                 text = testLetter.uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = inputKey.uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold,
+                color =  if (isCorrect) Color.Green else Color.Red
             )
         }
     }
