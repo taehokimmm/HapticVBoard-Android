@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.RadioButton
@@ -44,8 +46,11 @@ fun TypingTestInit(navController: NavHostController) {
         subjects += listOf("Pilot" + i)
     }
 
-    var blocks = listOf("0", "1", "2", "3")
-    var selectedBlock by remember { mutableStateOf("0") }
+    var blocks = listOf("1", "2", "3")
+    var selectedBlock by remember { mutableStateOf("1") }
+
+    var modes = listOf("train", "test")
+    var selectedMode by remember { mutableStateOf("train") }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
@@ -74,46 +79,91 @@ fun TypingTestInit(navController: NavHostController) {
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
-            // Test subject identifier
+
+            // Block identifier
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Group",
+                fontSize = 16.sp
+            )
+
+            // Select Group
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                options.forEachIndexed{index, option -> (
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = selectedOption == option,
+                            onClick = {
+                                selectedOption = option
+                            }
+                        )
+                        Text(text = option)
+                    }
+                )}
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Select Block
             Text(
                 modifier = Modifier.padding(start = 14.dp),
                 text = "Select Block",
                 fontSize = 16.sp
             )
 
-            Spinner(
-                options = blocks,
-                onOptionSelected = { selectedOption ->
-                    selectedBlock = selectedOption
-                }
-            )
-
-            // Select Modality
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Column {
-                    options.forEachIndexed{index, option -> (
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                RadioButton(
-                                    selected = selectedOption == option,
-                                    onClick = {
-                                        selectedOption = option
-                                    }
-                                )
-                                Text(text = option)
-                            }
-                            )}
-                }
+                blocks.forEachIndexed{index, option -> (
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedBlock == option,
+                                onClick = {
+                                    selectedBlock = option
+                                }
+                            )
+                            Text(text = option)
+                        }
+                        )}
+            }
+
+
+            // Select Mode
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Select Mode",
+                fontSize = 16.sp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                modes.forEachIndexed{index, option -> (
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedMode == option,
+                                onClick = {
+                                    selectedMode = option
+                                }
+                            )
+                            Text(text = option)
+                        }
+                        )}
             }
 
             Button(
                 onClick = {
                     closeStudyDatabase()
                     if (testSubjectIdentifier.isNotEmpty() && selectedOption.isNotEmpty()) {
-                        navController.navigate("typingTest/freeplay/$testSubjectIdentifier/$selectedOption/$selectedBlock")
+                        navController.navigate("typingTest/freeplay/$testSubjectIdentifier/$selectedOption/$selectedBlock/$selectedMode")
                     } else {
                         errorMessage = "Please enter a test subject"
                     }

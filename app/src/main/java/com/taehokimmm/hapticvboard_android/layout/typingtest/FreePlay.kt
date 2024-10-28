@@ -43,6 +43,7 @@ fun TypingTestFreePlay(
     hapticManager: HapticManager?,
     group: String,
     block: Int,
+    mode: String
 ) {
 
     var allowGroup = getAllowGroup(group)
@@ -72,7 +73,7 @@ fun TypingTestFreePlay(
                 onClick = {
                     closeStudyDatabase()
                     Log.d("TypingTest", "free type " + block.toString())
-                    navController?.navigate("typingTest/train/${subject}/${group}/${block}")
+                    navController?.navigate("typingTest/train/${subject}/${group}/${block}/${mode}")
                 }, modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 Text("Skip")

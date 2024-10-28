@@ -54,6 +54,7 @@ import java.util.Locale
 @Composable
 fun TypingTest(
     testBlock: Int,
+    mode: String,
     innerPadding: PaddingValues,
     subject: String,
     navController: NavHostController?,
@@ -69,7 +70,7 @@ fun TypingTest(
     val modeCnt = 2
 
     var testIter by remember { mutableIntStateOf(-1) }
-    var modeIter = if (testBlock < 3) 0 else 1
+    var modeIter = if (mode == "train") 0 else if (mode == "test") 1 else 2
     var modeNames = listOf("학습", "테스트")
 
     var testAlphabets = getAllowGroup(group, true)
@@ -258,8 +259,7 @@ fun TypingTest(
     }
 
     fun onEnd() {
-        val nextBlock = testBlock + 1
-        if (nextBlock > totalBlock) {
+        if (testBlock > totalBlock) {
             closeStudyDatabase()
             val nextGroup = when(group) {
                 "1" -> "2"
@@ -272,7 +272,9 @@ fun TypingTest(
                 navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/0")
 
         } else {
-            navController!!.navigate("typingTest/train/$subject/$group/$nextBlock")
+            val nextMode = if (modeIter == 0) "test" else "train"
+            val nextBlock = if (modeIter == 0) testBlock else testBlock + 1
+            navController!!.navigate("typingTest/train/$subject/$group/$nextBlock/$nextMode")
         }
     }
 
@@ -361,7 +363,7 @@ fun TypingTest(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Start \n Block : " + (testBlock + 1) + "\n Mode : " + modeNames[modeIter],
+                        text = "Start \n Block : " + (testBlock) + "\n Mode : " + modeNames[modeIter],
                         fontSize = 20.sp
                     )
                 }
@@ -517,7 +519,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Block : ${testBlock + 1} / $blockNumber", fontSize = 15.sp
+                text = "Block : ${testBlock} / $blockNumber", fontSize = 15.sp
             )
         }
 

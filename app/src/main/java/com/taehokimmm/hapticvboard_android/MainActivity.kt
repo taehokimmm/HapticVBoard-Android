@@ -188,11 +188,12 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         TypingTestInit(navController)
                     }
 
-                    composable("typingTest/freeplay/{subject}/{option}/{block}") {
+                    composable("typingTest/freeplay/{subject}/{option}/{block}/{mode}") {
                         currentScreen = "typingTest"
                         val subject = it.arguments?.getString("subject")!!
                         val option = it.arguments?.getString("option")!!
                         val block = it.arguments?.getString("block")!!
+                        val mode = it.arguments?.getString("mode")!!
 
                         TypingTestFreePlay(
                             innerPadding,
@@ -201,18 +202,21 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                             soundManager!!,
                             hapticManager!!,
                             option,
-                            block.toInt()
+                            block.toInt(),
+                            mode
                         )
                     }
 
-                    composable("typingTest/train/{subject}/{option}/{block}") {
+                    composable("typingTest/train/{subject}/{option}/{block}/{mode}") {
                         currentScreen = "typingTest"
                         val subject = it.arguments?.getString("subject")!!
                         val option = it.arguments?.getString("option")!!
                         val block = it.arguments?.getString("block")!!
+                        val mode = it.arguments?.getString("mode")!!
 
                         TypingTest(
                             block.toInt(),
+                            mode,
                             innerPadding,
                             subject,
                             navController,
