@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -385,14 +387,28 @@ fun Study1VibrationQuiz(
                     )
                 }
         ) {
-            Button(
-                onClick = {
-                    closeStudyDatabase()
-                    navController.navigate("vibrationTest/train/${subject}/${group}")
-                },
-                modifier = Modifier.align(Alignment.Start)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Skip")
+                Button(
+                    onClick = {
+                        if (testIter > 0) testIter--
+                    },
+                    colors = ButtonColors(Color.White, Color.Blue, Color.Gray, Color.Black),
+                    enabled =  testIter > 0
+                ) {
+                    Text("Prev")
+                }
+                Button(
+                    onClick = {
+                        testIter++
+                    },
+                    colors = ButtonColors(Color.White, Color.Blue, Color.Gray, Color.Black),
+                ) {
+                    Text("Next")
+                }
             }
 
             if(isTypingMode) {
@@ -548,7 +564,7 @@ fun delay(function: () -> Unit, delayMillis: Long, handler: Handler? = null): Ru
 }
 
 @Composable
-fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, height: Dp = 200.dp, inputKey: String = "", isCorrect: Boolean = false) {
+fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int, testLetter: Char, height: Dp = 200.dp, inputKey: String = "", isCorrect: Boolean = true) {
     Column(
         modifier = Modifier
             .padding(top = 10.dp)
@@ -562,7 +578,7 @@ fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
@@ -572,18 +588,17 @@ fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Text(
-                text = testLetter.uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold
+                text = testLetter.uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold,
+
+                color =  if (isCorrect) Color.Black else Color.Red
             )
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {

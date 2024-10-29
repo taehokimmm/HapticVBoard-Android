@@ -9,13 +9,14 @@ import android.view.View
 
 class MultiTouchView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0,
-    onTap: (() -> Unit)? = null, onDoubleTap: (() -> Unit)? = null
+    onTap: (() -> Unit)? = null, onDoubleTap: (() -> Unit)? = null,
+    onRightSwipe: (() -> Unit)? = null, onLeftSwipe: (() -> Unit)? = null
 ) : View(context, attrs, defStyleAttr) {
 
     private val touchPoints = mutableMapOf<Int, Pair<Float, Float>>()
     var onMultiTouchEvent: ((MotionEvent) -> Unit)? = null
 
-    private val outOfBound = 1566
+    private val outOfBound = 1027
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onDoubleTap(e: MotionEvent): Boolean {
             // Handle double-tap event
@@ -32,6 +33,31 @@ class MultiTouchView @JvmOverloads constructor(
                 onTap()
             }
             return true
+        }
+
+        override fun onFling(
+            e1: MotionEvent?,
+            e2: MotionEvent,
+            velocityX: Float,
+            velocityY: Float
+        ): Boolean {
+            val SWIPE_THRESHOLD = 100
+            val SWIPE_VELOCITY_THRESHOLD = 100
+            if (e1 != null && e2 != null) {
+                val diffY = e2.y - e1.y
+                val diffX = e2.x - e1.x
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                        if (diffX > 0) {
+                            if (onRightSwipe != null) onRightSwipe()
+                        } else {
+                            if (onLeftSwipe != null) onLeftSwipe()
+                        }
+                        return true
+                    }
+                }
+            }
+            return false
         }
 
         // You can override other gesture events here if needed

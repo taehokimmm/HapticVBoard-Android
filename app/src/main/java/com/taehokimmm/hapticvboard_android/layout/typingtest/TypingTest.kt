@@ -8,15 +8,19 @@ import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -93,6 +97,7 @@ fun TypingTest(
     var countdown by remember { mutableStateOf(0) }
 
     var isExplaining by remember {mutableStateOf(false)}
+    var isShowingKeyboard by remember { mutableStateOf(true) }
     val handler = Handler(Looper.getMainLooper())
     var runnables = remember { mutableStateListOf<Runnable>() }
 
@@ -195,9 +200,11 @@ fun TypingTest(
 
         if (modeIter == 1) {
             soundManager.playEarcon("beep")
+            isShowingKeyboard = false
             delay({
                 testIter++
                 initMetric()
+                isShowingKeyboard = true
             }, 1000)
         }
         return true
@@ -259,7 +266,7 @@ fun TypingTest(
     }
 
     fun onEnd() {
-        if (testBlock > totalBlock) {
+        if (testBlock >= totalBlock) {
             closeStudyDatabase()
             val nextGroup = when(group) {
                 "1" -> "2"
@@ -279,6 +286,7 @@ fun TypingTest(
     }
 
     fun onDoubleTap() {
+        if (modeIter == 1) return
         if (isTypingMode) return
         if (isExplaining) return
         testIter++
@@ -370,96 +378,115 @@ fun TypingTest(
             }
         }
     } else if (testIter < testList.size) {
-       Box(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-        ) {
-           if (isTypingMode) {
-               TrainTextDisplay(
-                   testBlock,
-                   totalBlock,
-                   testIter,
-                   testNumber,
-                   modeIter,
-                   testList[testIter]
-               )
-           } else {
-               Log.d("typinetest", inputKey)
-               TrainTextDisplay(
-                   testBlock,
-                   totalBlock,
-                   testIter,
-                   testNumber,
-                   modeIter,
-                   testList[testIter],
-                   inputKey,
-                   isCorrect
-               )
-           }
-           Box(
-               modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
-           ) {
-               KeyboardLayout(
-                   touchEvents = keyboardTouchEvents,
-                   onKeyPress = { key ->
-                       if (!isTypingMode) return@KeyboardLayout
-                       startTime = System.currentTimeMillis()
-                   },
-                   onKeyRelease = { key ->
-                       if (!isTypingMode) return@KeyboardLayout
-                       if (!(testAlphabets.contains(key))) return@KeyboardLayout
-
-                       resetSound()
-                       if (modeIter == 0) soundManager.speakOut(key)
-                       onConfirm(key)
-                   },
-                   enterKeyVisibility = false,
-                   soundManager = soundManager,
-                   hapticManager = hapticManager,
-                   hapticMode = if (isTypingMode) HapticMode.PHONEME else HapticMode.VOICEPHONEME,
-                   logData = TypingTestLog(
-                       row = group,
-                       block = testBlock,
-                       iter = testIter,
-                       mode = modeIter,
-                       answer = testList[testIter]
-                   ),
-                   name = databaseName,
-                   allow = testAlphabets
-               )
-//               } else {
-//                   Box(
-//                       modifier = Modifier.fillMaxSize().padding(innerPadding),
-//                       contentAlignment = Alignment.Center
-//                   ) {
-//                       Text(
-//                           text = inputKey.toUpperCase(),
-//                           color = if (isCorrect) Color.Green else Color.Red,
-//                           fontSize = 120.sp,
-//                           fontWeight = FontWeight.Bold
-//                       )
-//                   }
-//               }
-           }
-       }
-        AndroidView(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .fillMaxHeight(),
-            factory = { context ->
-                MultiTouchView(
-                    context,
-                    onDoubleTap = {
-                        onDoubleTap()
-                    }
-                ).apply {
-                    onMultiTouchEvent = { event ->
-                        keyboardTouchEvents.clear()
-                        keyboardTouchEvents.add(event)
-                    }
+                .padding(innerPadding)
+        ) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = {
+                        if (testIter > 0) testIter--
+                    },
+                    colors = ButtonColors(Color.White, Color.Blue, Color.Gray, Color.Black),
+                    enabled = testIter > 0
+                ) {
+                    Text("Prev")
+                }
+                Button(
+                    onClick = {
+                        testIter++
+                    },
+                    colors = ButtonColors(Color.White, Color.Blue, Color.Gray, Color.Black),
+                ) {
+                    Text("Next")
                 }
             }
-        )
+
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                ) {
+                    if (isTypingMode || modeIter == 1) {
+                        TrainTextDisplay(
+                            testBlock,
+                            totalBlock,
+                            testIter,
+                            testNumber,
+                            modeIter,
+                            testList[testIter]
+                        )
+                    } else {
+                        TrainTextDisplay(
+                            testBlock,
+                            totalBlock,
+                            testIter,
+                            testNumber,
+                            modeIter,
+                            testList[testIter],
+                            inputKey,
+                            isCorrect
+                        )
+                    }
+                    Box(
+                        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
+                    ) {
+                        if (isShowingKeyboard)
+                            KeyboardLayout(
+                                touchEvents = keyboardTouchEvents,
+                                onKeyPress = { key ->
+                                    if (!isTypingMode) return@KeyboardLayout
+                                    startTime = System.currentTimeMillis()
+                                },
+                                onKeyRelease = { key ->
+                                    if (!isTypingMode) return@KeyboardLayout
+                                    if (!(testAlphabets.contains(key))) return@KeyboardLayout
+
+                                    resetSound()
+                                    if (modeIter == 0) soundManager.speakOut(key)
+                                    onConfirm(key)
+                                },
+                                enterKeyVisibility = false,
+                                soundManager = soundManager,
+                                hapticManager = hapticManager,
+                                hapticMode = if (isTypingMode) HapticMode.PHONEME else HapticMode.VOICEPHONEME,
+                                logData = TypingTestLog(
+                                    row = group,
+                                    block = testBlock,
+                                    iter = testIter,
+                                    mode = modeIter,
+                                    answer = testList[testIter]
+                                ),
+                                name = databaseName,
+                                allow = testAlphabets
+                            )
+                    }
+                }
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    factory = { context ->
+                        MultiTouchView(
+                            context,
+                            onDoubleTap = {
+                                onDoubleTap()
+                            }
+                        ).apply {
+                            onMultiTouchEvent = { event ->
+                                keyboardTouchEvents.clear()
+                                keyboardTouchEvents.add(event)
+                            }
+                        }
+                    }
+                )
+            }
+        }
+
     } else {
         Box(
             modifier = Modifier.fillMaxSize()
@@ -523,7 +550,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         if (modeIter < 2)
             Box(
@@ -535,7 +562,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
                 )
             }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
@@ -545,7 +572,7 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
@@ -554,7 +581,6 @@ fun TrainTextDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber
                 text = testString.uppercase(), fontSize = 120.sp, fontWeight = FontWeight.Bold
             )
         }
-        Spacer(modifier = Modifier.height(20.dp))
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center

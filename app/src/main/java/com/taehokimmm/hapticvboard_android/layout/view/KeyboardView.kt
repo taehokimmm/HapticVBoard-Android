@@ -33,9 +33,7 @@ fun KeyboardLayout(
     soundManager: SoundManager? = null,
     hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
-    allow: List<String> = ('a'..'z').map { it.toString() } + listOf(
-        "Space", "Backspace", "Replay"
-    ),
+    allow: List<String> = ('a'..'z').map { it.toString() },
     logData: Any? = null,
     name: String? = ""
 ) {

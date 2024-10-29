@@ -19,7 +19,8 @@ fun GroupIntro(
     if (category == "phoneme") {
         phonemeGroups = listOf(
             listOf("f", "s", "h", "v", "z"),
-            listOf("b", "d", "g", "p", "t", "c", "k", "q"),
+            listOf("b", "d", "g"),
+            listOf("p", "t", "c", "k", "q"),
             listOf("j", "x"),
             listOf("m", "n", "l", "r"),
             listOf("a", "e", "i", "u"),
@@ -27,7 +28,8 @@ fun GroupIntro(
         )
         names = listOf(
             "마찰음",
-            "파열음",
+            "파열음-유성",
+            "파열음-무성",
             "파열음+마찰음",
             "비음,접근음",
             "모음",
@@ -35,21 +37,23 @@ fun GroupIntro(
         )
     } else if(category == "location") {
         phonemeGroups = listOf(
-            listOf("f", "v", "b", "p", "m", "l"),
-            listOf("t", "d", "j"),
-            listOf("s", "h", "z",  "g", "c", "k", "q", "n", "r", "x"),
+            listOf("h", "g", "c", "k", "q"),
+            listOf("s", "z", "t", "d", "j", "n", "l", "r", "x"),
+            listOf("f", "v", "b", "p", "m"),
             listOf("a", "e", "i"),
             listOf("u"),
             listOf("o", "w", "y")
         )
-        names = listOf("자음-왼쪽", "자음-양쪽", "자음-오른쪽", "모음-왼쪽", "모음-오른쪽", "모음-양쪽")
-
-//        phonemeGroups = listOf(
-//            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
-//            listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-//            listOf("z", "x", "c", "v", "b", "n", "m")
-//        )
-//        names = listOf("1행", "2행", "3행")
+        names = listOf("자음-목", "자음-이빨", "자음-입술",  "모음-입술 뒤", "모음-입술 앞", "이중모음")
+    } else if(category == "location-essential") {
+        phonemeGroups = listOf(
+            listOf("u", "i"),
+            listOf("s", "f", "h"),
+            listOf("d", "g"),
+            listOf("c", "b"),
+            listOf("n", "m"),
+        )
+        names = listOf("1열-모음", "2열-마찰음", "2열-파열음", "3열-파열음", "3열-비음")
     }
     val allowGroup = getAllowGroup(group)
 
