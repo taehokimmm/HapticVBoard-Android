@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -97,11 +98,20 @@ fun Study3(
 
     var testList by remember { mutableStateOf(listOf("")) }
 
+    //---------------METRICS ----------------------------//
     // WPM
     var wpm by remember { mutableDoubleStateOf(.0) }
-    var uer by remember { mutableDoubleStateOf(.0) }
+    var error by remember { mutableDoubleStateOf(.0) }
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
+
+    // ERROR
+    // Variables related to T-seq change
+    var oldVal by remember {mutableStateOf("")}
+    val tsequence = remember {mutableStateListOf<String>()}
+
+    // Variables related to results
+    var IF by remember {mutableIntStateOf(0)}
 
     // IKI
     val keystrokeTimestamps = remember { mutableStateListOf<Long>() }
@@ -220,23 +230,102 @@ fun Study3(
     fun addLogging() {
         val targetText = testList[testIter]
 
+        val errors = getError(targetText, tsequence, IF)
+        val cer = errors[0] * 100
+        val uer = errors[1] * 100
+        val ter = errors[2] * 100
         wpm = calculateWPM(startTime, endTime, inputText)
-        uer = calculateUER(targetText, inputText)
+        error = uer
 
         if (isPractice) return
         val iki = calculateIKI(keystrokeTimestamps)
         val pd = calculatePressDuration(pressDurations)
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = TextEntryMetric(
-            hapticName, testBlock, testIter, wpm, pd, uer, ke, targetText, inputText
+            hapticName, testBlock, testIter, wpm, pd, iki, uer, cer, ter, ke, targetText, inputText
         )
         addTextEntryMetric(context, subject, data)
+    }
+
+
+    // Infer the action that caused a change in text
+    fun guessChangeInfo(t1: String, t2: String): List<Any> {
+        if (t1.isEmpty()) {
+//            Log.d("textentry", "insert from 0")
+            return listOf("insert", 0, t2.length - t1.length)
+        } else if (t2.isEmpty()) {
+//            Log.d("textentry", "delete from tail")
+            IF += t1.length
+            return listOf("delete", 0, t1.length)
+        }
+
+        var i = 0
+        while (t1[i] == t2[i]) {
+            i++
+
+            if (i == t1.length) {
+//                Log.d("textentry", "insert at tail")
+                return listOf("insert", t1.length, t2.length - t1.length)
+            }
+            else if (i == t2.length) {
+//                Log.d("textentry", "delete at tail")
+                IF += t1.length - t2.length
+                return listOf("delete", t2.length, t1.length - t2.length)
+            }
+        }
+        var j = 1
+        while (t1[t1.length - j] == t2[t2.length - j]) {
+            j++
+            if (j == t1.length + 1) {
+//                Log.d("textentry", "insert at front")
+                return listOf("insert", 0, t2.length - t1.length)
+            } else if (j == t2.length + 1) {
+//                Log.d("textentry", "delete at front")
+                IF += t1.length - t2.length
+                return listOf("delete", 0, t1.length - t2.length)
+            }
+        }
+
+        if (i + j - 1 >= t1.length) {
+            if (t2.length > t1.length) {
+//                Log.d("textentry", "insert from " + i);
+                return listOf("insert", i, t2.length - t1.length)
+            } else {
+//                Log.d("textentry", "delete from " + (t1.length-j+1) + " to " + (t2.length-j+1));
+                IF += t1.length - t2.length
+                return listOf("delete", t2.length - j + 1, t1.length - t2.length)
+            }
+        } else {
+//            Log.d("textentry", "substitude from " + i + " to " + (t1.length-j+1));
+
+            if (t2.length <= i + j - 1) {
+                IF += t1.length - t2.length
+                return listOf("delete", i, t1.length - t2.length)
+            } else {
+                IF += t1.length - j + 1 - i
+                return listOf("replace", i, t1.length - j + 1 - i)
+            }
+        }
+    }
+
+    // Detect changes in transcribed input
+    fun onTranscribeChange(newText: String) {
+        val currentVal = newText
+        if (currentVal == oldVal) return
+
+        val res = guessChangeInfo(oldVal, currentVal)
+        oldVal = currentVal
+        tsequence.add(currentVal)
     }
 
     fun initMetric() {
         startTime = -1
         keystrokeTimestamps.clear()
         keyStrokeNum = 0
+        IF = 0
+        tsequence.clear()
+        tsequence.add("")
+        oldVal = ""
     }
 
     fun onConfirm() {
@@ -247,19 +336,24 @@ fun Study3(
         modeIter = 2
     }
 
-    fun onSpace() {
+    fun onSpace() : Boolean {
         if (testWordCnt < testWords.size - 1) {
             testWordCnt ++
             speak(testWords[testWordCnt])
+            return true
+        } else {
+            if (inputText.isNotEmpty())
+            onConfirm()
+            return false
         }
     }
 
     fun explainResult() {
         val wpmFormatted = String.format("%.1f", wpm)
-        val uerFormatted = String.format("%.1f", uer)
+        val errorFormatted = String.format("%.1f", error)
         speak(inputText)
         speak("Speed : " + wpmFormatted + "Word Per Minute")
-        speak("Error : " + uerFormatted + "%")
+        speak("Error : " + errorFormatted + "%")
     }
 
     LaunchedEffect(testIter) {
@@ -440,12 +534,12 @@ fun Study3(
                 if (modeIter == 2) {
                     Spacer(modifier = Modifier.height(20.dp))
                     val wpmFormatted = String.format("%.1f", wpm)
-                    val uerFormatted = String.format("%.1f", uer)
+                    val errorFormatted = String.format("%.1f", error)
                     Box(
                         modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "WPM : $wpmFormatted \n UER : $uerFormatted", fontSize = 20.sp
+                            text = "WPM : $wpmFormatted \n error : $errorFormatted", fontSize = 20.sp
                         )
                     }
                 }
@@ -469,7 +563,8 @@ fun Study3(
                         onKeyRelease = { key ->
                             endTime = System.currentTimeMillis()
                             if (key == "Space") {
-                                onSpace()
+                                val isNotEnd = onSpace()
+                                if (!isNotEnd) return@KeyboardLayout
                             } else if (key == "Backspace") {
                                 if (inputText.isNotEmpty() && inputText.last() == ' ') {
                                     if (testWordCnt > 0)  testWordCnt --
@@ -483,6 +578,7 @@ fun Study3(
                                     inputText + key
                                 }
                             }
+                            onTranscribeChange(inputText)
                             val curTime = System.currentTimeMillis()
                             if (pressStartTime != -1L) {
                                 val pressDur = curTime - pressStartTime
