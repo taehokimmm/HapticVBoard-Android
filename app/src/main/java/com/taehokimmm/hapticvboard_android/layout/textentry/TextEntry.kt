@@ -103,7 +103,8 @@ fun Study3(
 
     //---------------METRICS ----------------------------//
     // WPM
-    var wpm by remember { mutableDoubleStateOf(.0) }
+    var wpmAvg by remember { mutableDoubleStateOf(.0) }
+    var wpmList = remember { mutableStateListOf<Double>() }
     var error by remember { mutableDoubleStateOf(.0) }
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
@@ -122,6 +123,7 @@ fun Study3(
     var keystrokeTimestamps by remember { mutableStateOf(listOf<Long>()) }
 
     // Press Duration
+    var localPressDurations by remember{mutableStateOf(listOf<Long>())}
     var pressDurations by remember{mutableStateOf(listOf<Long>())}
     var pressStartTime by remember{mutableLongStateOf(0)}
 
@@ -198,12 +200,22 @@ fun Study3(
         tts?.playEarcon(earcon, TextToSpeech.QUEUE_ADD, null, null)
     }
 
-    fun speak(word: String, pitch:Float = 1f) {
+    fun speak(word: String, speed:Float = 1f) {
         isSpeakingDone = false
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
-        tts?.setPitch(pitch)
-        tts?.setSpeechRate(1f)
+        tts?.setSpeechRate(speed)
+        tts?.setLanguage(Locale.US)
+        tts?.speak(word, TextToSpeech.QUEUE_ADD,
+            params, "utteranceId")
+    }
+
+    fun speakKor(word: String, speed:Float = 1f) {
+        isSpeakingDone = false
+        val params = Bundle()
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.setSpeechRate(speed)
+        tts?.setLanguage(Locale.KOREAN)
         tts?.speak(word, TextToSpeech.QUEUE_ADD,
             params, "utteranceId")
     }
@@ -211,15 +223,16 @@ fun Study3(
     fun speakWord(word: String) {
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
+        tts?.setLanguage(Locale.US)
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
-//        playEarcon("silent")
-//        for (index in 0 until word.length) {
-//            tts?.setSpeechRate(1f)
-//            var letter = word[index].toString()
-//            tts?.speak(
-//                letter, TextToSpeech.QUEUE_ADD, params, "utteranceId"
-//            )
-//        }
+        playEarcon("silent")
+        for (index in 0 until word.length) {
+            tts?.setSpeechRate(1f)
+            var letter = word[index].toString()
+            tts?.speak(
+                letter, TextToSpeech.QUEUE_ADD, params, "utteranceId"
+            )
+        }
     }
 
     fun speakSentence(sentence: String) {
@@ -249,11 +262,16 @@ fun Study3(
         }
     }
 
-    fun addWPM() {
+    fun addLoggingPerWord() {
         val targetWord = testWords[testWordCnt]
         val inputWords = inputText.split(" ")
         val inputWord = inputWords[inputWords.size - 1]
         val wpm = calculateWPM(startTime, endTime, inputWord)
+        if (wpm > 0) wpmList.add(wpm)
+        wpmAvg = wpmList.average()
+
+
+        val pd = calculatePressDuration(localPressDurations)
 
         val data = TextEntryMetric(
             hapticName,
@@ -261,7 +279,7 @@ fun Study3(
             testIter,
             wpm,
             0.0,
-            -1.0,
+            pd,
             -1.0,
             -1.0,
             -1.0,
@@ -275,7 +293,7 @@ fun Study3(
 
     fun addLogging() {
         val targetText = testList[testIter]
-        wpm = calculateWPM(sentenceStartTime, sentenceEndTime, inputText.trim())
+        val wpm = calculateWPM(sentenceStartTime, sentenceEndTime, inputText.trim())
         val errors = getError(targetText, tsequence, IF)
         val cer = errors[0] * 100
         val uer = errors[1] * 100
@@ -379,6 +397,7 @@ fun Study3(
         sentenceStartTime = -1
         keystrokeTimestamps = listOf()
         pressDurations = listOf()
+        localPressDurations = listOf()
         keyStrokeNum = 0
         IF = 0
 
@@ -391,29 +410,31 @@ fun Study3(
         tts?.stop()
         isSpeakingDone = true
         playEarcon("beep")
-        addWPM()
+        addLoggingPerWord()
         addLogging()
         modeIter = 2
     }
 
     fun onSpace(): Boolean {
         if (testWordCnt < testWords.size - 1) {
-            addWPM()
+            addLoggingPerWord()
             startTime = -1
+            localPressDurations = listOf()
             testWordCnt ++
             speakWord(testWords[testWordCnt])
         } else if(inputText.isNotEmpty()) {
+            onConfirm()
             return true
         }
         return false
     }
 
     fun explainResult() {
-        val wpmFormatted = String.format("%.1f", wpm)
-        val errorFormatted = String.format("%.1f", error)
+        val wpmFormatted = String.format("%.0f", wpmAvg)
+        val errorFormatted = String.format("%.0f", error)
         speak(inputText)
-        speak("Speed : " + wpmFormatted + "Word Per Minute")
-        speak("Error : " + errorFormatted + "%")
+        speakKor("속도 : " + wpmFormatted, speed = 1.2f)
+        speakKor("오류 : " + errorFormatted + "%", speed = 1.2f)
     }
 
 
@@ -426,10 +447,10 @@ fun Study3(
             speak(sentence)
             playEarcon("start")
             speakSentence(sentence)
-            playEarcon("start")
-            speakSpelling(sentence)
-            playEarcon("start")
-            speak(sentence)
+//            playEarcon("start")
+//            speakSpelling(sentence)
+//            playEarcon("start")
+//            speak(sentence)
         }, 500)
     }
 
@@ -657,7 +678,7 @@ fun Study3(
 
                         if (modeIter == 2) {
                             Spacer(modifier = Modifier.height(20.dp))
-                            val wpmFormatted = String.format("%.1f", wpm)
+                            val wpmFormatted = String.format("%.1f", wpmAvg)
                             val errorFormatted = String.format("%.1f", error)
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
@@ -685,7 +706,7 @@ fun Study3(
                                     if (sentenceStartTime == -1L) {
                                         sentenceStartTime = System.currentTimeMillis()
                                     }
-                                    if (hapticMode == HapticMode.VOICE) tts?.stop()
+                                    tts?.stop()
                                     isSpeakingDone = true
                                     pressStartTime = System.currentTimeMillis()
                                 },
@@ -722,6 +743,8 @@ fun Study3(
                                     if (pressStartTime != -1L) {
                                         val pressDur = curTime - pressStartTime
                                         pressDurations += pressDur
+                                        if (key != "delete" && key != "Space" && key != "Shift")
+                                            localPressDurations+= pressDur
                                     }
                                     keyStrokeNum += 1
                                     pressStartTime = -1L

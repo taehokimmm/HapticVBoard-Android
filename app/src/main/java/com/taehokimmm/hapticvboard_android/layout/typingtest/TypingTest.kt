@@ -266,18 +266,9 @@ fun TypingTest(
     }
 
     fun onEnd() {
-        if (testBlock >= totalBlock) {
+        if (testBlock >= totalBlock && modeIter == 1) {
             closeStudyDatabase()
-            val nextGroup = when(group) {
-                "1" -> "2"
-                "2" -> "3"
-                else -> null
-            }
-            if (nextGroup == null)
-                navController!!.navigate("typingTest/end/$subject")
-            else
-                navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/0")
-
+            navController!!.navigate("typingTest/end/$subject")
         } else {
             val nextMode = if (modeIter == 0) "test" else "train"
             val nextBlock = if (modeIter == 0) testBlock else testBlock + 1
@@ -329,13 +320,14 @@ fun TypingTest(
             soundManager.speakOut(modeName + " : 시작하려면 이중탭하세요.")
         } else if (testIter >= testList.size) {
             explainResult()
-            countdown = 1
+            countdown = 3
             timer = 0
         } else {
             isTypingMode = true
             delay({
-                explainKey(testList[testIter])
-            }, 800)
+                if (testIter < testList.size)
+                    explainKey(testList[testIter])
+            }, 500)
         }
     }
 

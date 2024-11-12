@@ -107,42 +107,37 @@ fun KeyboardLayout(
     // Moving Filter
     val MASK_LENGTH = 10;
     var array: Array<Offset?> = remember{arrayOfNulls<Offset>(MASK_LENGTH)}
-    var time: Array<Long?> = remember{arrayOfNulls<Long>(MASK_LENGTH)}
     var array_index by remember{mutableStateOf(0)};
     fun movingAverageFilter() : Offset? {
         val i:Int = 0
         var sumX:Float = 0.0F
         var sumY:Float = 0.0F
-        var nullNum: Int = 0
+        var nonNullNum: Int = 0
 
         for (i in 0 ..  MASK_LENGTH - 1) {
             if(array[i] != null) {
                 sumX += array[i]?.x!!
                 sumY += array[i]?.y!!
-            } else {
-                nullNum ++
+                nonNullNum++
             }
         }
 
-        if (nullNum == MASK_LENGTH) {
+        if (nonNullNum == 0) {
             return null
         }
-        return Offset(sumX/MASK_LENGTH, sumY/MASK_LENGTH);
+        return Offset(sumX/nonNullNum, sumY/nonNullNum);
     }
 
     fun insertIntoArray(offset: Offset) {
         array[array_index] = offset;
-        if (time[array_index] != null )
-            Log.d("touchevent", "$array_index : ${time[array_index]?.minus(System.currentTimeMillis())}")
-        time[array_index] = System.currentTimeMillis()
         array_index++;
         if (array_index >= MASK_LENGTH) {
             array_index = 0;
         }
     }
-    // 1731389676418 - 1731389676307
     fun initializeArray() {
-        array = arrayOfNulls<Offset>(MASK_LENGTH)
+        for(i in 0 .. MASK_LENGTH -1 ) array[i] = null
+        array_index = 0;
     }
 
     // Assuming touchEvents is a parameter of type List<MotionEvent>
@@ -329,14 +324,14 @@ fun processTouchEvent(
                             key,
                             HapticMode.VOICE
                         )
-                        Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
+//                        Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
                     }
                     else if (pointerPosition.y < outOfBound) {
                         // Key pressed out of bounds
-                        Log.d(
-                            "TouchEvent",
-                            "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
-                        )
+//                        Log.d(
+//                            "TouchEvent",
+//                            "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
+//                        )
                         activeTouches[pointerId] = "Out of Bounds"
                     }
 
@@ -373,11 +368,11 @@ fun processTouchEvent(
                     returnValue = null
                 }
 
+                Log.d(
+                    "TouchEvent",
+                    "Key Up Moving Window: $movingWindowAverage, key: $key originKey: $originkey"
+                )
                 if (key != null && key != "true") {
-                    Log.d(
-                        "TouchEvent",
-                        "Key Up Moving Window: $movingWindowAverage, key: $key originKey: $originkey"
-                    )
                     if (key != "Out of Bounds") {
                         if (allow.contains(key)) {
                             if(key == "delete" || (key == "Space" && hapticMode != HapticMode.PHONEME)) {
