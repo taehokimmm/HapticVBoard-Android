@@ -55,6 +55,8 @@ fun TypingTestFreePlay(
     }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
+    var inputText by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +74,6 @@ fun TypingTestFreePlay(
             Button(
                 onClick = {
                     closeStudyDatabase()
-                    Log.d("TypingTest", "free type " + block.toString())
                     navController?.navigate("typingTest/train/${subject}/${group}/${block}/${mode}")
                 }, modifier = Modifier.align(Alignment.TopEnd)
             ) {
@@ -82,9 +83,22 @@ fun TypingTestFreePlay(
         Box(
             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
         ) {
+            Text(
+                text = inputText,
+                fontSize = 30.sp
+            )
             KeyboardLayout(
                 touchEvents = keyboardTouchEvents,
-                onKeyRelease = { },
+                onKeyRelease = { key ->
+                    if (key == "Backspace") {
+                        if (inputText.isNotEmpty()) {
+                            val deletedChar = inputText.last()
+                            soundManager.speakOut(deletedChar + " Deleted")
+                            hapticManager?.generateHaptic(deletedChar.toString(), HapticMode.PHONEME)
+                            inputText = inputText.dropLast(1)
+                        }
+                    }
+                },
                 soundManager = soundManager,
                 hapticManager = hapticManager,
                 hapticMode = HapticMode.VOICEPHONEME,

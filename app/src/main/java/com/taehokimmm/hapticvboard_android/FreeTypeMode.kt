@@ -108,8 +108,16 @@ fun FreeTypeMode(
                 KeyboardLayout(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { key ->
+                        if (key == "delete") {
+                            if (inputText.isNotEmpty()) {
+                                val deletedChar = inputText.last()
+                                soundManager?.speakOut(deletedChar + " Deleted")
+                                hapticManager?.generateHaptic(deletedChar.toString(), HapticMode.PHONEME)
+                            }
+                        }
+
                         inputText = when (key) {
-                            "Backspace" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                            "delete" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                             "Space" -> "$inputText "
                             "Shift" -> inputText
                             else -> inputText + key

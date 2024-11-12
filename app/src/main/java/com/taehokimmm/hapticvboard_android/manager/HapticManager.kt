@@ -33,7 +33,7 @@ class HapticManager(context: Context) {
             return
         }
         // Haptic Tick for Special Keys
-        if (key == "Backspace" || key == "Space" || key == "Replay") {
+        if (key == "delete" || key == "Space" || key == "Shift") {
             generateVibration(key)
             return
         }
@@ -43,17 +43,9 @@ class HapticManager(context: Context) {
             Log.d("HapticFeedback", "No haptic found for key: $key, skipping...")
             return
         }
-        Log.d("HapticFeedback", "Sending haptic for key: $key over serial")
-        Log.d("HapticFeedback", "P${formattedKey}WAV")
 
-        if (hapticMode == HapticMode.VOICEPHONEMETICK && getRow(key) == 1) {
-            generateVibration(key)
-            delay(
-                {serialManager.write("P${formattedKey}WAV\n".toByteArray())}, 50)
-        } else {
-            serialManager.write("P${formattedKey}WAV\n".toByteArray())
-
-        }
+        serialManager.write("q\n".toByteArray())
+        serialManager.write("P${formattedKey}WAV\n".toByteArray())
     }
 
 
@@ -61,7 +53,7 @@ class HapticManager(context: Context) {
         val phonemeGroups = listOf(
             listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
             listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-            listOf("z", "x", "c", "v", "b", "n", "m", "Shift", "Backspace"),
+            listOf("z", "x", "c", "v", "b", "n", "m", "Shift", "delete"),
             listOf("Space")
         )
         var idx = -1
@@ -77,11 +69,9 @@ class HapticManager(context: Context) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
 
                 var vibrate: VibrationEffect? = null
-                if (key == "Backspace"){
+                if (key == "Space" || key == "Shift"){
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
-                } else if(key == "Space"){
-                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
-                } else if(key == "Replay"){
+                }else if(key == "delete"){
                     vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
                 } else if (key == "Out of Bounds") {
                     vibrate = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)

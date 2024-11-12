@@ -104,10 +104,11 @@ fun Study3(
     //---------------METRICS ----------------------------//
     // WPM
     var wpm by remember { mutableDoubleStateOf(.0) }
-    var wpmList by remember { mutableStateOf(listOf<Double>()) }
     var error by remember { mutableDoubleStateOf(.0) }
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
+    var sentenceStartTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var sentenceEndTime by remember { mutableLongStateOf(0L) }
 
     // ERROR
     // Variables related to T-seq change
@@ -207,18 +208,18 @@ fun Study3(
             params, "utteranceId")
     }
 
-    fun speakWordSpelling(word: String) {
+    fun speakWord(word: String) {
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "utteranceId")
         tts?.speak(word, TextToSpeech.QUEUE_ADD, params, "utteranceId")
-        playEarcon("silent")
-        for (index in 0 until word.length) {
-            tts?.setSpeechRate(1f)
-            var letter = word[index].toString()
-            tts?.speak(
-                letter, TextToSpeech.QUEUE_ADD, params, "utteranceId"
-            )
-        }
+//        playEarcon("silent")
+//        for (index in 0 until word.length) {
+//            tts?.setSpeechRate(1f)
+//            var letter = word[index].toString()
+//            tts?.speak(
+//                letter, TextToSpeech.QUEUE_ADD, params, "utteranceId"
+//            )
+//        }
     }
 
     fun speakSentence(sentence: String) {
@@ -251,16 +252,15 @@ fun Study3(
     fun addWPM() {
         val targetWord = testWords[testWordCnt]
         val inputWords = inputText.split(" ")
-        val inputWord = inputWords[inputWords.size - 2]
-        wpm = calculateWPM(startTime, endTime, inputWord)
-        wpmList += wpm
+        val inputWord = inputWords[inputWords.size - 1]
+        val wpm = calculateWPM(startTime, endTime, inputWord)
 
         val data = TextEntryMetric(
             hapticName,
             testBlock,
             testIter,
             wpm,
-            -1.0,
+            0.0,
             -1.0,
             -1.0,
             -1.0,
@@ -275,7 +275,7 @@ fun Study3(
 
     fun addLogging() {
         val targetText = testList[testIter]
-
+        wpm = calculateWPM(sentenceStartTime, sentenceEndTime, inputText.trim())
         val errors = getError(targetText, tsequence, IF)
         val cer = errors[0] * 100
         val uer = errors[1] * 100
@@ -290,8 +290,8 @@ fun Study3(
             hapticName,
             testBlock,
             testIter,
-            -1.0,
-            -1.0,
+            wpm,
+            1.0,
             pd,
             uer,
             cer,
@@ -376,11 +376,12 @@ fun Study3(
 
     fun initMetric() {
         startTime = -1
+        sentenceStartTime = -1
         keystrokeTimestamps = listOf()
         pressDurations = listOf()
         keyStrokeNum = 0
         IF = 0
-        wpmList = listOf()
+
         tsequence.clear()
         tsequence.add("")
         oldVal = ""
@@ -390,24 +391,25 @@ fun Study3(
         tts?.stop()
         isSpeakingDone = true
         playEarcon("beep")
+        addWPM()
         addLogging()
         modeIter = 2
     }
 
-    fun onSpace() {
-        addWPM()
+    fun onSpace(): Boolean {
         if (testWordCnt < testWords.size - 1) {
+            addWPM()
             startTime = -1
             testWordCnt ++
-            speakWordSpelling(testWords[testWordCnt])
-        } else {
-            onConfirm()
+            speakWord(testWords[testWordCnt])
+        } else if(inputText.isNotEmpty()) {
+            return true
         }
+        return false
     }
 
     fun explainResult() {
-        val wpmAvg = wpmList.average()
-        val wpmFormatted = String.format("%.1f", wpmAvg)
+        val wpmFormatted = String.format("%.1f", wpm)
         val errorFormatted = String.format("%.1f", error)
         speak(inputText)
         speak("Speed : " + wpmFormatted + "Word Per Minute")
@@ -419,7 +421,14 @@ fun Study3(
         isSpeakingDone = false
         tts?.stop()
         delay({
+            tts?.stop()
             val sentence = testList[testIter]
+            speak(sentence)
+            playEarcon("start")
+            speakSentence(sentence)
+            playEarcon("start")
+            speakSpelling(sentence)
+            playEarcon("start")
             speak(sentence)
         }, 500)
     }
@@ -512,7 +521,7 @@ fun Study3(
                     soundManager = soundManager,
                     hapticManager = hapticManager,
                     hapticMode = HapticMode.VOICEPHONEME,
-                    allow = getAllowGroup("123", true)
+                    allow = getAllowGroup("123")
                 )
 
                 AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
@@ -577,7 +586,7 @@ fun Study3(
                                             inputText = ""
                                             initMetric()
                                             delay({
-                                                speakWordSpelling(testWords[testWordCnt])
+                                                speakWord(testWords[testWordCnt])
                                             }, 500)
                                         } else {
                                             if (isSpeakingDone) {
@@ -648,8 +657,7 @@ fun Study3(
 
                         if (modeIter == 2) {
                             Spacer(modifier = Modifier.height(20.dp))
-                            val wpmAvg = wpmList.average()
-                            val wpmFormatted = String.format("%.1f", wpmAvg)
+                            val wpmFormatted = String.format("%.1f", wpm)
                             val errorFormatted = String.format("%.1f", error)
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
@@ -674,15 +682,36 @@ fun Study3(
                                     if (startTime == -1L) {
                                         startTime = System.currentTimeMillis()
                                     }
-                                    tts?.stop()
+                                    if (sentenceStartTime == -1L) {
+                                        sentenceStartTime = System.currentTimeMillis()
+                                    }
+                                    if (hapticMode == HapticMode.VOICE) tts?.stop()
                                     isSpeakingDone = true
                                     pressStartTime = System.currentTimeMillis()
                                 },
                                 onKeyRelease = { key ->
+                                    if (key == "delete") {
+                                        if (inputText.isNotEmpty()) {
+                                            val deletedChar = inputText.last()
+                                            if (hapticMode == HapticMode.VOICE) {
+                                                speak(deletedChar + " Deleted")
+                                            } else {
+                                                hapticManager?.generateHaptic("delete", hapticMode)
+                                                hapticManager?.generateHaptic(deletedChar.toString(), hapticMode)
+                                            }
+                                            if (inputText.isNotEmpty() && inputText.last() == ' ') {
+                                                if (testWordCnt > 0)  testWordCnt --
+                                            }
+                                        }
+                                    } else if (key == "Space") {
+                                        val isEnd = onSpace()
+                                        if (isEnd) return@KeyboardLayout
+                                    }
                                     endTime = System.currentTimeMillis()
+                                    sentenceEndTime = System.currentTimeMillis()
                                     inputText = when (key) {
-                                        "Backspace" -> "$inputText"
-                                        "Space" -> "$inputText"
+                                        "delete" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                                        "Space" -> if (inputText.isNotEmpty() && inputText.last() != ' ') "$inputText " else inputText
                                         "Shift" -> inputText
                                         else -> {
                                             inputText + key
@@ -697,6 +726,7 @@ fun Study3(
                                     keyStrokeNum += 1
                                     pressStartTime = -1L
                                 },
+                                allow = getAllowGroup("123"),
                                 enterKeyVisibility = false,
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,
@@ -724,27 +754,17 @@ fun Study3(
                                 context,
                                 onTap = {
                                     tts?.stop()
-                                    speakWordSpelling(testWords[testWordCnt])
+                                    speakWord(testWords[testWordCnt])
+                                },
+                                onDoubleTap = {
+                                    if (inputText.isEmpty()) return@MultiTouchView
+                                    onConfirm()
                                 },
                                 onLeftSwipe = {
-                                    if (inputText.isNotEmpty()) {
 
-                                        val deletedChar = inputText.last()
-                                        if (hapticMode == HapticMode.VOICE) {
-                                            speak(deletedChar + " Deleted")
-                                        } else {
-                                            hapticManager?.generateHaptic(deletedChar.toString(), hapticMode)
-                                        }
-
-                                        inputText = inputText.dropLast(1)
-                                    }
-                                    else inputText
                                 },
                                 onRightSwipe = {
-                                    if (inputText.last() != ' ') {
-                                        inputText = "$inputText "
-                                    }
-                                    onSpace()
+
                                 }
                             ).apply {
                                 onMultiTouchEvent = { event ->

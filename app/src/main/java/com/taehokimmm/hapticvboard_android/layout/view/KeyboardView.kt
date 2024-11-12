@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.taehokimmm.hapticvboard_android.HapticMode
+import com.taehokimmm.hapticvboard_android.MovingWindowFilter
 import com.taehokimmm.hapticvboard_android.database.addLog
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
@@ -33,7 +34,7 @@ fun KeyboardLayout(
     soundManager: SoundManager? = null,
     hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
-    allow: List<String> = ('a'..'z').map { it.toString() },
+    allow: List<String> = ('a'..'z').map { it.toString() } + listOf("Space", "delete","Shift"),
     logData: Any? = null,
     name: String? = ""
 ) {
@@ -48,6 +49,10 @@ fun KeyboardLayout(
     var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     val outOfBound = 1566
+
+    val movingWindowFilter = MovingWindowFilter();
+
+    val midX = MovingWindowFilter()
     Box(modifier = Modifier
         .fillMaxWidth()
         .background(
@@ -65,7 +70,7 @@ fun KeyboardLayout(
             val keys = listOf(
                 listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
                 listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-                listOf("Shift", "z", "x", "c", "v", "b", "n", "m", "Backspace"),
+                listOf("Shift", "z", "x", "c", "v", "b", "n", "m", "delete"),
             )
             val lastRow = listOf("Space")
 
@@ -98,12 +103,54 @@ fun KeyboardLayout(
         }
     }
 
+
+    // Moving Filter
+    val MASK_LENGTH = 10;
+    var array: Array<Offset?> = remember{arrayOfNulls<Offset>(MASK_LENGTH)}
+    var time: Array<Long?> = remember{arrayOfNulls<Long>(MASK_LENGTH)}
+    var array_index by remember{mutableStateOf(0)};
+    fun movingAverageFilter() : Offset? {
+        val i:Int = 0
+        var sumX:Float = 0.0F
+        var sumY:Float = 0.0F
+        var nullNum: Int = 0
+
+        for (i in 0 ..  MASK_LENGTH - 1) {
+            if(array[i] != null) {
+                sumX += array[i]?.x!!
+                sumY += array[i]?.y!!
+            } else {
+                nullNum ++
+            }
+        }
+
+        if (nullNum == MASK_LENGTH) {
+            return null
+        }
+        return Offset(sumX/MASK_LENGTH, sumY/MASK_LENGTH);
+    }
+
+    fun insertIntoArray(offset: Offset) {
+        array[array_index] = offset;
+        if (time[array_index] != null )
+            Log.d("touchevent", "$array_index : ${time[array_index]?.minus(System.currentTimeMillis())}")
+        time[array_index] = System.currentTimeMillis()
+        array_index++;
+        if (array_index >= MASK_LENGTH) {
+            array_index = 0;
+        }
+    }
+    // 1731389676418 - 1731389676307
+    fun initializeArray() {
+        array = arrayOfNulls<Offset>(MASK_LENGTH)
+    }
+
     // Assuming touchEvents is a parameter of type List<MotionEvent>
     // Create a mutable copy for local modification
     val mutableTouchEvents = touchEvents.toMutableList()
 
     if (mutableTouchEvents.isNotEmpty()) {
-        processTouchEvent(
+        val touchPos: Offset? = processTouchEvent(
             mutableTouchEvents,
             keyPositions.value,
             activeTouches,
@@ -115,8 +162,14 @@ fun KeyboardLayout(
             allow,
             logData,
             context,
-            name
+            name,
+            movingAverageFilter()
         )
+        if (touchPos == null) {
+            initializeArray()
+        } else {
+            insertIntoArray(touchPos)
+        }
         mutableTouchEvents.clear()
     }
 }
@@ -144,9 +197,11 @@ fun DrawKey(
             .border(1.dp, Color.Black)
             .size(
                 when (key) {
+                    "a" -> width * 1.5f
+                    "l" -> width * 1.5f
                     "Space" -> width * 7
                     "Replay" -> width * 2.5f
-                    "Shift", "Backspace", -> width * 1.5f
+                    "Shift", "delete", -> width * 1.5f
                     else -> width
                 },
                 when (key) {
@@ -160,7 +215,7 @@ fun DrawKey(
     ) {
         Text(
             text = when (key) {
-                "Backspace" -> "⌫"
+                "delete" -> "⌫"
                 "Replay" -> "Replay"
                 "Shift" -> "⇧"
                 "Space" -> " "
@@ -204,7 +259,7 @@ fun replaySound(
         key,
         HapticMode.VOICE
     )
-    Log.d("TouchEvent", "additional touch: $key")
+//    Log.d("TouchEvent", "additional touch: $key")
 
     if (name != null && logData != null) {
         addLog(
@@ -232,9 +287,10 @@ fun processTouchEvent(
     allow: List<String>,
     logData: Any?,
     context: Context,
-    name: String?
-) {
-
+    name: String?,
+    movingWindowAverage: Offset?,
+) : Offset? {
+    var returnValue: Offset? = null
     val outOfBound = 1566
     for(event in events) {
         if (event.pointerCount == 1) {
@@ -297,17 +353,39 @@ fun processTouchEvent(
                             pointerPosition.y
                         )
                     }
+                    returnValue = pointerPosition
                 }
             }
 
             MotionEvent.ACTION_UP -> {
                 val pointerId = event.getPointerId(event.actionIndex)
 
-                val key = activeTouches.remove(pointerId)
+                var key: String? = null
+                if (movingWindowAverage != null) {
+                    key = keyPositions.entries.find { (_, coordinates) ->
+                        isPointerOverKey(coordinates, movingWindowAverage)
+                    }?.key
+                }
+
+                val originkey = activeTouches.remove(pointerId)
+                if (originkey == null) {
+                    key = null
+                    returnValue = null
+                }
+
                 if (key != null && key != "true") {
+                    Log.d(
+                        "TouchEvent",
+                        "Key Up Moving Window: $movingWindowAverage, key: $key originKey: $originkey"
+                    )
                     if (key != "Out of Bounds") {
-                        if (allow.contains(key))
-                            hapticManager?.generateHaptic(key, hapticMode)
+                        if (allow.contains(key)) {
+                            if(key == "delete" || (key == "Space" && hapticMode != HapticMode.PHONEME)) {
+
+                            } else {
+                                hapticManager?.generateHaptic(key, hapticMode)
+                            }
+                        }
                         else {
                             if (hapticMode == HapticMode.VOICEPHONEME)
                                 hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
@@ -350,14 +428,10 @@ fun processTouchEvent(
 
                     if (key != null && activeTouches[pointerId] != key) {
 
-                        Log.d(
-                            "TouchEvent",
-                            "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
-                        )
-
-//                        if (activeTouches[pointerId]?.let { isRowChanged(it, key) } == true) {
-//                            hapticManager?.generateVibration("rowchanged")
-//                        }
+//                        Log.d(
+//                            "TouchEvent",
+//                            "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
+//                        )
 
                         if (allow.contains(key)) {
                             hapticManager?.generateHaptic(key, hapticMode)
@@ -373,10 +447,10 @@ fun processTouchEvent(
                         }
                     } else if (key == null && pointerPosition.y < outOfBound && activeTouches[pointerId] != "Out of Bounds") {
                         // Key moved out of bounds, need to fix random number 1566
-                        Log.d(
-                            "TouchEvent",
-                            "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
-                        )
+//                        Log.d(
+//                            "TouchEvent",
+//                            "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
+//                        )
                         // Add Log
                         if (name != null && logData != null) {
                             addLog(
@@ -399,11 +473,13 @@ fun processTouchEvent(
                         )
                     }
                     activeTouches[pointerId] = key?: "Out of Bounds"
+                    returnValue = pointerPosition
                 }
             }
         }
 
     }
+    return returnValue
   }
 
 fun isPointerOverKey(coordinates: LayoutCoordinates, pointerPosition: Offset): Boolean {

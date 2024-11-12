@@ -124,7 +124,8 @@ class SoundManager(context: Context) {
         tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
-    fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH) {
+    fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH, rate:Float = 1.0f) {
+        tts.setSpeechRate(rate)
         tts.speak(text, mode, null, null)
     }
 
