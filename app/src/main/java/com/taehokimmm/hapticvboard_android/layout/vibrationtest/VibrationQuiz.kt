@@ -148,9 +148,9 @@ fun Study1VibrationQuiz(
         }
         if (isShowAnswer) {
             if (!isTypingMode) return
-            isTypingMode = false
             soundManager.playEarcon("beep")
             testIter++
+            isTypingMode = false
         } else {
             if (selectedIndex == -1) return
 
@@ -517,7 +517,7 @@ fun Study1VibrationQuiz(
                 }
             } else {
                 val inputKey = if (selectedAnswer == -1) "" else options[selectedAnswer]
-                val isCorrect = if (selectedAnswer == -1) false else options[selectedAnswer] == testList[testIter]
+                val isCorrect = if (selectedAnswer == -1) true else options[selectedAnswer] == testList[testIter]
 
                 QuizDisplay(testBlock, totalBlock, testIter, testNumber, testList[testIter][0], height = topMargin,
                     inputKey = inputKey, isCorrect = isCorrect)

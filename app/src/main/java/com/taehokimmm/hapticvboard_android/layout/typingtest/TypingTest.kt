@@ -268,7 +268,17 @@ fun TypingTest(
     fun onEnd() {
         if (testBlock >= totalBlock && modeIter == 1) {
             closeStudyDatabase()
-            navController!!.navigate("typingTest/end/$subject")
+            val nextGroup = when(group) {
+                "1" -> "2"
+                "2" -> "3"
+                "3" -> "123"
+                else -> null
+            }
+            if (nextGroup == null)
+                navController!!.navigate("typingTest/end/$subject")
+            else
+                navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/1/train")
+
         } else {
             val nextMode = if (modeIter == 0) "test" else "train"
             val nextBlock = if (modeIter == 0) testBlock else testBlock + 1

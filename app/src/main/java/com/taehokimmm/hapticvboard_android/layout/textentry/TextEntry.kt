@@ -82,11 +82,12 @@ fun Study3(
 
     val context = LocalContext.current
 
+    val phonemeBlock = 12
     val totalBlock = when (isPractice) {
         true -> 1
         false -> when(hapticMode) {
             HapticMode.VOICE -> 2
-            HapticMode.PHONEME -> 12
+            HapticMode.PHONEME -> phonemeBlock
             else -> 1
         }
     }
@@ -164,9 +165,9 @@ fun Study3(
             phrases = phrases1
         } else {
             if (hapticMode == HapticMode.PHONEME) {
-                phrases = phrases1.slice(0..8 * testNumber - 1)
+                phrases = phrases1.slice(0..phonemeBlock * testNumber - 1)
             } else if (hapticMode == HapticMode.VOICE) {
-                phrases = phrases1.slice(8 * testNumber..10 * testNumber - 1)
+                phrases = phrases1.slice(phonemeBlock * testNumber..(phonemeBlock + 2) * testNumber - 1)
             }
         }
 
@@ -263,6 +264,7 @@ fun Study3(
     }
 
     fun addLoggingPerWord() {
+        if (isPractice) return
         val targetWord = testWords[testWordCnt]
         val inputWords = inputText.split(" ")
         val inputWord = inputWords[inputWords.size - 1]
@@ -292,6 +294,7 @@ fun Study3(
     }
 
     fun addLogging() {
+        if (isPractice) return
         val targetText = testList[testIter]
         val wpm = calculateWPM(sentenceStartTime, sentenceEndTime, inputText.trim())
         val errors = getError(targetText, tsequence, IF)
@@ -300,7 +303,6 @@ fun Study3(
         val ter = errors[2] * 100
         error = uer
 
-        if (isPractice) return
         val pd = calculatePressDuration(pressDurations)
 
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
@@ -400,6 +402,7 @@ fun Study3(
         localPressDurations = listOf()
         keyStrokeNum = 0
         IF = 0
+        wpmList.clear()
 
         tsequence.clear()
         tsequence.add("")
@@ -430,8 +433,8 @@ fun Study3(
     }
 
     fun explainResult() {
-        val wpmFormatted = String.format("%.0f", wpmAvg)
-        val errorFormatted = String.format("%.0f", error)
+        val wpmFormatted = String.format("%.1f", wpmAvg)
+        val errorFormatted = String.format("%.1f", error)
         speak(inputText)
         speakKor("속도 : " + wpmFormatted, speed = 1.2f)
         speakKor("오류 : " + errorFormatted + "%", speed = 1.2f)
@@ -754,13 +757,13 @@ fun Study3(
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,
                                 hapticMode = hapticMode,
-                                logData = TextEntryLog(
+                                logData = if (isPractice) TextEntryLog(
                                     mode = hapticName,
                                     iteration = testIter,
                                     block = testBlock,
                                     targetText = testList[testIter],
                                     inputText = inputText
-                                ),
+                                ) else null,
                                 name = subject
                             )
                         }
