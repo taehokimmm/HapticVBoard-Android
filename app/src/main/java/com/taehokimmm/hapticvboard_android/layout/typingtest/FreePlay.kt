@@ -90,15 +90,13 @@ fun TypingTestFreePlay(
             KeyboardLayout(
                 touchEvents = keyboardTouchEvents,
                 onKeyRelease = { key ->
-                    if (key == "Backspace") {
+                    if (key == "delete") {
                         if (inputText.isNotEmpty()) {
-                            val deletedChar = inputText.last()
-                            soundManager.speakOut(deletedChar + " Deleted")
-                            hapticManager?.generateHaptic(deletedChar.toString(), HapticMode.PHONEME)
                             inputText = inputText.dropLast(1)
                         }
                     }
                 },
+                lastWord = if(inputText.isNotEmpty()) inputText.last() else null,
                 soundManager = soundManager,
                 hapticManager = hapticManager,
                 hapticMode = HapticMode.VOICEPHONEME,

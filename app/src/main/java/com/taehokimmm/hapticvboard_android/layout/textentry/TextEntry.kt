@@ -138,20 +138,10 @@ fun Study3(
     var modeIter by remember {mutableStateOf(-1)}
 
     var timer by remember { mutableStateOf(0) }
-    var countdown by remember { mutableStateOf(30) }
 
     LaunchedEffect(timer) {
         kotlinx.coroutines.delay(1000L)
         timer++
-
-        var temp: Int
-        if (testBlock == 0) {
-            temp = 0
-        } else {
-            temp = 120 - timer
-        }
-        if (temp < 0) temp = 0
-        if (temp != countdown) countdown = temp
     }
 
     LaunchedEffect(Unit) {
@@ -264,7 +254,6 @@ fun Study3(
     }
 
     fun addLoggingPerWord() {
-        if (isPractice) return
         val targetWord = testWords[testWordCnt]
         val inputWords = inputText.split(" ")
         val inputWord = inputWords[inputWords.size - 1]
@@ -272,7 +261,7 @@ fun Study3(
         if (wpm > 0) wpmList.add(wpm)
         wpmAvg = wpmList.average()
 
-
+        if (isPractice) return
         val pd = calculatePressDuration(localPressDurations)
 
         val data = TextEntryMetric(
@@ -294,14 +283,14 @@ fun Study3(
     }
 
     fun addLogging() {
-        if (isPractice) return
-        val targetText = testList[testIter]
+        val targetText = if(isPractice) testList[0] else testList[testIter]
         val wpm = calculateWPM(sentenceStartTime, sentenceEndTime, inputText.trim())
         val errors = getError(targetText, tsequence, IF)
         val cer = errors[0] * 100
         val uer = errors[1] * 100
         val ter = errors[2] * 100
         error = uer
+        if (isPractice) return
 
         val pd = calculatePressDuration(pressDurations)
 
@@ -446,7 +435,7 @@ fun Study3(
         tts?.stop()
         delay({
             tts?.stop()
-            val sentence = testList[testIter]
+            var sentence = if (isPractice) testList[0] else testList[testIter]
             speak(sentence)
             playEarcon("start")
             speakSentence(sentence)
@@ -459,11 +448,11 @@ fun Study3(
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
-            countdown = 120
             timer = 0
-            testList = phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
+            testList = if (isPractice) phrases
+                else phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
         } else if (testIter < testNumber) {
-            val targetText = testList[testIter]
+            var targetText = if (isPractice) testList[0] else testList[testIter]
             testWords = targetText.split(" ")
             testWordCnt = 0
             modeIter = 0
@@ -494,9 +483,9 @@ fun Study3(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Show countdown (MM:SS)
+            // Show Time (MM:SS)
             Text(
-                text = "%02d:%02d".format(countdown / 60, countdown % 60),
+                text = "%02d:%02d".format(timer / 60, timer % 60),
                 fontSize = 30.sp,
                 fontFamily = FontFamily.Monospace,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -505,6 +494,7 @@ fun Study3(
             Spacer(modifier = Modifier.height(30.dp))
 
             Button(onClick = {
+                inputText = ""
                 testIter = 0
             }) {
                 Text("Skip")
@@ -518,33 +508,42 @@ fun Study3(
                 )
             }
 
-            if (countdown == 0) {
-                Button(
-                    onClick = {
-                        testIter = 0
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally),
-                    shape = RoundedCornerShape(corner = CornerSize(0)),
-                    colors = ButtonColors(Color.White, Color.Black, Color.Gray, Color.Gray)
-                ) {
-                    Text(
-                        text = "Tap to Start \n Block : " + (testBlock + 1).toString(), fontSize = 20.sp
-                    )
-                }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = inputText,
+                    fontSize = 30.sp
+                )
             }
-
 
             Box(
                 modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter
             ) {
                 KeyboardLayout(
                     touchEvents = keyboardTouchEvents,
-                    onKeyRelease = { },
+                    onKeyRelease = { key ->
+                        if (key == "delete") {
+                            if (hapticMode == HapticMode.VOICE) {
+                                val deletedChar = if (inputText.isNotEmpty())
+                                    inputText.last() + "Deleted" else "nothing deleted"
+                                speak(deletedChar)
+                            }
+                        }
+
+                        inputText = when (key) {
+                            "delete" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
+                            "Space" -> "$inputText "
+                            "Shift" -> inputText
+                            else -> inputText + key
+                        }
+                    },
+                    lastWord = if(inputText.isNotEmpty()) inputText.last() else null,
                     soundManager = soundManager,
                     hapticManager = hapticManager,
-                    hapticMode = HapticMode.VOICEPHONEME,
+                    hapticMode = hapticMode,
                     allow = getAllowGroup("123")
                 )
 
@@ -558,7 +557,7 @@ fun Study3(
                 })
             }
         }
-    } else if (testIter < testList.size) {
+    } else if (isPractice || testIter < testList.size) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -662,7 +661,7 @@ fun Study3(
                             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = testList[testIter], fontSize = 30.sp, color = Color.Blue
+                                text = if(isPractice) testList[0] else testList[testIter], fontSize = 30.sp, color = Color.Blue
                             )
                         }
 
@@ -715,17 +714,13 @@ fun Study3(
                                 },
                                 onKeyRelease = { key ->
                                     if (key == "delete") {
-                                        if (inputText.isNotEmpty()) {
-                                            val deletedChar = inputText.last()
-                                            if (hapticMode == HapticMode.VOICE) {
-                                                speak(deletedChar + " Deleted")
-                                            } else {
-                                                hapticManager?.generateHaptic("delete", hapticMode)
-                                                hapticManager?.generateHaptic(deletedChar.toString(), hapticMode)
-                                            }
-                                            if (inputText.isNotEmpty() && inputText.last() == ' ') {
-                                                if (testWordCnt > 0)  testWordCnt --
-                                            }
+                                        if (hapticMode == HapticMode.VOICE) {
+                                            val deletedChar = if (inputText.isNotEmpty())
+                                                inputText.last() + "Deleted" else "nothing deleted"
+                                            speak(deletedChar)
+                                        }
+                                        if (inputText.isNotEmpty() && inputText.last() == ' ') {
+                                            if (testWordCnt > 0)  testWordCnt --
                                         }
                                     } else if (key == "Space") {
                                         val isEnd = onSpace()
@@ -757,13 +752,14 @@ fun Study3(
                                 soundManager = soundManager,
                                 hapticManager = hapticManager,
                                 hapticMode = hapticMode,
-                                logData = if (isPractice) TextEntryLog(
+                                 logData = TextEntryLog(
                                     mode = hapticName,
                                     iteration = testIter,
                                     block = testBlock,
-                                    targetText = testList[testIter],
+                                    targetText = if (isPractice) testList[0] else testList[testIter],
                                     inputText = inputText
-                                ) else null,
+                                ),
+                                lastWord = if(inputText.isNotEmpty()) inputText.last() else null,
                                 name = subject
                             )
                         }

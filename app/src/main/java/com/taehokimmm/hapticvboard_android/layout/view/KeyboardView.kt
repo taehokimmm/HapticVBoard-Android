@@ -1,6 +1,8 @@
 package com.taehokimmm.hapticvboard_android.layout.view
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,10 +22,11 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.taehokimmm.hapticvboard_android.HapticMode
-import com.taehokimmm.hapticvboard_android.MovingWindowFilter
 import com.taehokimmm.hapticvboard_android.database.addLog
+import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
+import java.lang.Math.round
 
 @Composable
 fun KeyboardLayout(
@@ -35,6 +38,7 @@ fun KeyboardLayout(
     hapticManager: HapticManager?,
     hapticMode: HapticMode = HapticMode.NONE,
     allow: List<String> = ('a'..'z').map { it.toString() } + listOf("Space", "delete","Shift"),
+    lastWord: Char? = null,
     logData: Any? = null,
     name: String? = ""
 ) {
@@ -48,11 +52,10 @@ fun KeyboardLayout(
     // Root coordinates for global positioning
     var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
+    val handler = Handler(Looper.getMainLooper())
+    var runnable by remember { mutableStateOf<Runnable?>(null)}
+    var isRepeat by remember {mutableStateOf(false)}
     val outOfBound = 1566
-
-    val movingWindowFilter = MovingWindowFilter();
-
-    val midX = MovingWindowFilter()
     Box(modifier = Modifier
         .fillMaxWidth()
         .background(
@@ -106,37 +109,34 @@ fun KeyboardLayout(
 
     // Moving Filter
     val MASK_LENGTH = 10;
-    var array: Array<Offset?> = remember{arrayOfNulls<Offset>(MASK_LENGTH)}
+    var arrayX: Array<Float?> = remember{arrayOfNulls<Float>(MASK_LENGTH)}
+    var arrayY: Array<Float?> = remember{arrayOfNulls<Float>(MASK_LENGTH)}
     var array_index by remember{mutableStateOf(0)};
     fun movingAverageFilter() : Offset? {
-        val i:Int = 0
-        var sumX:Float = 0.0F
-        var sumY:Float = 0.0F
-        var nonNullNum: Int = 0
+        val sortedX = arrayX.filterNotNull().sorted()
+        val sortedY = arrayY.filterNotNull().sorted()
 
-        for (i in 0 ..  MASK_LENGTH - 1) {
-            if(array[i] != null) {
-                sumX += array[i]?.x!!
-                sumY += array[i]?.y!!
-                nonNullNum++
-            }
-        }
+        if (sortedX.isEmpty() || sortedY.isEmpty()) return null
+        var mediumX = sortedX[sortedX.size/2]
+        var mediumY = sortedY[sortedY.size/2]
 
-        if (nonNullNum == 0) {
-            return null
-        }
-        return Offset(sumX/nonNullNum, sumY/nonNullNum);
+        if (mediumX == null || mediumY == null) return null
+        return Offset(mediumX, mediumY)
     }
 
     fun insertIntoArray(offset: Offset) {
-        array[array_index] = offset;
+        arrayX[array_index] = offset.x;
+        arrayY[array_index] = offset.y;
         array_index++;
         if (array_index >= MASK_LENGTH) {
             array_index = 0;
         }
     }
     fun initializeArray() {
-        for(i in 0 .. MASK_LENGTH -1 ) array[i] = null
+        for(i in 0 .. MASK_LENGTH -1 ) {
+            arrayX[i] = null
+            arrayY[i] = null
+        }
         array_index = 0;
     }
 
@@ -145,21 +145,207 @@ fun KeyboardLayout(
     val mutableTouchEvents = touchEvents.toMutableList()
 
     if (mutableTouchEvents.isNotEmpty()) {
-        val touchPos: Offset? = processTouchEvent(
-            mutableTouchEvents,
-            keyPositions.value,
-            activeTouches,
-            onKeyPress,
-            onKeyRelease,
-            soundManager!!,
-            hapticManager!!,
-            hapticMode,
-            allow,
-            logData,
-            context,
-            name,
-            movingAverageFilter()
-        )
+        var touchPos: Offset? = null
+        val outOfBound = 1566
+        for(event in mutableTouchEvents) {
+            if (event.pointerCount == 1) {
+                val pointerId = event.getPointerId(event.actionIndex)
+                activeTouches.keys.forEach { id -> if (pointerId != id) activeTouches.remove(id) }
+            }
+            when (event.actionMasked) {
+                MotionEvent.ACTION_POINTER_1_DOWN -> {
+                    val pointerId = event.getPointerId(event.actionIndex)
+                    replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData, lastWord)
+
+                }
+                MotionEvent.ACTION_POINTER_1_UP -> {
+                    val pointerId = event.getPointerId(event.actionIndex)
+                    activeTouches.remove(pointerId)
+                }
+                MotionEvent.ACTION_DOWN-> {
+                    for (i in 0 until event.pointerCount) {
+                        val pointerId = event.getPointerId(i)
+
+                        val pointerPosition = Offset(event.getX(i), event.getY(i))
+                        val key = keyPositions.value.entries.find { (_, coordinates) ->
+                            isPointerOverKey(coordinates, pointerPosition)
+                        }?.key
+
+                        if (i >= 1) {
+                            replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData, lastWord)
+                        }
+
+                        if (key != null && activeTouches[pointerId] != key) {
+                            if (onKeyPress != null)
+                                onKeyPress(key)
+
+                            activeTouches[pointerId] = key
+                            if (allow.contains(key)) {
+
+                                if (key == "delete") onDelete(lastWord, hapticMode, hapticManager)
+                                else hapticManager?.generateHaptic(key, hapticMode)
+                            }
+                            else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(
+                                key,
+                                HapticMode.VOICE
+                            )
+
+                        }
+                        else if (pointerPosition.y < outOfBound) {
+                            // Key pressed out of bounds
+//                        Log.d(
+//                            "TouchEvent",
+//                            "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
+//                        )
+                            activeTouches[pointerId] = "Out of Bounds"
+                        }
+
+
+                        // Add Log
+                        if (name != null && logData != null) {
+                            addLog(
+                                context,
+                                name,
+                                logData,
+                                "DOWN",
+                                key ?: "Out of Bounds",
+                                pointerPosition.x,
+                                pointerPosition.y
+                            )
+                        }
+                        touchPos = pointerPosition
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> {
+
+                    val movingWindowAverage = movingAverageFilter()
+
+                    val pointerId = event.getPointerId(event.actionIndex)
+
+                    var key: String? = null
+                    if (movingWindowAverage != null) {
+                        key = keyPositions.value.entries.find { (_, coordinates) ->
+                            isPointerOverKey(coordinates, movingWindowAverage)
+                        }?.key
+                    }
+
+                    val originkey = activeTouches.remove(pointerId)
+                    if (originkey == null) {
+                        key = null
+                        touchPos = null
+                    }
+
+                    Log.d(
+                        "TouchEvent",
+                        "Key Up Moving Window: $movingWindowAverage, key: $key originKey: $originkey"
+                    )
+                    if (key != null && key != "true") {
+                        if (key == "delete") {
+                            onDelete(lastWord, hapticMode, hapticManager, MotionEvent.ACTION_UP)
+                        }
+                        if (key != "Out of Bounds") {
+                            if (allow.contains(key)) {
+                                if(key == "delete") {
+                                    // No action for the "delete" key.
+                                }
+                                else hapticManager?.generateHaptic(key, hapticMode)
+                            }
+                            else {
+                                if (hapticMode == HapticMode.VOICEPHONEME)
+                                    hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
+                                else
+                                    hapticManager?.generateHaptic(key, HapticMode.TICK)
+                            }
+                            onKeyRelease(key)
+                        }
+
+                        // Add Log
+                        if (name != null && logData != null) {
+                            val pointerPosition =
+                                Offset(event.getX(event.actionIndex), event.getY(event.actionIndex))
+                            addLog(
+                                context, name, logData, "UP", key, pointerPosition.x, pointerPosition.y
+                            )
+                        }
+                        runnable?.let { handler.removeCallbacks(it) }
+                        isRepeat = false
+                    }
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    for (i in 0 until event.pointerCount) {
+                        val pointerId = event.getPointerId(i)
+
+                        val pointerPosition = Offset(event.getX(i), event.getY(i))
+                        val key = keyPositions.value.entries.find { (_, coordinates) ->
+                            isPointerOverKey(coordinates, pointerPosition)
+                        }?.key
+
+                        if (i >= 1) {
+                            replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData, lastWord)
+                            // ignore the move event for additional touches
+                            continue
+                        }
+
+                        if (pointerPosition.y > outOfBound && activeTouches[pointerId] == "Out of Bounds") {
+                            activeTouches[pointerId] = ""
+                        }
+
+                        if (key != null && activeTouches[pointerId] != key) {
+
+                        Log.d(
+                            "TouchEvent",
+                            "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
+                        )
+
+                            if (allow.contains(key)) {
+                                if (key == "delete") {
+                                    onDelete(lastWord, hapticMode, hapticManager)
+                                } else hapticManager?.generateHaptic(key, hapticMode)
+
+                            }
+                            else {
+                                if (hapticMode == HapticMode.VOICEPHONEME)
+                                    hapticManager?.generateHaptic(key, HapticMode.VOICE)
+                            }
+
+                            if (activeTouches[pointerId] == null) {
+                                if (onKeyPress != null)
+                                    onKeyPress(key)
+                            }
+                        } else if (key == null && pointerPosition.y < outOfBound && activeTouches[pointerId] != "Out of Bounds") {
+                            // Key moved out of bounds, need to fix random number 1566
+                        Log.d(
+                            "TouchEvent",
+                            "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
+                        )
+                            // Add Log
+                            if (name != null && logData != null) {
+                                addLog(
+                                    context, name, logData,
+                                    if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
+                                    "Out of Bounds",
+                                    pointerPosition.x, pointerPosition.y
+                                )
+                            }
+                        }
+                        // Add Log
+                        if (name != null && logData != null) {
+                            addLog(
+                                context, name, logData,
+                                if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
+                                key ?: "Out of Bounds",
+                                pointerPosition.x, pointerPosition.y
+                            )
+                        }
+                        activeTouches[pointerId] = key?: "Out of Bounds"
+                        touchPos = pointerPosition
+                    }
+                }
+            }
+
+        }
         if (touchPos == null) {
             initializeArray()
         } else {
@@ -233,6 +419,32 @@ fun handlePositioned(
     }
 }
 
+fun onDelete(
+    lastWord: Char?,
+    hapticMode:HapticMode,
+    hapticManager: HapticManager?,
+    motionEvent: Int = MotionEvent.ACTION_DOWN) {
+
+    val delayMillis: Long = 250L
+    if (lastWord == null) {
+        hapticManager?.generateHaptic("delete", hapticMode)
+        return
+    }
+
+    var deletedWord = lastWord.toString()
+    if (lastWord == ' ') deletedWord = "Space"
+
+    when(hapticMode) {
+        HapticMode.PHONEME, HapticMode.VOICEPHONEME -> {
+            delay({
+                hapticManager?.generateHaptic(deletedWord, hapticMode)
+            }, delayMillis)
+        }
+        else -> {
+        }
+    }
+}
+
 fun replaySound(
     event: MotionEvent,
     pointerId: Int,
@@ -242,7 +454,9 @@ fun replaySound(
     hapticMode: HapticMode,
     context: Context,
     name: String?,
-    logData: Any?
+    logData: Any?,
+    lastWord: Char?,
+    delayMillis: Long = 250L,
 ) {
     if (activeTouches.containsKey(pointerId)) return
     activeTouches[pointerId] = "true"
@@ -255,6 +469,13 @@ fun replaySound(
         HapticMode.VOICE
     )
 //    Log.d("TouchEvent", "additional touch: $key")
+    if (key == "delete" && lastWord != null) {
+        var deletedWord = lastWord.toString()
+        if (lastWord == ' ') deletedWord = "Space"
+        delay(
+            {hapticManager?.generateHaptic(deletedWord, hapticMode)},
+            delayMillis)
+    }
 
     if (name != null && logData != null) {
         addLog(
@@ -269,219 +490,12 @@ fun replaySound(
     }
 }
 
-
-fun processTouchEvent(
-    events: MutableList<MotionEvent>,
-    keyPositions: Map<String, LayoutCoordinates>,
-    activeTouches: MutableMap<Int, String>,
-    onKeyPressed: ((String) -> Unit)?,
-    onKeyReleased: (String) -> Unit,
-    soundManager: SoundManager,
-    hapticManager: HapticManager?,
-    hapticMode: HapticMode,
-    allow: List<String>,
-    logData: Any?,
-    context: Context,
-    name: String?,
-    movingWindowAverage: Offset?,
-) : Offset? {
-    var returnValue: Offset? = null
-    val outOfBound = 1566
-    for(event in events) {
-        if (event.pointerCount == 1) {
-            val pointerId = event.getPointerId(event.actionIndex)
-            activeTouches.keys.forEach { id -> if (pointerId != id) activeTouches.remove(id) }
-        }
-        when (event.actionMasked) {
-            MotionEvent.ACTION_POINTER_1_DOWN -> {
-                val pointerId = event.getPointerId(event.actionIndex)
-                replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData)
-            }
-            MotionEvent.ACTION_POINTER_1_UP -> {
-                val pointerId = event.getPointerId(event.actionIndex)
-                activeTouches.remove(pointerId)
-            }
-            MotionEvent.ACTION_DOWN-> {
-                for (i in 0 until event.pointerCount) {
-                    val pointerId = event.getPointerId(i)
-
-                    val pointerPosition = Offset(event.getX(i), event.getY(i))
-                    val key = keyPositions.entries.find { (_, coordinates) ->
-                        isPointerOverKey(coordinates, pointerPosition)
-                    }?.key
-
-                    if (i >= 1) {
-                        replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData)
-                    }
-
-                    if (key != null && activeTouches[pointerId] != key) {
-                        if (onKeyPressed != null)
-                            onKeyPressed(key)
-                        
-                        activeTouches[pointerId] = key
-                        if (allow.contains(key)) hapticManager?.generateHaptic(key, hapticMode)
-                        else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(
-                            key,
-                            HapticMode.VOICE
-                        )
-//                        Log.d("TouchEvent", "Initial key pressed: $key for pointer $pointerId")
-                    }
-                    else if (pointerPosition.y < outOfBound) {
-                        // Key pressed out of bounds
-//                        Log.d(
-//                            "TouchEvent",
-//                            "Key pressed out of bounds for pointer $pointerId, Coordinates: $pointerPosition"
-//                        )
-                        activeTouches[pointerId] = "Out of Bounds"
-                    }
-
-
-                    // Add Log
-                    if (name != null && logData != null) {
-                        addLog(
-                            context,
-                            name,
-                            logData,
-                            "DOWN",
-                            key ?: "Out of Bounds",
-                            pointerPosition.x,
-                            pointerPosition.y
-                        )
-                    }
-                    returnValue = pointerPosition
-                }
-            }
-
-            MotionEvent.ACTION_UP -> {
-                val pointerId = event.getPointerId(event.actionIndex)
-
-                var key: String? = null
-                if (movingWindowAverage != null) {
-                    key = keyPositions.entries.find { (_, coordinates) ->
-                        isPointerOverKey(coordinates, movingWindowAverage)
-                    }?.key
-                }
-
-                val originkey = activeTouches.remove(pointerId)
-                if (originkey == null) {
-                    key = null
-                    returnValue = null
-                }
-
-                Log.d(
-                    "TouchEvent",
-                    "Key Up Moving Window: $movingWindowAverage, key: $key originKey: $originkey"
-                )
-                if (key != null && key != "true") {
-                    if (key != "Out of Bounds") {
-                        if (allow.contains(key)) {
-                            if(key == "delete" || (key == "Space" && hapticMode != HapticMode.PHONEME)) {
-
-                            } else {
-                                hapticManager?.generateHaptic(key, hapticMode)
-                            }
-                        }
-                        else {
-                            if (hapticMode == HapticMode.VOICEPHONEME)
-                                hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
-                            else
-                                hapticManager?.generateHaptic(key, HapticMode.TICK)
-                        }
-                        onKeyReleased(key)
-                    } else {
-                    }
-
-                    // Add Log
-                    if (name != null && logData != null) {
-                        val pointerPosition =
-                            Offset(event.getX(event.actionIndex), event.getY(event.actionIndex))
-                        addLog(
-                            context, name, logData, "UP", key, pointerPosition.x, pointerPosition.y
-                        )
-                    }
-                }
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                for (i in 0 until event.pointerCount) {
-                    val pointerId = event.getPointerId(i)
-
-                    val pointerPosition = Offset(event.getX(i), event.getY(i))
-                    val key = keyPositions.entries.find { (_, coordinates) ->
-                        isPointerOverKey(coordinates, pointerPosition)
-                    }?.key
-
-                    if (i >= 1) {
-                        replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData)
-                        // ignore the move event for additional touches
-                        continue
-                    }
-
-                    if (pointerPosition.y > outOfBound && activeTouches[pointerId] == "Out of Bounds") {
-                        activeTouches[pointerId] = ""
-                    }
-
-                    if (key != null && activeTouches[pointerId] != key) {
-
-//                        Log.d(
-//                            "TouchEvent",
-//                            "Key moved from ${activeTouches[pointerId]} to $key for pointer $pointerId"
-//                        )
-
-                        if (allow.contains(key)) {
-                            hapticManager?.generateHaptic(key, hapticMode)
-                        }
-                        else {
-                            if (hapticMode == HapticMode.VOICEPHONEME)
-                                hapticManager?.generateHaptic(key, HapticMode.VOICE)
-                        }
-
-                        if (activeTouches[pointerId] == null) {
-                            if (onKeyPressed != null)
-                                onKeyPressed(key)
-                        }
-                    } else if (key == null && pointerPosition.y < outOfBound && activeTouches[pointerId] != "Out of Bounds") {
-                        // Key moved out of bounds, need to fix random number 1566
-//                        Log.d(
-//                            "TouchEvent",
-//                            "Key moved out of bounds from ${activeTouches[pointerId]} for pointer $pointerId, Coordinates: $pointerPosition"
-//                        )
-                        // Add Log
-                        if (name != null && logData != null) {
-                            addLog(
-                                context, name, logData,
-                                if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
-                                "Out of Bounds",
-                                pointerPosition.x, pointerPosition.y
-                            )
-                        }
-                    }
-
-
-                    // Add Log
-                    if (name != null && logData != null) {
-                        addLog(
-                            context, name, logData,
-                            if (activeTouches[pointerId] == null) "DOWN" else "MOVE",
-                            key ?: "Out of Bounds",
-                            pointerPosition.x, pointerPosition.y
-                        )
-                    }
-                    activeTouches[pointerId] = key?: "Out of Bounds"
-                    returnValue = pointerPosition
-                }
-            }
-        }
-
-    }
-    return returnValue
-  }
-
 fun isPointerOverKey(coordinates: LayoutCoordinates, pointerPosition: Offset): Boolean {
     val topLeft = coordinates.positionInRoot()
     val bottomRight =
         Offset(topLeft.x + coordinates.size.width, topLeft.y + coordinates.size.height)
     return pointerPosition.x in topLeft.x..bottomRight.x && pointerPosition.y in topLeft.y..bottomRight.y
+
 }
 
 @Preview

@@ -109,10 +109,10 @@ fun FreeTypeMode(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { key ->
                         if (key == "delete") {
-                            if (inputText.isNotEmpty()) {
-                                val deletedChar = inputText.last()
-                                soundManager?.speakOut(deletedChar + " Deleted")
-                                hapticManager?.generateHaptic(deletedChar.toString(), HapticMode.PHONEME)
+                            if (hapticMode == HapticMode.VOICE) {
+                                val deletedChar = if (inputText.isNotEmpty())
+                                    inputText.last() + "Deleted" else "nothing deleted"
+                                soundManager?.speakOut(deletedChar)
                             }
                         }
 
@@ -123,6 +123,7 @@ fun FreeTypeMode(
                             else -> inputText + key
                         }
                     },
+                    lastWord = if(inputText.isNotEmpty()) inputText.last() else null,
                     soundManager = soundManager,
                     hapticManager = hapticManager,
                     hapticMode = if (selectedOption == "yes")
@@ -193,7 +194,7 @@ fun FreeTypeWithGroup(
                     soundManager = soundManager,
                     hapticManager = hapticManager,
                     hapticMode = HapticMode.VOICEPHONEME,
-                    allow = allowKeys
+                    allow = allowKeys,
                 )
                 AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
                     MultiTouchView(context).apply {

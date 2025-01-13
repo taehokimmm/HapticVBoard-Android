@@ -6,48 +6,53 @@ import android.os.Vibrator
 import android.util.Log
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
+import android.os.Handler
+import android.os.Looper
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.core.os.postDelayed
 
 
 class HapticManager(context: Context) {
     private val context: Context = context
     private val serialManager: SerialManager = SerialManager(context)
     private val soundManager: SoundManager = SoundManager(context)
+    val handler = Handler(Looper.getMainLooper())
 
     @Synchronized
     fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE) {
         if (hapticMode == HapticMode.NONE) return
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
-            hapticMode == HapticMode.VOICEPHONEME ||
-            hapticMode == HapticMode.VOICETICK ||
-            hapticMode == HapticMode.VOICEPHONEMETICK
+            hapticMode == HapticMode.VOICEPHONEME
         ) {
             soundManager.speakOutKeyboard(key)
         }
 
-        if (hapticMode == HapticMode.VOICE) return
-        if (hapticMode == HapticMode.TICK ||
-            hapticMode == HapticMode.VOICETICK
+        if (hapticMode == HapticMode.VOICE
         ) {
-            generateVibration(key)
+            generateVibration(key, true)
             return
         }
+
         // Haptic Tick for Special Keys
-        if (key == "delete" || key == "Space" || key == "Shift") {
+        if (key == "Shift"||key == "delete"||key == "Space") {
             generateVibration(key)
             return
+
         }
-        val formattedKey = key[0]?.uppercase()?.padEnd(8)
+
+        var formattedKey = key[0]?.uppercase()?.padEnd(8)
 
         if (formattedKey == null) {
             Log.d("HapticFeedback", "No haptic found for key: $key, skipping...")
             return
         }
+        Log.d("HapticFeedback", "$key, $formattedKey")
 
         serialManager.write("q\n".toByteArray())
         serialManager.write("P${formattedKey}WAV\n".toByteArray())
     }
-
 
     fun getRow(key: String): Int {
         val phonemeGroups = listOf(
@@ -63,25 +68,26 @@ class HapticManager(context: Context) {
         return idx
     }
 
-    fun generateVibration(key: String) {
+    fun generateVibration(key: String, isAllTick: Boolean = false) {
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if (vibrator.hasVibrator()) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
 
-                var vibrate: VibrationEffect? = null
-                if (key == "Space" || key == "Shift"){
-                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
-                }else if(key == "delete"){
-                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
-                } else if (key == "Out of Bounds") {
-                    vibrate = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
-                } else if (key == "rowchanged") {
-                    vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+                if (isAllTick) {
+                    vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
                 } else {
-                    vibrate = VibrationEffect.createOneShot(10, 50)
+                    var vibrate: VibrationEffect? = null
+                    if (key == "Space"){
+                        vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
+                    }else if(key == "delete"){
+                        vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                    } else if (key == "Out of Bounds") {
+                        vibrate = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+                    } else {
+                        vibrate = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                    }
+                    vibrator.vibrate(vibrate)
                 }
-                vibrator.vibrate(vibrate)
-
 
             } else {
                 // Deprecated in API 26

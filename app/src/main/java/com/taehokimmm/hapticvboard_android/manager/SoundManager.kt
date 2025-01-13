@@ -115,7 +115,7 @@ class SoundManager(context: Context) {
         ttsKor.stop()
     }
     fun speakOutKeyboard(key: String) {
-        tts.setSpeechRate(2F)
+        tts.setSpeechRate(1F)
         tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
