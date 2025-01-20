@@ -68,7 +68,7 @@ fun Study2Init(navController: NavHostController) {
             totalBlocks = 1
         } else {
             when (selectedOption) {
-                "audio" -> totalBlocks = 2
+                "audio" -> totalBlocks = 4
                 "phoneme" -> totalBlocks = 12
                 else -> totalBlocks = 1
             }

@@ -116,7 +116,14 @@ class SoundManager(context: Context) {
     }
     fun speakOutKeyboard(key: String) {
         tts.setSpeechRate(1F)
-        tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
+        key.split(" ").forEachIndexed({ index, string ->
+            Log.d("text entry", "$index : $string")
+            if (index == 0)
+                tts.speak(string, TextToSpeech.QUEUE_FLUSH, null, null)
+            else
+                tts.speak(string, TextToSpeech.QUEUE_ADD, null, null)
+
+        } )
     }
 
     fun speakOutKeyboardPhoneme(key: String) {

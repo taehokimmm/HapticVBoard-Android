@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.toUpperCase
 import androidx.core.os.postDelayed
 
 
@@ -17,8 +18,13 @@ class HapticManager(context: Context) {
     private val context: Context = context
     private val serialManager: SerialManager = SerialManager(context)
     private val soundManager: SoundManager = SoundManager(context)
-    val handler = Handler(Looper.getMainLooper())
+    private var isFrontLeft: Boolean = true
 
+    // Class-level variable to store the previous timestamp
+    private var lastTime: Long = System.currentTimeMillis()
+    private var runnable: Runnable? = null
+    private var handler: Handler? = Handler(Looper.getMainLooper())
+    private var lastLetter: String = ""
     @Synchronized
     fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE) {
         if (hapticMode == HapticMode.NONE) return
@@ -42,16 +48,42 @@ class HapticManager(context: Context) {
 
         }
 
-        var formattedKey = key[0]?.uppercase()?.padEnd(8)
+        var formattedKey = formatKey(key)
 
         if (formattedKey == null) {
             Log.d("HapticFeedback", "No haptic found for key: $key, skipping...")
             return
         }
-        Log.d("HapticFeedback", "$key, $formattedKey")
 
-        serialManager.write("q\n".toByteArray())
+        serialManager.read()
+
+        val delta = System.currentTimeMillis() - lastTime
+        lastTime = System.currentTimeMillis()
+        Log.d("HapticFeedback", "$key, $delta ${delta<200}")
+
+//        runnable?.let { handler?.removeCallbacks(it) }
+//        if (delta < 300) {
+//            runnable = delay({serialManager.write("q\n".toByteArray())}, 50)
+//            runnable = delay({serialManager.write("P${formattedKey}WAV\n".toByteArray())}, 80)
+//        } else {
         serialManager.write("P${formattedKey}WAV\n".toByteArray())
+//        }
+        lastLetter = key
+    }
+
+    fun formatKey(key:String): String {
+        // return key.uppercase().padEnd(8)
+        val back = listOf("h", "g", "c", "k", "q", "a", "e", "i", "n")
+        val front = listOf("f", "v", "b", "p", "m", "u", "s", "z")
+        val both = listOf("t", "d", "j", "l", "r", "x", "o", "w", "y")
+
+        var formattedKey = key.lowercase()
+        if (back.contains(key)) {
+            formattedKey = if (isFrontLeft) key+"_r" else key+"_l"
+        } else if(front.contains(key)) {
+            formattedKey = if (isFrontLeft) key+"_l" else key+"_r"
+        }
+        return formattedKey.uppercase().padEnd(8)
     }
 
     fun getRow(key: String): Int {
@@ -66,6 +98,14 @@ class HapticManager(context: Context) {
             if (group.contains(key)) idx = index
         })
         return idx
+    }
+
+    fun changeMapping(isFrontLeft1: Boolean) {
+        isFrontLeft = isFrontLeft1
+    }
+
+    fun getMapping(): String {
+        return if (isFrontLeft) "left" else "right"
     }
 
     fun generateVibration(key: String, isAllTick: Boolean = false) {

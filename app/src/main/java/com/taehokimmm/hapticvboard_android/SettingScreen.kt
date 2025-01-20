@@ -4,6 +4,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.EditText
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 
@@ -19,9 +20,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 
@@ -38,6 +42,8 @@ fun SettingScreen(
 ) {
     val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
+    var directions = listOf("left", "right")
+    var selectedDirection by remember { mutableStateOf(hapticManager?.getMapping()) }
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -71,6 +77,33 @@ fun SettingScreen(
                     })
                 }
             })
+
+            // Test subject identifier
+            Text(
+                modifier = Modifier.padding(start = 14.dp),
+                text = "Front is mapped to...",
+                fontSize = 16.sp
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                directions.forEachIndexed{index, option -> (
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedDirection == option,
+                                onClick = {
+                                    selectedDirection = option
+                                    hapticManager?.changeMapping(selectedDirection == "left")
+                                }
+                            )
+                            Text(text = option)
+                        }
+                        )}
+            }
+
+            Spacer(modifier = Modifier.height(200.dp))
 
             Button(
                 onClick = {

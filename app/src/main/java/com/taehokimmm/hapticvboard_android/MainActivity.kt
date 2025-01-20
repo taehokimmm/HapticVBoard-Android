@@ -246,8 +246,6 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                         var hapticMode = HapticMode.NONE
                         if (feedback == "audio") hapticMode = HapticMode.VOICE
                         else if(feedback == "phoneme") hapticMode = HapticMode.PHONEME
-                        else if(feedback == "audiophoneme") hapticMode = HapticMode.VOICEPHONEME
-                        else if(feedback == "vibration") hapticMode = HapticMode.TICK
 
                         Study3(
                             innerPadding,

@@ -74,7 +74,7 @@ fun TypingTest(
     val modeCnt = 2
 
     var testIter by remember { mutableIntStateOf(-1) }
-    var modeIter = if (mode == "train") 0 else if (mode == "test") 1 else 2
+    var modeIter = if (mode == "train") 0 else if (mode == "test" || mode == "onlyTest") 1 else 2
     var modeNames = listOf("학습", "테스트")
 
     var testAlphabets = getAllowGroup(group, true)
@@ -188,18 +188,15 @@ fun TypingTest(
         if (isCorrect) correctAnswer++
         else wrongAnswer += listOf(listOf(testList[testIter], inputKey))
 
-        if (modeIter == 0) {
-            delay(
-                {// Correction Feedback
-                    soundManager.playSound(isCorrect)
-                }, 500
-            )
-        }
+        delay(
+            {// Correction Feedback
+                soundManager.playSound(isCorrect)
+            }, 500
+        )
 
         addLogging(key)
 
         if (modeIter == 1) {
-            soundManager.playEarcon("beep")
             isShowingKeyboard = false
             delay({
                 testIter++
@@ -280,8 +277,8 @@ fun TypingTest(
                 navController!!.navigate("typingTest/freeplay/$subject/$nextGroup/1/train")
 
         } else {
-            val nextMode = if (modeIter == 0) "test" else "train"
-            val nextBlock = if (modeIter == 0) testBlock else testBlock + 1
+            val nextMode = if (modeIter == 0 || mode == "onlyTest") "test" else "train"
+            val nextBlock = if (modeIter == 0 || mode == "onlyTest") testBlock else testBlock + 1
             navController!!.navigate("typingTest/train/$subject/$group/$nextBlock/$nextMode")
         }
     }
@@ -414,7 +411,7 @@ fun TypingTest(
                 Box(modifier = Modifier
                     .fillMaxSize()
                 ) {
-                    if (isTypingMode || modeIter == 1) {
+                    if (isTypingMode) {
                         TrainTextDisplay(
                             testBlock,
                             totalBlock,

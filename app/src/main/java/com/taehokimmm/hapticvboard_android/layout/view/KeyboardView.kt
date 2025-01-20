@@ -154,9 +154,9 @@ fun KeyboardLayout(
             }
             when (event.actionMasked) {
                 MotionEvent.ACTION_POINTER_1_DOWN -> {
+                    Log.d("hapticManager", "action down 1")
                     val pointerId = event.getPointerId(event.actionIndex)
                     replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData, lastWord)
-
                 }
                 MotionEvent.ACTION_POINTER_1_UP -> {
                     val pointerId = event.getPointerId(event.actionIndex)
@@ -173,15 +173,14 @@ fun KeyboardLayout(
 
                         if (i >= 1) {
                             replaySound(event, pointerId, activeTouches, allow, hapticManager, hapticMode, context, name, logData, lastWord)
+                            continue
                         }
-
                         if (key != null && activeTouches[pointerId] != key) {
                             if (onKeyPress != null)
                                 onKeyPress(key)
 
                             activeTouches[pointerId] = key
                             if (allow.contains(key)) {
-
                                 if (key == "delete") onDelete(lastWord, hapticMode, hapticManager)
                                 else hapticManager?.generateHaptic(key, hapticMode)
                             }
@@ -241,13 +240,10 @@ fun KeyboardLayout(
                         "Key Up Moving Window: $movingWindowAverage, key: $key originKey: $originkey"
                     )
                     if (key != null && key != "true") {
-                        if (key == "delete") {
-                            onDelete(lastWord, hapticMode, hapticManager, MotionEvent.ACTION_UP)
-                        }
                         if (key != "Out of Bounds") {
                             if (allow.contains(key)) {
                                 if(key == "delete") {
-                                    // No action for the "delete" key.
+                                    onDelete(lastWord, hapticMode, hapticManager, MotionEvent.ACTION_UP)
                                 }
                                 else hapticManager?.generateHaptic(key, hapticMode)
                             }
@@ -423,7 +419,7 @@ fun onDelete(
     lastWord: Char?,
     hapticMode:HapticMode,
     hapticManager: HapticManager?,
-    motionEvent: Int = MotionEvent.ACTION_DOWN) {
+    motionEvent: Int? = MotionEvent.ACTION_DOWN) {
 
     val delayMillis: Long = 250L
     if (lastWord == null) {
@@ -433,15 +429,32 @@ fun onDelete(
 
     var deletedWord = lastWord.toString()
     if (lastWord == ' ') deletedWord = "Space"
-
+    Log.d("hapticManager", "on deleted $hapticMode")
     when(hapticMode) {
-        HapticMode.PHONEME, HapticMode.VOICEPHONEME -> {
+        HapticMode.PHONEME -> {
+            hapticManager?.generateHaptic("delete",hapticMode)
             delay({
-                hapticManager?.generateHaptic(deletedWord, hapticMode)
+                hapticManager?.generateHaptic(deletedWord, HapticMode.PHONEME)
             }, delayMillis)
         }
-        else -> {
+        HapticMode.VOICE -> {
+            if (motionEvent == MotionEvent.ACTION_UP)
+                hapticManager?.generateHaptic(deletedWord + " deleted", hapticMode)
+            else
+                hapticManager?.generateHaptic("delete " + deletedWord, hapticMode)
         }
+        HapticMode.VOICEPHONEME -> {
+            if (motionEvent == MotionEvent.ACTION_UP)
+                hapticManager?.generateHaptic(deletedWord + " deleted", HapticMode.VOICE)
+            else
+                hapticManager?.generateHaptic("delete " + deletedWord, HapticMode.VOICE)
+
+            hapticManager?.generateHaptic("delete", HapticMode.PHONEME)
+            delay({
+                hapticManager?.generateHaptic(deletedWord, HapticMode.PHONEME)
+            }, delayMillis)
+        }
+        else -> {}
     }
 }
 
@@ -463,19 +476,17 @@ fun replaySound(
     // Play sound for additional touches
     val key = activeTouches[event.getPointerId(0)]!!
     val pointerPosition = Offset(event.getX(pointerId), event.getY(pointerId))
-    if (allow.contains(key)) hapticManager?.generateHaptic(key, hapticMode)
+    if (allow.contains(key)) {
+        if (key == "delete") {
+            onDelete(lastWord, hapticMode, hapticManager)
+        } else {
+            hapticManager?.generateHaptic(key, hapticMode)
+        }
+    }
     else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(
         key,
         HapticMode.VOICE
     )
-//    Log.d("TouchEvent", "additional touch: $key")
-    if (key == "delete" && lastWord != null) {
-        var deletedWord = lastWord.toString()
-        if (lastWord == ' ') deletedWord = "Space"
-        delay(
-            {hapticManager?.generateHaptic(deletedWord, hapticMode)},
-            delayMillis)
-    }
 
     if (name != null && logData != null) {
         addLog(

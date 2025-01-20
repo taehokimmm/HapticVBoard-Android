@@ -86,13 +86,14 @@ fun Study3(
     val totalBlock = when (isPractice) {
         true -> 1
         false -> when(hapticMode) {
-            HapticMode.VOICE -> 2
+            HapticMode.VOICE -> 3
             HapticMode.PHONEME -> phonemeBlock
             else -> 1
         }
     }
+
     val testNumber = when (isPractice) {
-        true -> 3
+        true -> 5
         false -> 5
     }
     var testBlock by remember { mutableStateOf(testBlock) }
@@ -106,6 +107,8 @@ fun Study3(
     // WPM
     var wpmAvg by remember { mutableDoubleStateOf(.0) }
     var wpmList = remember { mutableStateListOf<Double>() }
+    var wpmBlockList = remember { mutableStateListOf<Double>() }
+    var wpmBlockAvg = remember { mutableDoubleStateOf(.0) }
     var error by remember { mutableDoubleStateOf(.0) }
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endTime by remember { mutableLongStateOf(0L) }
@@ -147,9 +150,8 @@ fun Study3(
     LaunchedEffect(Unit) {
         var phrases1 = when (isPractice) {
             true -> readTxtFile(context, R.raw.practice_phrase)
-            false -> readTxtFile(context, R.raw.phrase70)
+            false -> readTxtFile(context, R.raw.phrase80)
         }
-        Log.d("textentry", phrases1.size.toString())
 
         if (isPractice) {
             phrases = phrases1
@@ -258,8 +260,9 @@ fun Study3(
         val inputWords = inputText.split(" ")
         val inputWord = inputWords[inputWords.size - 1]
         val wpm = calculateWPM(startTime, endTime, inputWord)
-        if (wpm > 0) wpmList.add(wpm)
+        wpmList.add(wpm)
         wpmAvg = wpmList.average()
+        Log.d("text entry", "AVG $wpmAvg wpm : current $wpm wpm")
 
         if (isPractice) return
         val pd = calculatePressDuration(localPressDurations)
@@ -284,12 +287,13 @@ fun Study3(
 
     fun addLogging() {
         val targetText = if(isPractice) testList[0] else testList[testIter]
-        val wpm = calculateWPM(sentenceStartTime, sentenceEndTime, inputText.trim())
+//        val wpm = calculateWPM(sentenceStartTime, sentenceEndTime, inputText.trim())
         val errors = getError(targetText, tsequence, IF)
         val cer = errors[0] * 100
         val uer = errors[1] * 100
         val ter = errors[2] * 100
         error = uer
+        wpmBlockList.add(wpmAvg)
         if (isPractice) return
 
         val pd = calculatePressDuration(pressDurations)
@@ -299,7 +303,7 @@ fun Study3(
             hapticName,
             testBlock,
             testIter,
-            wpm,
+            wpmAvg,
             1.0,
             pd,
             uer,
@@ -316,10 +320,8 @@ fun Study3(
     // Infer the action that caused a change in text
     fun guessChangeInfo(t1: String, t2: String): List<Any> {
         if (t1.isEmpty()) {
-//            Log.d("textentry", "insert from 0")
             return listOf("insert", 0, t2.length - t1.length)
         } else if (t2.isEmpty()) {
-//            Log.d("textentry", "delete from tail")
             IF += t1.length
             return listOf("delete", 0, t1.length)
         }
@@ -329,11 +331,9 @@ fun Study3(
             i++
 
             if (i == t1.length) {
-//                Log.d("textentry", "insert at tail")
                 return listOf("insert", t1.length, t2.length - t1.length)
             }
             else if (i == t2.length) {
-//                Log.d("textentry", "delete at tail")
                 IF += t1.length - t2.length
                 return listOf("delete", t2.length, t1.length - t2.length)
             }
@@ -342,10 +342,8 @@ fun Study3(
         while (t1[t1.length - j] == t2[t2.length - j]) {
             j++
             if (j == t1.length + 1) {
-//                Log.d("textentry", "insert at front")
                 return listOf("insert", 0, t2.length - t1.length)
             } else if (j == t2.length + 1) {
-//                Log.d("textentry", "delete at front")
                 IF += t1.length - t2.length
                 return listOf("delete", 0, t1.length - t2.length)
             }
@@ -353,15 +351,12 @@ fun Study3(
 
         if (i + j - 1 >= t1.length) {
             if (t2.length > t1.length) {
-//                Log.d("textentry", "insert from " + i);
                 return listOf("insert", i, t2.length - t1.length)
             } else {
-//                Log.d("textentry", "delete from " + (t1.length-j+1) + " to " + (t2.length-j+1));
                 IF += t1.length - t2.length
                 return listOf("delete", t2.length - j + 1, t1.length - t2.length)
             }
         } else {
-//            Log.d("textentry", "substitude from " + i + " to " + (t1.length-j+1));
 
             if (t2.length <= i + j - 1) {
                 IF += t1.length - t2.length
@@ -426,7 +421,7 @@ fun Study3(
         val errorFormatted = String.format("%.1f", error)
         speak(inputText)
         speakKor("속도 : " + wpmFormatted, speed = 1.2f)
-        speakKor("오류 : " + errorFormatted + "%", speed = 1.2f)
+//        speakKor("오류 : " + errorFormatted + "%", speed = 1.2f)
     }
 
 
@@ -459,7 +454,7 @@ fun Study3(
             explainSentence()
         } else {
             testBlock++
-            if (testBlock >= totalBlock || hapticMode == HapticMode.VOICE) {
+            if (testBlock >= totalBlock) {
                 closeStudyDatabase()
                 navController!!.navigate("textEntry/end/$subject")
             } else {
@@ -494,6 +489,7 @@ fun Study3(
             Spacer(modifier = Modifier.height(30.dp))
 
             Button(onClick = {
+                wpmBlockList.clear()
                 inputText = ""
                 testIter = 0
             }) {
@@ -507,6 +503,11 @@ fun Study3(
                     text = "Block : ${testBlock + 1} / $totalBlock", fontSize = 20.sp
                 )
             }
+
+            wpmBlockList.forEachIndexed({ index, wpm ->
+                Text(text = "Block${index+1} : ${String.format("%.1f",wpm)} wpm")
+            })
+            Text(text = "Avg : ${String.format("%.1f",wpmBlockList.average())} wpm")
 
             Box(
                 modifier = Modifier
@@ -525,14 +526,6 @@ fun Study3(
                 KeyboardLayout(
                     touchEvents = keyboardTouchEvents,
                     onKeyRelease = { key ->
-                        if (key == "delete") {
-                            if (hapticMode == HapticMode.VOICE) {
-                                val deletedChar = if (inputText.isNotEmpty())
-                                    inputText.last() + "Deleted" else "nothing deleted"
-                                speak(deletedChar)
-                            }
-                        }
-
                         inputText = when (key) {
                             "delete" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                             "Space" -> "$inputText "
@@ -681,13 +674,12 @@ fun Study3(
                         if (modeIter == 2) {
                             Spacer(modifier = Modifier.height(20.dp))
                             val wpmFormatted = String.format("%.1f", wpmAvg)
-                            val errorFormatted = String.format("%.1f", error)
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Speed : $wpmFormatted WPM \n\n Error : $errorFormatted %",
+                                    text = "Speed : $wpmFormatted WPM",
                                     fontSize = 40.sp
                                 )
                             }
@@ -714,20 +706,16 @@ fun Study3(
                                 },
                                 onKeyRelease = { key ->
                                     if (key == "delete") {
-                                        if (hapticMode == HapticMode.VOICE) {
-                                            val deletedChar = if (inputText.isNotEmpty())
-                                                inputText.last() + "Deleted" else "nothing deleted"
-                                            speak(deletedChar)
-                                        }
                                         if (inputText.isNotEmpty() && inputText.last() == ' ') {
                                             if (testWordCnt > 0)  testWordCnt --
                                         }
                                     } else if (key == "Space") {
+                                        endTime = System.currentTimeMillis()
+                                        sentenceEndTime = System.currentTimeMillis()
+
                                         val isEnd = onSpace()
                                         if (isEnd) return@KeyboardLayout
                                     }
-                                    endTime = System.currentTimeMillis()
-                                    sentenceEndTime = System.currentTimeMillis()
                                     inputText = when (key) {
                                         "delete" -> if (inputText.isNotEmpty()) inputText.dropLast(1) else inputText
                                         "Space" -> if (inputText.isNotEmpty() && inputText.last() != ' ') "$inputText " else inputText

@@ -37,8 +37,8 @@ fun GroupIntro(
         )
     } else if(category == "location") {
         phonemeGroups = listOf(
-            listOf("h", "g", "c", "k", "q"),
-            listOf("s", "z", "t", "d", "j", "n", "l", "r", "x"),
+            listOf("h", "g", "c", "k", "q", "n", "s", "z"),
+            listOf("t", "d", "j", "l", "r", "x"),
             listOf("f", "v", "b", "p", "m"),
             listOf("a", "e", "i"),
             listOf("u"),
