@@ -26,13 +26,14 @@ class HapticManager(context: Context) {
     private var handler: Handler? = Handler(Looper.getMainLooper())
     private var lastLetter: String = ""
     @Synchronized
-    fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE) {
+    fun generateHaptic(key: String, hapticMode: HapticMode = HapticMode.NONE, isPress: Boolean = false) {
         if (hapticMode == HapticMode.NONE) return
         // Provide Speech Feedback
         if (hapticMode == HapticMode.VOICE ||
             hapticMode == HapticMode.VOICEPHONEME
         ) {
-            soundManager.speakOutKeyboard(key)
+            if (isPress) soundManager.speakOutChar(key)
+            else soundManager.speakOutKeyboard(key)
         }
 
         if (hapticMode == HapticMode.VOICE
@@ -72,7 +73,7 @@ class HapticManager(context: Context) {
     }
 
     fun formatKey(key:String): String {
-        // return key.uppercase().padEnd(8)
+        return key.uppercase().padEnd(8)
         val back = listOf("h", "g", "c", "k", "q", "a", "e", "i", "n")
         val front = listOf("f", "v", "b", "p", "m", "u", "s", "z")
         val both = listOf("t", "d", "j", "l", "r", "x", "o", "w", "y")

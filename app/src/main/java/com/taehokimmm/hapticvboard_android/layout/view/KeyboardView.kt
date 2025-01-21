@@ -182,11 +182,11 @@ fun KeyboardLayout(
                             activeTouches[pointerId] = key
                             if (allow.contains(key)) {
                                 if (key == "delete") onDelete(lastWord, hapticMode, hapticManager)
-                                else hapticManager?.generateHaptic(key, hapticMode)
+                                else hapticManager?.generateHaptic(key, hapticMode, isPress = true)
                             }
                             else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(
                                 key,
-                                HapticMode.VOICE
+                                HapticMode.VOICE, isPress = true
                             )
 
                         }
@@ -298,12 +298,12 @@ fun KeyboardLayout(
                             if (allow.contains(key)) {
                                 if (key == "delete") {
                                     onDelete(lastWord, hapticMode, hapticManager)
-                                } else hapticManager?.generateHaptic(key, hapticMode)
+                                } else hapticManager?.generateHaptic(key, hapticMode, isPress = true)
 
                             }
                             else {
                                 if (hapticMode == HapticMode.VOICEPHONEME)
-                                    hapticManager?.generateHaptic(key, HapticMode.VOICE)
+                                    hapticManager?.generateHaptic(key, HapticMode.VOICE, isPress = true)
                             }
 
                             if (activeTouches[pointerId] == null) {
@@ -480,7 +480,7 @@ fun replaySound(
         if (key == "delete") {
             onDelete(lastWord, hapticMode, hapticManager)
         } else {
-            hapticManager?.generateHaptic(key, hapticMode)
+            hapticManager?.generateHaptic(key, hapticMode, isPress = true)
         }
     }
     else if (hapticMode == HapticMode.VOICEPHONEME) hapticManager?.generateHaptic(

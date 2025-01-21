@@ -7,6 +7,7 @@ import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Bundle
 import android.os.Environment
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import com.taehokimmm.hapticvboard_android.R
@@ -15,6 +16,7 @@ import java.io.File
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
+import android.os.Handler
 
 
 class SoundManager(context: Context) {
@@ -28,6 +30,8 @@ class SoundManager(context: Context) {
     var correctId: Int = 0
     var wrongId: Int = 0
     private var mediaPlayer: MediaPlayer? = null
+    private var runnable: Runnable? = null
+    private var handler: Handler = Handler(Looper.getMainLooper())
 
     init {
 
@@ -114,16 +118,10 @@ class SoundManager(context: Context) {
         tts.stop()
         ttsKor.stop()
     }
+
     fun speakOutKeyboard(key: String) {
         tts.setSpeechRate(1F)
-        key.split(" ").forEachIndexed({ index, string ->
-            Log.d("text entry", "$index : $string")
-            if (index == 0)
-                tts.speak(string, TextToSpeech.QUEUE_FLUSH, null, null)
-            else
-                tts.speak(string, TextToSpeech.QUEUE_ADD, null, null)
-
-        } )
+        tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
     fun speakOutKeyboardPhoneme(key: String) {
@@ -170,7 +168,9 @@ class SoundManager(context: Context) {
             "y" to "yesterday",
             "z" to "zero",
         )
-        speakOut(key, TextToSpeech.QUEUE_ADD)
+        speakOut(key, TextToSpeech.QUEUE_FLUSH)
+        speakOut("", TextToSpeech.QUEUE_ADD)
+        speakOut("", TextToSpeech.QUEUE_ADD)
         avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
     }
 

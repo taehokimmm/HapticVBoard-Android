@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.usb.UsbManager
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Looper
 import android.util.Log
 import com.hoho.android.usbserial.driver.SerialTimeoutException
 import com.hoho.android.usbserial.driver.UsbSerialPort
@@ -19,9 +20,13 @@ class SerialManager(context: Context) {
     private val WAIT = 2000
     private lateinit var writeHandler: Handler
     private lateinit var readHandler: Handler
+    private var runnable: Runnable? = null
     private var usbIOManager: SerialInputOutputManager? = null
     private var response: String = ""
-    private var isDone: Boolean = false
+    private var isDone: Boolean = true
+    private var isDoneTime: Long = 0
+    private var stackedData: ByteArray? = null
+    private val timeDelay: Long = 5
 
     init {
         connect()
@@ -31,7 +36,7 @@ class SerialManager(context: Context) {
 
 //        val readThread = HandlerThread("SerialReadThread")
 //        readThread.start()
-//        readHandler = Handler(readThread.looper)
+            readHandler = Handler(Looper.getMainLooper())
     }
 
     fun connect() {
@@ -50,7 +55,12 @@ class SerialManager(context: Context) {
                             val data_string = String(data)
                             if (data_string == "\n") {
                                 Log.d("SerialComm", "Read:  ${response}")
-                                if (response.trim().endsWith("done")) isDone = true
+                                if (response.trim().endsWith("done")) {
+                                    isDone = true
+                                    stackedData?.let { sendLetter(it) }
+                                    runnable?.let {readHandler?.removeCallbacks(it)}
+                                    runnable = null
+                                }
                                 response = ""
                             } else {
                                 response += data_string
@@ -82,21 +92,15 @@ class SerialManager(context: Context) {
 
     fun write(data: ByteArray, timeout: Int = WAIT) {
         if (port == null) {
-            throw IOException("Port is not open")
+            return
         }
         try {
             if (!isDone) {
                 port?.write("q\n".toByteArray(), 1)
-                Log.d("SerialComm", "Written: QUIT")
-                delay({
-                    port?.write(data, 1)
-                    isDone = false
-                    Log.d("SerialComm", "Written: ${String(data)}")
-                      }, 5)
+                Log.d("SerialComm", "Stacked: ${String(data)} Time : ${System.currentTimeMillis()}")
+                stackedData = data
             } else {
-                port?.write(data,  1)
-                isDone = false
-                Log.d("SerialComm", "Written: ${String(data)}")
+                sendLetter(data)
             }
         } catch (e: SerialTimeoutException) {
             throw IOException("Write timeout occurred.", e)
@@ -112,6 +116,19 @@ class SerialManager(context: Context) {
 //                Log.e("SerialError", "Error writing to serial port", e)
 //            }
 //        }
+    }
+
+    fun sendLetter(data: ByteArray) {
+        port?.write(data, 1)
+        isDone = false
+        runnable = delay({
+            if (!isDone) {
+                isDone = true
+                stackedData?.let { sendLetter(it) }
+            } }, 200, readHandler)
+        isDoneTime = System.currentTimeMillis()
+        stackedData = null
+        Log.d("SerialComm", "Written: ${String(data)} Time : ${System.currentTimeMillis()}")
     }
 
     fun isOpen(): Boolean {
