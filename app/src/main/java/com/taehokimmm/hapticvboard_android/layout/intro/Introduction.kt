@@ -37,14 +37,15 @@ fun GroupIntro(
         )
     } else if(category == "location") {
         phonemeGroups = listOf(
-            listOf("h", "g", "c", "k", "q", "n", "s", "z"),
-            listOf("t", "d", "j", "l", "r", "x"),
             listOf("f", "v", "b", "p", "m"),
-            listOf("a", "e", "i"),
+            listOf("h", "g", "c", "k", "q"),
+            listOf("t", "d", "j", "l", "r", "x", "s", "z", "n"),
             listOf("u"),
+            listOf("e", "i"),
+            listOf("a"),
             listOf("o", "w", "y")
         )
-        names = listOf("자음-목", "자음-이빨", "자음-입술",  "모음-입술 뒤", "모음-입술 앞", "이중모음")
+        names = listOf("자음-왼쪽", "자음-오른쪽", "자음-양쪽",  "모음-왼쪽", "모음-오른쪽", "모음-양쪽", "이중모음")
     } else if(category == "location-essential") {
         phonemeGroups = listOf(
             listOf("u", "i"),

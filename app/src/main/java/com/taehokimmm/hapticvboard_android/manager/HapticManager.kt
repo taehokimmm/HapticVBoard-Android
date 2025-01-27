@@ -73,10 +73,10 @@ class HapticManager(context: Context) {
     }
 
     fun formatKey(key:String): String {
-        return key.uppercase().padEnd(8)
-        val back = listOf("h", "g", "c", "k", "q", "a", "e", "i", "n")
-        val front = listOf("f", "v", "b", "p", "m", "u", "s", "z")
-        val both = listOf("t", "d", "j", "l", "r", "x", "o", "w", "y")
+        //return key.uppercase().padEnd(8)
+        val back = listOf("h", "g", "c", "k", "q", "e", "i", "y")
+        val front = listOf("f", "v", "b", "p", "m", "u", "o", "w")
+        val both = listOf("t", "d", "j", "l", "r", "x", "s", "z", "n", "a")
 
         var formattedKey = key.lowercase()
         if (back.contains(key)) {
