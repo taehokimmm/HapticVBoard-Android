@@ -68,3 +68,4 @@ fun GroupIntro(
 
     TrainGroup(innerPadding, soundManager, hapticManager, nonEmptyGroups, filteredNames)
 }
+

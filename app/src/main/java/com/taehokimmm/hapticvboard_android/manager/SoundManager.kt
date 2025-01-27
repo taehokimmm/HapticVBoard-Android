@@ -121,7 +121,24 @@ class SoundManager(context: Context) {
 
     fun speakOutKeyboard(key: String) {
         tts.setSpeechRate(1F)
+        tts.setLanguage(Locale.ENGLISH)
         tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
+
+    fun speakOutLocation(key: String) {
+        val back = listOf("h", "g", "c", "k", "q", "e", "i")
+        val front = listOf("f", "v", "b", "p", "m", "u")
+        val both = listOf("t", "d", "j", "l", "r", "x", "s", "z", "n", "a")
+
+        var speak = ""
+        if (back.contains(key)) speak = "오른쪽"
+        else if (front.contains(key)) speak = "왼쪽"
+        else if (both.contains(key)) speak = "양쪽"
+        else if (key == "o" || key == "w") speak = "왼쪽에서 오른쪽"
+        else if (key == "y") speak = "오른쪽에서 왼쪽"
+
+
+        speakOutKor(speak)
     }
 
     fun speakOutKeyboardPhoneme(key: String) {
@@ -130,7 +147,6 @@ class SoundManager(context: Context) {
     }
 
     fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH, rate:Float = 1.0f) {
-        tts.setSpeechRate(rate)
         tts.speak(text, mode, null, null)
     }
 
