@@ -265,7 +265,7 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
                     }
                     composable("setting") {
                         currentScreen = "setting"
-                        SettingScreen(hapticManager)
+                        SettingScreen(hapticManager, soundManager)
                     }
                 }
             },

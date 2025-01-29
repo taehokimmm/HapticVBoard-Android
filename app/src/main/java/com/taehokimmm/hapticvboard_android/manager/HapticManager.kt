@@ -74,16 +74,18 @@ class HapticManager(context: Context) {
 
     fun formatKey(key:String): String {
         //return key.uppercase().padEnd(8)
-        val back = listOf("h", "g", "c", "k", "q", "e", "i", "y")
-        val front = listOf("f", "v", "b", "p", "m", "u", "o", "w")
-        val both = listOf("t", "d", "j", "l", "r", "x", "s", "z", "n", "a")
-
-        var formattedKey = key.lowercase()
-        if (back.contains(key)) {
-            formattedKey = if (isFrontLeft) key+"_r" else key+"_l"
-        } else if(front.contains(key)) {
-            formattedKey = if (isFrontLeft) key+"_l" else key+"_r"
-        }
+//        val back = listOf("h", "g", "c", "k", "q", "e", "i", "y")
+//        val front = listOf("f", "v", "b", "p", "m", "u", "o", "w")
+//        val both = listOf("t", "d", "j", "l", "r", "x", "s", "z", "n", "a")
+//
+//        var formattedKey = key.lowercase()
+//        if (back.contains(key)) {
+//            formattedKey = if (isFrontLeft) key+"_r" else key+"_l"
+//        } else if(front.contains(key)) {
+//            formattedKey = if (isFrontLeft) key+"_l" else key+"_r"
+//        }
+        var formattedKey = key
+        if(!isFrontLeft) formattedKey += "_r"
         return formattedKey.uppercase().padEnd(8)
     }
 
@@ -103,6 +105,7 @@ class HapticManager(context: Context) {
 
     fun changeMapping(isFrontLeft1: Boolean) {
         isFrontLeft = isFrontLeft1
+        soundManager.changeMapping(isFrontLeft)
     }
 
     fun getMapping(): String {

@@ -17,7 +17,10 @@ import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 import android.os.Handler
-
+import com.taehokimmm.hapticvboard_android.layout.intro.Location
+import com.taehokimmm.hapticvboard_android.layout.intro.PhonemeGroup
+import com.taehokimmm.hapticvboard_android.layout.intro.getLocation
+import com.taehokimmm.hapticvboard_android.layout.intro.getPhonemeGroup
 
 class SoundManager(context: Context) {
     val context:Context = context
@@ -25,6 +28,7 @@ class SoundManager(context: Context) {
     var timerTask: TimerTask? = null
     private lateinit var tts: TextToSpeech
     private lateinit var ttsKor: TextToSpeech
+    private var isFrontLeft: Boolean = true
 
     private lateinit var soundPool: SoundPool
     var correctId: Int = 0
@@ -119,39 +123,29 @@ class SoundManager(context: Context) {
         ttsKor.stop()
     }
 
+    fun changeMapping(isFrontLeft1: Boolean) {
+        isFrontLeft = isFrontLeft1
+    }
+
     fun speakOutKeyboard(key: String) {
         tts.setSpeechRate(1F)
         tts.setLanguage(Locale.ENGLISH)
         tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
-    fun speakOutLocation(key: String) {
-        val back = listOf("h", "g", "c", "k", "q", "e", "i")
-        val front = listOf("f", "v", "b", "p", "m", "u")
-        val both = listOf("t", "d", "j", "l", "r", "x", "s", "z", "n", "a")
-
-        var speak = ""
-        if (back.contains(key)) speak = "오른쪽"
-        else if (front.contains(key)) speak = "왼쪽"
-        else if (both.contains(key)) speak = "양쪽"
-        else if (key == "o" || key == "w") speak = "왼쪽에서 오른쪽"
-        else if (key == "y") speak = "오른쪽에서 왼쪽"
-
-
-        speakOutKor(speak)
-    }
-
-    fun speakOutKeyboardPhoneme(key: String) {
-        tts.setSpeechRate(2F)
-        tts.speak(key, TextToSpeech.QUEUE_FLUSH, null, null)
+    fun speakOutPhonemeInfo(key: String) {
+        val loc: Location = getLocation(key)
+        val group: PhonemeGroup = getPhonemeGroup(key)
+        speakOutKor(group.group)
+        speakOutKor(loc.location,TextToSpeech.QUEUE_ADD)
     }
 
     fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH, rate:Float = 1.0f) {
         tts.speak(text, mode, null, null)
     }
 
-    fun speakOutKor(text: String) {
-        ttsKor.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    fun speakOutKor(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH) {
+        ttsKor.speak(text, mode, null, null)
     }
 
     fun speakOutChar(key: String) {
@@ -252,32 +246,33 @@ class SoundManager(context: Context) {
     @Synchronized
     fun playPhoneme(key: String) {
         var keyToResource: Map<String, Int> = mapOf(
-            "a" to R.raw.phoneme_a,
-            "b" to R.raw.phoneme_b,
-            "c" to R.raw.phoneme_q,
-            "d" to R.raw.phoneme_d,
-            "e" to R.raw.phoneme_e,
-            "f" to R.raw.phoneme_f,
-            "g" to R.raw.phoneme_g,
-            "h" to R.raw.phoneme_h,
-            "i" to R.raw.phoneme_i,
-            "j" to R.raw.phoneme_j,
-            "k" to R.raw.phoneme_q,
-            "l" to R.raw.phoneme_l,
-            "m" to R.raw.phoneme_m,
-            "n" to R.raw.phoneme_n,
-            "o" to R.raw.phoneme_o,
-            "p" to R.raw.phoneme_p,
-            "q" to R.raw.phoneme_q,
-            "r" to R.raw.phoneme_r,
-            "s" to R.raw.phoneme_s,
-            "t" to R.raw.phoneme_t,
-            "u" to R.raw.phoneme_u,
-            "v" to R.raw.phoneme_v,
-            "w" to R.raw.phoneme_w,
-            "x" to R.raw.phoneme_x,
-            "y" to R.raw.phoneme_y,
-            "z" to R.raw.phoneme_z
+            "a" to if(isFrontLeft) R.raw.phoneme_a else R.raw.phoneme_e_reverse,
+            "b" to if(isFrontLeft) R.raw.phoneme_b else R.raw.phoneme_b_reverse,
+            "c" to if(isFrontLeft) R.raw.phoneme_c else R.raw.phoneme_c_reverse,
+            "d" to if(isFrontLeft) R.raw.phoneme_d else R.raw.phoneme_d_reverse,
+            "e" to if(isFrontLeft) R.raw.phoneme_e else R.raw.phoneme_e_reverse,
+            "f" to if(isFrontLeft) R.raw.phoneme_f else R.raw.phoneme_f_reverse,
+            "g" to if(isFrontLeft) R.raw.phoneme_g else R.raw.phoneme_g_reverse,
+            "h" to if(isFrontLeft) R.raw.phoneme_h else R.raw.phoneme_h_reverse,
+            "i" to if(isFrontLeft) R.raw.phoneme_i else R.raw.phoneme_i_reverse,
+            "j" to if(isFrontLeft) R.raw.phoneme_j else R.raw.phoneme_j_reverse,
+            "k" to if(isFrontLeft) R.raw.phoneme_k else R.raw.phoneme_k_reverse,
+            "l" to if(isFrontLeft) R.raw.phoneme_l else R.raw.phoneme_l_reverse,
+            "m" to if(isFrontLeft) R.raw.phoneme_m else R.raw.phoneme_m_reverse,
+            "n" to if(isFrontLeft) R.raw.phoneme_n else R.raw.phoneme_n_reverse,
+            "o" to if(isFrontLeft) R.raw.phoneme_o else R.raw.phoneme_o_reverse,
+            "p" to if(isFrontLeft) R.raw.phoneme_p else R.raw.phoneme_p_reverse,
+            "q" to if(isFrontLeft) R.raw.phoneme_q else R.raw.phoneme_q_reverse,
+            "r" to if(isFrontLeft) R.raw.phoneme_r else R.raw.phoneme_r_reverse,
+            "s" to if(isFrontLeft) R.raw.phoneme_s else R.raw.phoneme_s_reverse,
+            "t" to if(isFrontLeft) R.raw.phoneme_t else R.raw.phoneme_t_reverse,
+            "u" to if(isFrontLeft) R.raw.phoneme_u else R.raw.phoneme_u_reverse,
+            "v" to if(isFrontLeft) R.raw.phoneme_v else R.raw.phoneme_v_reverse,
+            "w" to if(isFrontLeft) R.raw.phoneme_w else R.raw.phoneme_w_reverse,
+            "x" to if(isFrontLeft) R.raw.phoneme_x else R.raw.phoneme_x_reverse,
+            "y" to if(isFrontLeft) R.raw.phoneme_y else R.raw.phoneme_y_reverse,
+            "z" to if(isFrontLeft) R.raw.phoneme_z else R.raw.phoneme_z_reverse,
+
         )
         releaseMediaPlayer()
         mediaPlayer =

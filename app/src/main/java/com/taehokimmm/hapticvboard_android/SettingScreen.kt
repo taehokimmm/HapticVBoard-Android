@@ -35,10 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taehokimmm.hapticvboard_android.database.deleteDatabaseByName
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
+import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 @Composable
 fun SettingScreen(
-    hapticManager: HapticManager? = null
+    hapticManager: HapticManager? = null,
+    soundManager: SoundManager?= null
 ) {
     val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
@@ -96,6 +98,7 @@ fun SettingScreen(
                                 onClick = {
                                     selectedDirection = option
                                     hapticManager?.changeMapping(selectedDirection == "left")
+                                    soundManager?.changeMapping(selectedDirection == "left")
                                 }
                             )
                             Text(text = option)

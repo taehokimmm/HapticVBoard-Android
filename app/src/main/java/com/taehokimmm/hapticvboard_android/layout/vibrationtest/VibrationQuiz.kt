@@ -47,6 +47,8 @@ import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.database.VibrationTestAnswer
 import com.taehokimmm.hapticvboard_android.database.addVibrationTestAnswer
 import com.taehokimmm.hapticvboard_android.database.closeStudyDatabase
+import com.taehokimmm.hapticvboard_android.layout.intro.Location
+import com.taehokimmm.hapticvboard_android.layout.intro.getLocation
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 import java.util.Locale
@@ -133,10 +135,9 @@ fun Study1VibrationQuiz(
                 delay({ soundManager.playPhoneme(key) }, delay+1500, handler)
             )
 
-
-            // Phoneme
+            // PhonemeGroup > Location
             runnables.add(
-                delay({ soundManager.speakOutLocation(key) }, delay+2000, handler)
+                delay({ soundManager.speakOutPhonemeInfo(key) }, delay+2000, handler)
             )
 
             runnables.add(
@@ -589,7 +590,8 @@ fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int
         Spacer(modifier = Modifier.height(10.dp))
 
         Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "${testIter + 1} / $testNumber", fontSize = 20.sp
@@ -599,11 +601,11 @@ fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int
         Spacer(modifier = Modifier.height(10.dp))
 
         Box(
-            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth().padding(30.dp),
+            contentAlignment = getAlignment(testLetter)
         ) {
             Text(
                 text = testLetter.uppercase(), fontSize =120.sp, fontWeight = FontWeight.Bold,
-
                 color =  if (isCorrect) Color.Black else Color.Red
             )
         }
@@ -615,5 +617,14 @@ fun QuizDisplay(testBlock: Int, blockNumber: Int, testIter: Int, testNumber: Int
                 color =  if (isCorrect) Color.Green else Color.Red
             )
         }
+    }
+}
+
+
+fun getAlignment(testLetter: Char): Alignment {
+    return when(getLocation(testLetter.toString())){
+        Location.LEFT -> Alignment.TopStart
+        Location.RIGHT -> Alignment.TopEnd
+        else -> Alignment.Center
     }
 }
