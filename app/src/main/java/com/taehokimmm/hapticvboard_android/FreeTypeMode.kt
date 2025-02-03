@@ -51,9 +51,6 @@ fun FreeTypeMode(
     var inputText by remember { mutableStateOf("") }
     val keyboardTouchEvents = remember { mutableStateListOf<MotionEvent>() }
 
-    var options = listOf("yes", "no")
-    var selectedOption by remember { mutableStateOf("no") }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,27 +61,6 @@ fun FreeTypeMode(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().height(300.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Text(text = "Is Tick?")
-                Column {
-                    options.forEachIndexed{index, option -> (
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                RadioButton(
-                                    selected = selectedOption == option,
-                                    onClick = {
-                                        selectedOption = option
-                                    }
-                                )
-                                Text(text = option)
-                            }
-                            )}
-                }
-            }
-
             TextButton(onClick = { inputText = "" }) {
                 Text("Clear", color = Color(0xFF006AFF), fontSize = 20.sp)
             }
@@ -93,7 +69,7 @@ fun FreeTypeMode(
                     .fillMaxWidth(0.9f)
                     .border(1.dp, Color.Gray, shape = RoundedCornerShape(20.dp))
                     .padding(20.dp, 16.dp)
-                    .height(30.dp),
+                    .height(100.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
@@ -118,9 +94,7 @@ fun FreeTypeMode(
                     lastWord = if(inputText.isNotEmpty()) inputText.last() else null,
                     soundManager = soundManager,
                     hapticManager = hapticManager,
-                    hapticMode = if (selectedOption == "yes")
-                                        HapticMode.VOICEPHONEMETICK
-                                    else HapticMode.VOICEPHONEME
+                    hapticMode = HapticMode.VOICEPHONEME
                 )
                 AndroidView(modifier = Modifier.fillMaxSize(), factory = { context ->
                     MultiTouchView(context).apply {

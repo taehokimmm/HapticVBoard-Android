@@ -262,15 +262,14 @@ fun Study3(
         val wpm = calculateWPM(startTime, endTime, inputWord)
         wpmList.add(wpm)
         wpmAvg = wpmList.average()
-        Log.d("text entry", "AVG $wpmAvg wpm : current $wpm wpm")
 
         if (isPractice) return
         val pd = calculatePressDuration(localPressDurations)
 
         val data = TextEntryMetric(
             hapticName,
-            testBlock,
-            testIter,
+            testBlock+1,
+            testIter+1,
             wpm,
             0.0,
             pd,
@@ -301,8 +300,8 @@ fun Study3(
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = TextEntryMetric(
             hapticName,
-            testBlock,
-            testIter,
+            testBlock+1,
+            testIter+1,
             wpmAvg,
             1.0,
             pd,
@@ -421,7 +420,7 @@ fun Study3(
         val errorFormatted = String.format("%.1f", error)
         speak(inputText)
         speakKor("속도 : " + wpmFormatted, speed = 1.2f)
-//        speakKor("오류 : " + errorFormatted + "%", speed = 1.2f)
+        speakKor("오류 : " + errorFormatted + "%", speed = 1.2f)
     }
 
 
@@ -674,12 +673,13 @@ fun Study3(
                         if (modeIter == 2) {
                             Spacer(modifier = Modifier.height(20.dp))
                             val wpmFormatted = String.format("%.1f", wpmAvg)
+                            val errorFormatted = String.format("%.1f", error)
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Speed : $wpmFormatted WPM",
+                                    text = "Speed : $wpmFormatted WPM \n\n\n Error : $errorFormatted %",
                                     fontSize = 40.sp
                                 )
                             }
@@ -742,8 +742,8 @@ fun Study3(
                                 hapticMode = hapticMode,
                                  logData = TextEntryLog(
                                     mode = hapticName,
-                                    iteration = testIter,
-                                    block = testBlock,
+                                    iteration = testIter+1,
+                                    block = testBlock+1,
                                     targetText = if (isPractice) testList[0] else testList[testIter],
                                     inputText = inputText
                                 ),

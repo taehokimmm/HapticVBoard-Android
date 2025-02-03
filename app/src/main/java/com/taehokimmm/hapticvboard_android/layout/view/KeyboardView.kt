@@ -249,7 +249,7 @@ fun KeyboardLayout(
                             }
                             else {
                                 if (hapticMode == HapticMode.VOICEPHONEME)
-                                    hapticManager?.generateHaptic(key, HapticMode.VOICETICK)
+                                    hapticManager?.generateHaptic(key, HapticMode.VOICE)
                                 else
                                     hapticManager?.generateHaptic(key, HapticMode.TICK)
                             }

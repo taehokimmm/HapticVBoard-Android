@@ -46,7 +46,7 @@ fun Study2Init(navController: NavHostController) {
     var options = listOf("audio", "phoneme")
     var selectedOption by remember { mutableStateOf("audio") }
 
-    var totalBlocks by remember{mutableStateOf(2)}
+    var totalBlocks by remember{mutableStateOf(3)}
     var selectedBlock by remember {
         mutableStateOf("0")
     }
@@ -68,7 +68,7 @@ fun Study2Init(navController: NavHostController) {
             totalBlocks = 1
         } else {
             when (selectedOption) {
-                "audio" -> totalBlocks = 4
+                "audio" -> totalBlocks = 3
                 "phoneme" -> totalBlocks = 12
                 else -> totalBlocks = 1
             }
@@ -125,7 +125,7 @@ fun Study2Init(navController: NavHostController) {
             )
 
             Spinner(
-                options = (0 until totalBlocks).map({i -> i.toString()}),
+                options = (0 until totalBlocks).map({i -> (i+1).toString()}),
                 onOptionSelected = { selectedOption ->
                     selectedBlock = selectedOption
                     setTotalBlocks()

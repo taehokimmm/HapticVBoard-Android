@@ -2,6 +2,7 @@ package com.taehokimmm.hapticvboard_android.layout.intro
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.TabRow
@@ -30,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,8 +58,11 @@ fun TrainGroup(
     val handler = Handler(Looper.getMainLooper())
     val runnables = remember { mutableStateListOf<Runnable>() }
 
+    var speakingText by remember{mutableStateOf("")}
+
     fun explainKey(key: String) {
         isExplaining = true
+        speakingText = key
         soundManager?.speakOutChar(key)
 
         // Clear any previous runnables before adding new ones
@@ -69,7 +75,7 @@ fun TrainGroup(
             delay({hapticManager?.generateHaptic( key,HapticMode.PHONEME) },2200, handler)
         )
         runnables.add(
-            delay({isExplaining = false}, 2200, handler)
+            delay({isExplaining = false; speakingText = ""}, 2200, handler)
         )
     }
 
@@ -89,7 +95,8 @@ fun TrainGroup(
     var verticalSwipeStart by remember{mutableStateOf(0f)}
     var verticalSwipeEnd by remember{mutableStateOf(0f)}
 
-    val swipeThreshold = 50
+    val horizontalSwipeThreshold = 50
+    val verticalSwipeThreshold = 500
 
     LaunchedEffect(selectedTabIndex) {
         if (isExplaining) {
@@ -123,14 +130,14 @@ fun TrainGroup(
                     },
                     onDragEnd = {
                         val horizontalSwipeAmount = horizontalSwipeEnd - horizontalSwipeStart
-                        if (horizontalSwipeAmount > swipeThreshold) {
+                        if (horizontalSwipeAmount > horizontalSwipeThreshold) {
                             if (selectedIndex < group[selectedTabIndex].size - 1) {
                                 selectedIndex++
                             } else {
                                 selectedIndex = 0
                             }
                             onSelect(selectedIndex)
-                        } else if (horizontalSwipeAmount < -swipeThreshold) {
+                        } else if (horizontalSwipeAmount < -horizontalSwipeThreshold) {
                             if (selectedIndex > 0) {
                                 selectedIndex--
                             } else {
@@ -141,33 +148,33 @@ fun TrainGroup(
                     }
                 )
             }
-            .pointerInput(Unit) {
-                detectVerticalDragGestures(
-                    onDragStart = { offset ->
-                        verticalSwipeStart = offset.y
-                    },
-                    onVerticalDrag = { change, dragAmount ->
-                        verticalSwipeEnd = change.position.y
-                    },
-                    onDragEnd = {
-                        val verticalSwipeAmount = verticalSwipeEnd - verticalSwipeStart
-                        if (verticalSwipeAmount < -swipeThreshold) {
-                            if (selectedTabIndex > 0) {
-                                selectedTabIndex--
-                            } else {
-                                selectedTabIndex = name.size - 1
-                            }
-
-                        } else if (verticalSwipeAmount > swipeThreshold) {
-                            if (selectedTabIndex < name.size - 1) {
-                                selectedTabIndex++
-                            } else {
-                                selectedTabIndex = 0
-                            }
-                        }
-                    }
-                )
-            }
+//            .pointerInput(Unit) {
+//                detectVerticalDragGestures(
+//                    onDragStart = { offset ->
+//                        verticalSwipeStart = offset.y
+//                    },
+//                    onVerticalDrag = { change, dragAmount ->
+//                        verticalSwipeEnd = change.position.y
+//                    },
+//                    onDragEnd = {
+//                        val verticalSwipeAmount = verticalSwipeEnd - verticalSwipeStart
+//                        if (verticalSwipeAmount < -verticalSwipeThreshold) {
+//                            if (selectedTabIndex > 0) {
+//                                selectedTabIndex--
+//                            } else {
+//                                selectedTabIndex = name.size - 1
+//                            }
+//
+//                        } else if (verticalSwipeAmount > verticalSwipeThreshold) {
+//                            if (selectedTabIndex < name.size - 1) {
+//                                selectedTabIndex++
+//                            } else {
+//                                selectedTabIndex = 0
+//                            }
+//                        }
+//                    }
+//                )
+//            }
     ) {
         TabRow(selectedTabIndex = 0, indicator = { tabPositions ->
             SecondaryIndicator(
@@ -217,5 +224,13 @@ fun TrainGroup(
                 }
             }
         }
+
+        if (isExplaining)
+            Text(
+                modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                fontStyle = FontStyle.Italic,
+                textAlign = TextAlign.Center,
+                color = Color.Red,
+                text = "Speaking : $speakingText")
     }
 }

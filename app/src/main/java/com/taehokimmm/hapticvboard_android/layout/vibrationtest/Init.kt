@@ -34,18 +34,15 @@ fun VibrationTestInit(navController: NavHostController) {
     var testSubjectIdentifier by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    var options = listOf("1", "2", "3")
+    var options = listOf("1", "2", "3", "123")
     var selectedOption by remember { mutableStateOf("") }
 
     val subjectFocusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
 
-    var subjects = listOf("test", "practice")
+    var subjects = listOf("practice")
     for(i in 1 until 12) {
         subjects += listOf("P" + i)
-    }
-    for(i in 1 until 6) {
-        subjects += listOf("VP" + i)
     }
     for(i in 1 until 8) {
         subjects += listOf("Pilot" + i)

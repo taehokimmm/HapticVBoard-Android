@@ -30,13 +30,13 @@ class SerialManager(context: Context) {
 
     init {
         connect()
-//        val writeThread = HandlerThread("SerialWriteThread")
-//        writeThread.start()
-//        writeHandler = Handler(writeThread.looper)
+        val writeThread = HandlerThread("SerialWriteThread")
+        writeThread.start()
+        writeHandler = Handler(writeThread.looper)
 
-//        val readThread = HandlerThread("SerialReadThread")
-//        readThread.start()
-            readHandler = Handler(Looper.getMainLooper())
+        val readThread = HandlerThread("SerialReadThread")
+        readThread.start()
+        readHandler = Handler(Looper.getMainLooper())
     }
 
     fun connect() {
@@ -94,18 +94,23 @@ class SerialManager(context: Context) {
         if (port == null) {
             return
         }
-        try {
-            if (!isDone) {
-                port?.write("q\n".toByteArray(), 1)
-                Log.d("SerialComm", "Stacked: ${String(data)} Time : ${System.currentTimeMillis()}")
-                stackedData = data
-            } else {
-                sendLetter(data)
+        writeHandler.post {
+            try {
+                if (!isDone) {
+                    port?.write("q\n".toByteArray(), 1)
+                    Log.d(
+                        "SerialComm",
+                        "Stacked: ${String(data)} Time : ${System.currentTimeMillis()}"
+                    )
+                    stackedData = data
+                } else {
+                    sendLetter(data)
+                }
+            } catch (e: SerialTimeoutException) {
+                throw IOException("Write timeout occurred.", e)
+            } catch (e: IOException) {
+                throw IOException("Error occurred during writing.", e)
             }
-        } catch (e: SerialTimeoutException) {
-            throw IOException("Write timeout occurred.", e)
-        } catch (e: IOException) {
-            throw IOException("Error occurred during writing.", e)
         }
 //        writeHandler.post {
 //            try {

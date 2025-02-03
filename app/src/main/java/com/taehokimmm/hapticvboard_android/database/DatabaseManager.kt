@@ -49,29 +49,33 @@ fun addTextEntryLog(context: Context, name: String, data: TextEntryLog){
 }
 
 fun <T : Any> addLog(context: Context, name: String, data:T, state: String, touchedKey: String, x: Float, y:Float) {
-    when (data) {
-        is TypingTestLog -> {
-            // Handle TypingTestLog specific logic here
-            data.x = x
-            data.y = y
-            data.state = state
-            data.touchedKey = touchedKey
-            data.timestamp = System.currentTimeMillis()
-            data.date = System.currentTimeMillis().toFormattedDateString()
-            addTypingTestLog(context, name, data)
-        }
-        is TextEntryLog -> {
-            data.x = x
-            data.y = y
-            data.state = state
-            data.touchedKey = touchedKey
-            data.timestamp = System.currentTimeMillis()
-            data.date = System.currentTimeMillis().toFormattedDateString()
-            addTextEntryLog(context, name, data)
-        }
-        else -> {
-            // Handle unknown type
-            println("Unknown log type")
+    CoroutineScope(Dispatchers.IO).launch {
+        when (data) {
+            is TypingTestLog -> {
+                // Handle TypingTestLog specific logic here
+                data.x = x
+                data.y = y
+                data.state = state
+                data.touchedKey = touchedKey
+                data.timestamp = System.currentTimeMillis()
+                data.date = System.currentTimeMillis().toFormattedDateString()
+                addTypingTestLog(context, name, data)
+            }
+
+            is TextEntryLog -> {
+                data.x = x
+                data.y = y
+                data.state = state
+                data.touchedKey = touchedKey
+                data.timestamp = System.currentTimeMillis()
+                data.date = System.currentTimeMillis().toFormattedDateString()
+                addTextEntryLog(context, name, data)
+            }
+
+            else -> {
+                // Handle unknown type
+                println("Unknown log type")
+            }
         }
     }
 }

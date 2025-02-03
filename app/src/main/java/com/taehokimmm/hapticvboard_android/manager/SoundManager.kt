@@ -21,6 +21,7 @@ import com.taehokimmm.hapticvboard_android.layout.intro.Location
 import com.taehokimmm.hapticvboard_android.layout.intro.PhonemeGroup
 import com.taehokimmm.hapticvboard_android.layout.intro.getLocation
 import com.taehokimmm.hapticvboard_android.layout.intro.getPhonemeGroup
+import java.io.IOException
 
 class SoundManager(context: Context) {
     val context:Context = context
@@ -230,20 +231,27 @@ class SoundManager(context: Context) {
      */
     @Synchronized
     fun playSound(isCorrect: Boolean) {
-        releaseMediaPlayer()
-        if (isCorrect) {
+        try{
             releaseMediaPlayer()
-            mediaPlayer =
-                MediaPlayer.create(context, R.raw.correct)
-        } else {
-            releaseMediaPlayer()
-            mediaPlayer =
-                MediaPlayer.create(context, R.raw.wrong)
+            if (isCorrect) {
+                releaseMediaPlayer()
+                mediaPlayer =
+                    MediaPlayer.create(context, R.raw.correct)
+            } else {
+                releaseMediaPlayer()
+                mediaPlayer =
+                    MediaPlayer.create(context, R.raw.wrong)
+            }
+            playMediaPlayer()
+        } catch(e: IOException) {
+            throw IOException("Error occurred during playing.", e)
         }
-        playMediaPlayer()
     }
 
     @Synchronized
+
+
+
     fun playPhoneme(key: String) {
         var keyToResource: Map<String, Int> = mapOf(
             "a" to if(isFrontLeft) R.raw.phoneme_a else R.raw.phoneme_e_reverse,

@@ -81,9 +81,8 @@ fun TypingTest(
 
 
     if (subject == "practice") {
-        testAlphabets = ('a'..'b').map { it.toString() }
+        testAlphabets = getAllowGroup("1", true)
     }
-    val testNumber = testAlphabets.size
 
     var testList by remember { mutableStateOf(listOf("")) }
 
@@ -118,7 +117,7 @@ fun TypingTest(
             row = group,
             answer = testList[testIter],
             perceived = inputText,
-            iter = testIter,
+            iter = testIter+1,
             mode = modeIter,
             block = testBlock,
             duration = endTime - startTime
@@ -161,6 +160,15 @@ fun TypingTest(
             runnables.add(
                 delay({ soundManager.playPhoneme(key) }, delay1+delay, handler)
             )
+
+            if (isTypingMode) {
+                delay1+= 500
+                // Phoneme
+                runnables.add(
+                    delay({ soundManager.speakOutPhonemeInfo(key) }, delay1+delay, handler)
+                )
+            }
+
         }
 
         if (isTypingMode == false) {
@@ -283,7 +291,8 @@ fun TypingTest(
         }
     }
 
-    fun onDoubleTap() {
+
+    fun updateTrial() {
         if (modeIter == 1) return
         if (isTypingMode) return
         if (isExplaining) return
@@ -296,6 +305,11 @@ fun TypingTest(
         }
         soundManager.playEarcon("beep")
         isExplaining = false
+    }
+
+    fun onTap() {
+        if (isTypingMode) explainKey(testList[testIter])
+        else updateTrial()
     }
 
     LaunchedEffect(isTypingMode) {
@@ -322,6 +336,7 @@ fun TypingTest(
         if (modeIter >= modeCnt) return@LaunchedEffect
         if (testIter == -1) {
             testList = testAlphabets.shuffled()
+            if(subject == "practice") testList = testList.subList(0, 3)
             val modeName = modeNames[modeIter]
             soundManager.stop()
             soundManager.speakOut(modeName + " : 시작하려면 이중탭하세요.")
@@ -369,10 +384,17 @@ fun TypingTest(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Start \n Block : " + (testBlock) + "\n Mode : " + modeNames[modeIter],
-                        fontSize = 20.sp
-                    )
+                    Column(){
+                        Text(
+                            text = "Start \n Block : " + (testBlock) + "\n Mode : " + modeNames[modeIter],
+                            fontSize = 20.sp
+                        )
+
+                        Text(
+                            text = "시작하려면 이중탭하세요"
+                            , fontSize = 20.sp
+                        )
+                    }
                 }
             }
         }
@@ -416,7 +438,7 @@ fun TypingTest(
                             testBlock,
                             totalBlock,
                             testIter,
-                            testNumber,
+                            testList.size,
                             modeIter,
                             testList[testIter]
                         )
@@ -425,7 +447,7 @@ fun TypingTest(
                             testBlock,
                             totalBlock,
                             testIter,
-                            testNumber,
+                            testList.size,
                             modeIter,
                             testList[testIter],
                             inputKey,
@@ -457,7 +479,7 @@ fun TypingTest(
                                 logData = TypingTestLog(
                                     row = group,
                                     block = testBlock,
-                                    iter = testIter,
+                                    iter = testIter+1,
                                     mode = modeIter,
                                     answer = testList[testIter]
                                 ),
@@ -472,8 +494,8 @@ fun TypingTest(
                     factory = { context ->
                         MultiTouchView(
                             context,
-                            onDoubleTap = {
-                                onDoubleTap()
+                            onTap = {
+                                onTap()
                             }
                         ).apply {
                             onMultiTouchEvent = { event ->
@@ -529,6 +551,8 @@ fun TypingTest(
                 }
 
                 Spacer(modifier = Modifier.height(50.dp))
+
+                Text (text = "이중탭하세요")
             }
         }
     }

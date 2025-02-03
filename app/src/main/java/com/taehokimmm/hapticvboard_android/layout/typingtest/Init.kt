@@ -35,12 +35,9 @@ fun TypingTestInit(navController: NavHostController) {
     var options = listOf("1", "2", "3", "123")
     var selectedOption by remember { mutableStateOf("") }
 
-    var subjects = listOf("test", "practice")
+    var subjects = listOf("practice")
     for(i in 1 until 12) {
         subjects += listOf("P" + i)
-    }
-    for(i in 1 until 6) {
-        subjects += listOf("VP" + i)
     }
     for(i in 1 until 8) {
         subjects += listOf("Pilot" + i)

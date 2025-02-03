@@ -67,13 +67,20 @@ fun Study1VibrationQuiz(
     hapticMode: HapticMode
 ) {
     val context = LocalContext.current
-    val allowlist = getAllowGroup(group)
+
 
     val totalBlock = 3
     var testIter by remember { mutableStateOf(-1) }
     var testBlock by remember { mutableStateOf(1) }
+
+    var allowlist = getAllowGroup(group)
+    if (group == "123") {
+        if (testBlock == 1) allowlist = getAllowGroup("1")
+        else if (testBlock == 2) allowlist = getAllowGroup("2")
+        else if (testBlock == 3) allowlist = getAllowGroup("3")
+    }
     var testList by remember { mutableStateOf(allowlist.shuffled()) }
-    val testNumber = testList.size
+    var testNumber = testList.size
 
     var selectedIndex by remember {mutableStateOf(-1)}
     var selectedAnswer by remember {mutableStateOf(-1)}
@@ -181,7 +188,7 @@ fun Study1VibrationQuiz(
                 row = group,
                 answer = targetOption,
                 perceived = selectedOption,
-                iter = testIter,
+                iter = testIter+1,
                 block = testBlock
             )
             addVibrationTestAnswer(context, subject, group, data)
@@ -276,7 +283,15 @@ fun Study1VibrationQuiz(
             closeStudyDatabase()
             navController.navigate("vibrationTest/end/${subject}")
         } else {
+
+            if (group == "123") {
+                if (testBlock == 1) allowlist = getAllowGroup("1")
+                else if (testBlock == 2) allowlist = getAllowGroup("2")
+                else if (testBlock == 3) allowlist = getAllowGroup("3")
+            }
+
             testList = allowlist.shuffled()
+            testNumber = testList.size
             testIter = -1
         }
     }
@@ -333,10 +348,16 @@ fun Study1VibrationQuiz(
                 },
             contentAlignment = Alignment.Center
         ) {
-            Text(
-            text = "Start \n Block : " + (testBlock)
-            , fontSize = 20.sp
-            )
+            Column(){
+                Text(
+                    text = "Start Block : " + (testBlock)
+                    , fontSize = 20.sp
+                )
+                Text(
+                    text = "시작하려면 이중탭하세요"
+                    , fontSize = 20.sp
+                )
+            }
         }
     } else if (testIter == testNumber) {
         Box(
@@ -375,6 +396,16 @@ fun Study1VibrationQuiz(
                     }
                 }
                 Spacer(modifier = Modifier.height(50.dp))
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onNextBlock()
+                    },
+                    colors = ButtonColors(Color.White, Color.Blue, Color.Gray, Color.Black),
+                ) {
+                    Text("Click or Double Tap")
+                }
             }
         }
     } else if (testIter < testNumber) {

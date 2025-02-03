@@ -58,9 +58,7 @@ class HapticManager(context: Context) {
 
         serialManager.read()
 
-        val delta = System.currentTimeMillis() - lastTime
-        lastTime = System.currentTimeMillis()
-        Log.d("HapticFeedback", "$key, $delta ${delta<200}")
+        Log.d("SerialComm", "Write : $key")
 
 //        runnable?.let { handler?.removeCallbacks(it) }
 //        if (delta < 300) {
