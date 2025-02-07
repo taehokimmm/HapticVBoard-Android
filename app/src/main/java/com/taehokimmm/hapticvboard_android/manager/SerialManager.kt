@@ -147,7 +147,7 @@ class SerialManager(context: Context) {
                     "runnable) Is DONE: ${isDone}"
                 )
                 stackedData?.let { sendLetter(it) }
-            } }, 300, readHandler)
+            } }, 500, readHandler)
         isDoneTime = System.currentTimeMillis()
         stackedData = null
         Log.d("SerialComm", "Written: ${String(data)} Time : ${System.currentTimeMillis()}")
