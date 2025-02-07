@@ -59,6 +59,9 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.Locale
 
+enum class StudyMode {
+    NONE, READY, TYPE, RESULT
+}
 @Composable
 fun Study3(
     innerPadding: PaddingValues,
@@ -86,14 +89,14 @@ fun Study3(
     val totalBlock = when (isPractice) {
         true -> 1
         false -> when(hapticMode) {
-            HapticMode.VOICE -> 3
+            HapticMode.VOICE -> 2
             HapticMode.PHONEME -> phonemeBlock
             else -> 1
         }
     }
 
     val testNumber = when (isPractice) {
-        true -> 5
+        true -> 1
         false -> 5
     }
     var testBlock by remember { mutableStateOf(testBlock) }
@@ -138,7 +141,7 @@ fun Study3(
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var phrases by remember { mutableStateOf(listOf("")) }
 
-    var modeIter by remember {mutableStateOf(-1)}
+    var modeIter by remember {mutableStateOf(StudyMode.NONE)}
 
     var timer by remember { mutableStateOf(0) }
 
@@ -150,11 +153,11 @@ fun Study3(
     LaunchedEffect(Unit) {
         var phrases1 = when (isPractice) {
             true -> readTxtFile(context, R.raw.practice_phrase)
-            false -> readTxtFile(context, R.raw.phrase80)
+            false -> readTxtFile(context, R.raw.phrases_repeat)
         }
 
         if (isPractice) {
-            phrases = phrases1
+            phrases = phrases1.subList(0, testNumber)
         } else {
             if (hapticMode == HapticMode.PHONEME) {
                 phrases = phrases1.slice(0..phonemeBlock * testNumber - 1)
@@ -268,7 +271,7 @@ fun Study3(
 
         val data = TextEntryMetric(
             hapticName,
-            testBlock+1,
+            testBlock,
             testIter+1,
             wpm,
             0.0,
@@ -300,7 +303,7 @@ fun Study3(
         var ke = keyboardEfficiency(inputText, keyStrokeNum)
         val data = TextEntryMetric(
             hapticName,
-            testBlock+1,
+            testBlock,
             testIter+1,
             wpmAvg,
             1.0,
@@ -398,7 +401,7 @@ fun Study3(
         playEarcon("beep")
         addLoggingPerWord()
         addLogging()
-        modeIter = 2
+        modeIter = StudyMode.RESULT
     }
 
     fun onSpace(): Boolean {
@@ -429,31 +432,35 @@ fun Study3(
         tts?.stop()
         delay({
             tts?.stop()
-            var sentence = if (isPractice) testList[0] else testList[testIter]
-            speak(sentence)
-            playEarcon("start")
-            speakSentence(sentence)
+            if (testIter < testList.size && testList.size > 0 && testIter >= 0) {
+                var sentence = if (isPractice) testList[0] else testList[testIter]
+                speak(sentence)
+                playEarcon("start")
+                speakSentence(sentence)
 //            playEarcon("start")
 //            speakSpelling(sentence)
 //            playEarcon("start")
 //            speak(sentence)
+
+            }
         }, 500)
     }
 
     LaunchedEffect(testIter) {
         if (testIter == -1) {
             timer = 0
+            Log.d("text entry", "${phrases.size}, ${testNumber}, ${testBlock}")
             testList = if (isPractice) phrases
-                else phrases.slice(testBlock * testNumber..(testBlock + 1) * testNumber - 1)
+                else phrases.slice((testBlock-1) * testNumber..(testBlock) * testNumber - 1)
         } else if (testIter < testNumber) {
             var targetText = if (isPractice) testList[0] else testList[testIter]
             testWords = targetText.split(" ")
             testWordCnt = 0
-            modeIter = 0
+            modeIter = StudyMode.READY
             explainSentence()
         } else {
             testBlock++
-            if (testBlock >= totalBlock) {
+            if (testBlock > totalBlock) {
                 closeStudyDatabase()
                 navController!!.navigate("textEntry/end/$subject")
             } else {
@@ -464,7 +471,7 @@ fun Study3(
 
     LaunchedEffect(modeIter) {
         if (testIter == -1) return@LaunchedEffect
-        if (modeIter == 2) {
+        if (modeIter == StudyMode.RESULT) {
             explainResult()
         }
     }
@@ -499,7 +506,7 @@ fun Study3(
                 modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Block : ${testBlock + 1} / $totalBlock", fontSize = 20.sp
+                    text = "Block : ${testBlock} / $totalBlock", fontSize = 20.sp
                 )
             }
 
@@ -583,7 +590,7 @@ fun Study3(
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
                     modifier = when (modeIter) {
-                        1 -> Modifier
+                        StudyMode.TYPE -> Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
 
@@ -593,17 +600,17 @@ fun Study3(
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onDoubleTap = {
-                                        if (modeIter == 0) {
+                                        if (modeIter == StudyMode.READY) {
                                             tts?.stop()
                                             isSpeakingDone = true
                                             playEarcon("beep")
-                                            modeIter = 1
+                                            modeIter = StudyMode.TYPE
                                             inputText = ""
                                             initMetric()
                                             delay({
                                                 speakWord(testWords[testWordCnt])
                                             }, 500)
-                                        } else {
+                                        } else if (modeIter == StudyMode.RESULT) {
                                             if (isSpeakingDone) {
                                                 tts?.stop()
                                                 isSpeakingDone = true
@@ -615,10 +622,8 @@ fun Study3(
                                     },
                                     onTap = {
                                         if (isSpeakingDone == false) return@detectTapGestures
-                                        if (modeIter == 0) {
+                                        if (modeIter == StudyMode.TYPE) {
                                             explainSentence()
-                                        } else {
-                                            //explainResult()
                                         }
                                     }
                                 )
@@ -633,7 +638,7 @@ fun Study3(
                             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Block : ${testBlock + 1} / $totalBlock", fontSize = 20.sp
+                                text = "Block : ${testBlock} / $totalBlock", fontSize = 20.sp
                             )
                         }
 
@@ -670,7 +675,7 @@ fun Study3(
                             )
                         }
 
-                        if (modeIter == 2) {
+                        if (modeIter == StudyMode.RESULT) {
                             Spacer(modifier = Modifier.height(20.dp))
                             val wpmFormatted = String.format("%.1f", wpmAvg)
                             val errorFormatted = String.format("%.1f", error)
@@ -686,7 +691,7 @@ fun Study3(
                         }
                     }
 
-                    if (modeIter == 1) {
+                    if (modeIter == StudyMode.TYPE) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.BottomCenter
@@ -743,7 +748,7 @@ fun Study3(
                                  logData = TextEntryLog(
                                     mode = hapticName,
                                     iteration = testIter+1,
-                                    block = testBlock+1,
+                                    block = testBlock,
                                     targetText = if (isPractice) testList[0] else testList[testIter],
                                     inputText = inputText
                                 ),
@@ -754,7 +759,7 @@ fun Study3(
                     }
                 }
 
-                if (modeIter == 1) {
+                if (modeIter == StudyMode.TYPE) {
                     AndroidView(
                         modifier = Modifier
                             .fillMaxSize()
@@ -765,16 +770,6 @@ fun Study3(
                                 onTap = {
                                     tts?.stop()
                                     speakWord(testWords[testWordCnt])
-                                },
-                                onDoubleTap = {
-                                    if (inputText.isEmpty()) return@MultiTouchView
-                                    onConfirm()
-                                },
-                                onLeftSwipe = {
-
-                                },
-                                onRightSwipe = {
-
                                 }
                             ).apply {
                                 onMultiTouchEvent = { event ->

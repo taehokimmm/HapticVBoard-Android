@@ -48,7 +48,7 @@ fun Study2Init(navController: NavHostController) {
 
     var totalBlocks by remember{mutableStateOf(3)}
     var selectedBlock by remember {
-        mutableStateOf("0")
+        mutableStateOf("1")
     }
 
     var subjects = listOf("test")

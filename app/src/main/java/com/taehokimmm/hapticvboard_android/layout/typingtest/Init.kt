@@ -43,10 +43,10 @@ fun TypingTestInit(navController: NavHostController) {
         subjects += listOf("Pilot" + i)
     }
 
-    var blocks = listOf("1", "2", "3")
+    var blocks = listOf("1", "2", "3", "4", "5")
     var selectedBlock by remember { mutableStateOf("1") }
 
-    var modes = listOf("train", "test", "onlyTest")
+    var modes = listOf("train", "test")
     var selectedMode by remember { mutableStateOf("train") }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

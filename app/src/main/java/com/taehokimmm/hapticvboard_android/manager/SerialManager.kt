@@ -57,7 +57,16 @@ class SerialManager(context: Context) {
                                 Log.d("SerialComm", "Read:  ${response}")
                                 if (response.trim().endsWith("done")) {
                                     isDone = true
+
+                                    Log.d(
+                                        "SerialComm",
+                                        "3) Is DONE: ${isDone}"
+                                    )
                                     stackedData?.let { sendLetter(it) }
+                                    Log.d(
+                                        "SerialComm",
+                                        "runnable remove"
+                                    )
                                     runnable?.let {readHandler?.removeCallbacks(it)}
                                     runnable = null
                                 }
@@ -94,43 +103,51 @@ class SerialManager(context: Context) {
         if (port == null) {
             return
         }
-        writeHandler.post {
-            try {
-                if (!isDone) {
+        Log.d(
+            "SerialComm",
+            "4) Is DONE: ${isDone}"
+        )
+
+        try {
+            if (!isDone) {
+                writeHandler.post {
                     port?.write("q\n".toByteArray(), 1)
-                    Log.d(
-                        "SerialComm",
-                        "Stacked: ${String(data)} Time : ${System.currentTimeMillis()}"
-                    )
-                    stackedData = data
-                } else {
-                    sendLetter(data)
                 }
-            } catch (e: SerialTimeoutException) {
-                throw IOException("Write timeout occurred.", e)
-            } catch (e: IOException) {
-                throw IOException("Error occurred during writing.", e)
+                Log.d(
+                    "SerialComm",
+                    "Stacked: ${String(data)} Time : ${System.currentTimeMillis()}"
+                )
+                stackedData = data
+            } else {
+                sendLetter(data)
             }
+        } catch (e: SerialTimeoutException) {
+            throw IOException("Write timeout occurred.", e)
+        } catch (e: IOException) {
+            throw IOException("Error occurred during writing.", e)
         }
-//        writeHandler.post {
-//            try {
-//                port?.write(data, 0)
-//                Log.d("SerialWrite", "Data written: ${String(data)}")
-//                //read()
-//            } catch (e: IOException) {
-//                Log.e("SerialError", "Error writing to serial port", e)
-//            }
-//        }
     }
 
     fun sendLetter(data: ByteArray) {
-        port?.write(data, 1)
+        if (isDone == false) return
+        writeHandler.post {
+            port?.write(data, 1)
+        }
         isDone = false
+
+        Log.d(
+            "SerialComm",
+            "1) Is DONE: ${isDone}"
+        )
         runnable = delay({
             if (!isDone) {
                 isDone = true
+                Log.d(
+                    "SerialComm",
+                    "runnable) Is DONE: ${isDone}"
+                )
                 stackedData?.let { sendLetter(it) }
-            } }, 200, readHandler)
+            } }, 300, readHandler)
         isDoneTime = System.currentTimeMillis()
         stackedData = null
         Log.d("SerialComm", "Written: ${String(data)} Time : ${System.currentTimeMillis()}")
