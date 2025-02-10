@@ -259,6 +259,8 @@ fun Study3(
     }
 
     fun addLoggingPerWord() {
+        Log.d("text entry","$inputText, ${inputText.endsWith(" ")}")
+        if (inputText.endsWith(" ")) return
         val targetWord = testWords[testWordCnt]
         val inputWords = inputText.split(" ")
         val inputWord = inputWords[inputWords.size - 1]
@@ -399,6 +401,7 @@ fun Study3(
         tts?.stop()
         isSpeakingDone = true
         playEarcon("beep")
+
         addLoggingPerWord()
         addLogging()
         modeIter = StudyMode.RESULT
@@ -406,6 +409,7 @@ fun Study3(
 
     fun onSpace(): Boolean {
         if (testWordCnt < testWords.size - 1) {
+
             addLoggingPerWord()
             startTime = -1
             localPressDurations = listOf()
