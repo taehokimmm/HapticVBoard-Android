@@ -17,6 +17,7 @@ import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 import android.os.Handler
+import android.os.HandlerThread
 import com.taehokimmm.hapticvboard_android.layout.intro.Location
 import com.taehokimmm.hapticvboard_android.layout.intro.PhonemeGroup
 import com.taehokimmm.hapticvboard_android.layout.intro.getLocation
@@ -35,8 +36,7 @@ class SoundManager(context: Context) {
     var correctId: Int = 0
     var wrongId: Int = 0
     private var mediaPlayer: MediaPlayer? = null
-    private var runnable: Runnable? = null
-    private var handler: Handler = Handler(Looper.getMainLooper())
+    private lateinit var writeHandler: Handler
 
     init {
 
@@ -47,6 +47,9 @@ class SoundManager(context: Context) {
 
         // Initialize the sound pool with the defined attributes
 
+        val writeThread = HandlerThread("SerialWriteThread")
+        writeThread.start()
+        writeHandler = Handler(writeThread.looper)
 
         // Init TTS
         tts = TextToSpeech(context) {
@@ -142,47 +145,71 @@ class SoundManager(context: Context) {
     }
 
     fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH, rate:Float = 1.0f) {
-        tts.speak(text, mode, null, null)
+
+        writeHandler.post {
+            tts.speak(text, mode, null, null)
+        }
     }
 
     fun speakOutKor(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH) {
-        ttsKor.speak(text, mode, null, null)
+
+        writeHandler.post {
+            tts.setLanguage(Locale.KOREAN)
+            tts.speak(text, mode, null, null)
+            tts.setLanguage(Locale.ENGLISH)
+        }
     }
 
     fun speakOutChar(key: String) {
+//
+//        var avaiation: Map<String, String> = mapOf(
+//            "a" to "apple",
+//            "b" to "boy",
+//            "c" to "cat",
+//            "d" to "dog",
+//            "e" to "engine",
+//            "f" to "front",
+//            "g" to "game",
+//            "h" to "hotel",
+//            "i" to "inside",
+//            "j" to "juice",
+//            "k" to "korea",
+//            "l" to "lemon",
+//            "m" to "mouth",
+//            "n" to "nose",
+//            "o" to "ocean",
+//            "p" to "people",
+//            "q" to "queen",
+//            "r" to "red",
+//            "s" to "summer",
+//            "t" to "time",
+//            "u" to "unicorn",
+//            "v" to "video",
+//            "w" to "window",
+//            "x" to "x-ray",
+//            "y" to "yesterday",
+//            "z" to "zero",
+//        )
 
-        var avaiation: Map<String, String> = mapOf(
-            "a" to "apple",
-            "b" to "boy",
-            "c" to "cat",
-            "d" to "dog",
-            "e" to "engine",
-            "f" to "front",
-            "g" to "game",
-            "h" to "hotel",
-            "i" to "inside",
-            "j" to "juice",
-            "k" to "korea",
-            "l" to "lemon",
-            "m" to "mouth",
-            "n" to "nose",
-            "o" to "ocean",
-            "p" to "people",
-            "q" to "queen",
-            "r" to "red",
-            "s" to "summer",
-            "t" to "time",
-            "u" to "unicorn",
-            "v" to "video",
-            "w" to "window",
-            "x" to "x-ray",
-            "y" to "yesterday",
-            "z" to "zero",
-        )
         speakOut(key, TextToSpeech.QUEUE_FLUSH)
         speakOut("", TextToSpeech.QUEUE_ADD)
         speakOut("", TextToSpeech.QUEUE_ADD)
-        avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
+
+        var korspell: Map<String, String> = mapOf(
+            "l" to "엘",
+            "m" to "엠",
+            "n" to "엔",
+            "o" to "오우",
+            "r" to "알",
+        )
+        if (korspell.containsKey(key)) {
+            korspell[key]?.let { speakOutKor(it, TextToSpeech.QUEUE_ADD) }
+        } else {
+            speakOutKor(key, TextToSpeech.QUEUE_ADD)
+        }
+//        speakOut("", TextToSpeech.QUEUE_ADD)
+//        speakOut("", TextToSpeech.QUEUE_ADD)
+//        avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
     }
 
 

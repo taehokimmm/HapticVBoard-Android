@@ -259,7 +259,6 @@ fun Study3(
     }
 
     fun addLoggingPerWord() {
-        Log.d("text entry","$inputText, ${inputText.endsWith(" ")}")
         if (inputText.endsWith(" ")) return
         val targetWord = testWords[testWordCnt]
         val inputWords = inputText.split(" ")
