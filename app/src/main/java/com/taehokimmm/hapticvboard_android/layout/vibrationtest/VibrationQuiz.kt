@@ -134,7 +134,7 @@ fun Study1VibrationQuiz(
         } else {
             // Word
             runnables.add(
-                delay({ soundManager.speakOutChar(key) },delay+0, handler)
+                delay({ soundManager.speakOutChar(key, true) },delay+0, handler)
             )
 
             // Phoneme

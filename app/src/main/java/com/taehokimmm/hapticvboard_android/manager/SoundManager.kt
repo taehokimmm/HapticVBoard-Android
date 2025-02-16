@@ -160,36 +160,36 @@ class SoundManager(context: Context) {
         }
     }
 
-    fun speakOutChar(key: String) {
-//
-//        var avaiation: Map<String, String> = mapOf(
-//            "a" to "apple",
-//            "b" to "boy",
-//            "c" to "cat",
-//            "d" to "dog",
-//            "e" to "engine",
-//            "f" to "front",
-//            "g" to "game",
-//            "h" to "hotel",
-//            "i" to "inside",
-//            "j" to "juice",
-//            "k" to "korea",
-//            "l" to "lemon",
-//            "m" to "mouth",
-//            "n" to "nose",
-//            "o" to "ocean",
-//            "p" to "people",
-//            "q" to "queen",
-//            "r" to "red",
-//            "s" to "summer",
-//            "t" to "time",
-//            "u" to "unicorn",
-//            "v" to "video",
-//            "w" to "window",
-//            "x" to "x-ray",
-//            "y" to "yesterday",
-//            "z" to "zero",
-//        )
+    fun speakOutChar(key: String, isAddWord: Boolean = false) {
+
+        var avaiation: Map<String, String> = mapOf(
+            "a" to "apple",
+            "b" to "boy",
+            "c" to "cat",
+            "d" to "dog",
+            "e" to "engine",
+            "f" to "front",
+            "g" to "game",
+            "h" to "hotel",
+            "i" to "inside",
+            "j" to "juice",
+            "k" to "korea",
+            "l" to "lemon",
+            "m" to "mouth",
+            "n" to "nose",
+            "o" to "ocean",
+            "p" to "people",
+            "q" to "queen",
+            "r" to "rainbow",
+            "s" to "summer",
+            "t" to "time",
+            "u" to "unicorn",
+            "v" to "video",
+            "w" to "window",
+            "x" to "x-ray",
+            "y" to "yesterday",
+            "z" to "zero",
+        )
 
         speakOut(key, TextToSpeech.QUEUE_FLUSH)
         speakOut("", TextToSpeech.QUEUE_ADD)
@@ -199,7 +199,7 @@ class SoundManager(context: Context) {
             "l" to "엘",
             "m" to "엠",
             "n" to "엔",
-            "o" to "오우",
+            "o" to "오",
             "r" to "알",
         )
         if (korspell.containsKey(key)) {
@@ -207,9 +207,8 @@ class SoundManager(context: Context) {
         } else {
             speakOutKor(key, TextToSpeech.QUEUE_ADD)
         }
-//        speakOut("", TextToSpeech.QUEUE_ADD)
-//        speakOut("", TextToSpeech.QUEUE_ADD)
-//        avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
+        if (isAddWord)
+            avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
     }
 
 

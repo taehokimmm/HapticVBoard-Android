@@ -144,7 +144,7 @@ fun TypingTest(
 
         if (isTypingMode) {
             runnables.add(
-                delay({soundManager?.speakOutChar(key)}, delay, handler)
+                delay({soundManager?.speakOutChar(key, true)}, delay, handler)
             )
             delay1 += 700;
         } else {
