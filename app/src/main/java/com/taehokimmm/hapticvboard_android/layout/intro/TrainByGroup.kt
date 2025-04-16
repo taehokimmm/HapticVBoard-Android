@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.rotationMatrix
 import com.taehokimmm.hapticvboard_android.HapticMode
 import com.taehokimmm.hapticvboard_android.layout.vibrationtest.delay
 import com.taehokimmm.hapticvboard_android.manager.HapticManager
@@ -104,7 +105,7 @@ fun TrainGroup(
             isExplaining = false
         }
         selectedIndex = 0
-        soundManager?.speakOutKor(name[selectedTabIndex])
+        soundManager?.speakOut(name[selectedTabIndex])
     }
 
     Box(
@@ -116,7 +117,7 @@ fun TrainGroup(
                     onTap = { onSelect(selectedIndex) },
                     onDoubleTap = {
                         if (isExplaining) return@detectTapGestures
-                        soundManager?.speakOutKor(name[selectedTabIndex])
+                        soundManager?.speakOut(name[selectedTabIndex])
                     }
                 )
             }

@@ -75,7 +75,7 @@ fun TypingTest(
 
     var testIter by remember { mutableIntStateOf(-1) }
     var modeIter = if (mode == "train") 0 else if (mode == "test" || mode == "onlyTest") 1 else 2
-    var modeNames = listOf("학습", "테스트")
+    var modeNames = listOf("Train", "Test")
 
     var testAlphabets = getAllowGroup(group, true)
 
@@ -257,12 +257,14 @@ fun TypingTest(
     fun explainResult() {
         if (isSpeakingNum > 0) return
         // Explain Result
-        speakOutKor(testList.size.toString() + "개 중 " + correctAnswer.toString() + "개 정답")
-        speakOutKor("오답")
+//        speakOutKor(testList.size.toString() + "개 중 " + correctAnswer.toString() + "개 정답")
+//        speakOutKor("오답")
+        speakOutEng(testList.size.toString() + " out of " + correctAnswer.toString() + "correct")
 
         if (wrongAnswer.size == 1) {
-            speakOutKor("없음")
+            speakOutEng("No incorrect answers")
         } else {
+            speakOutEng("Incorrect answers:")
             wrongAnswer.forEach { wrong ->
                 if (wrong.size == 1) return@forEach
                 speakOutEng(wrong[0])
@@ -339,7 +341,7 @@ fun TypingTest(
             if(subject == "practice") testList = testList.subList(0, 3)
             val modeName = modeNames[modeIter]
             soundManager.stop()
-            soundManager.speakOut(modeName + " : 시작하려면 이중탭하세요.")
+            soundManager.speakOut(modeName + " : Double Tap to Start")
         } else if (testIter >= testList.size) {
             explainResult()
             countdown = 3
@@ -378,7 +380,7 @@ fun TypingTest(
                                 onTap = {
                                     val modeName = modeNames[modeIter]
                                     soundManager.stop()
-                                    soundManager.speakOut(modeName + " : 시작하려면 이중탭하세요.")
+                                    soundManager.speakOut(modeName + " : Double Tap to Start")
                                 }
                             )
                         },
@@ -391,7 +393,7 @@ fun TypingTest(
                         )
 
                         Text(
-                            text = "시작하려면 이중탭하세요"
+                            text = "Double Tap to Start"
                             , fontSize = 20.sp
                         )
                     }
@@ -537,7 +539,7 @@ fun TypingTest(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "정답 : " + correctAnswer +" / " + testList.size,
+                    text = "Score : " + correctAnswer +" / " + testList.size,
                     fontSize = 40.sp
                 )
 
@@ -552,7 +554,7 @@ fun TypingTest(
 
                 Spacer(modifier = Modifier.height(50.dp))
 
-                Text (text = "이중탭하세요")
+                Text (text = "Double Tap")
             }
         }
     }

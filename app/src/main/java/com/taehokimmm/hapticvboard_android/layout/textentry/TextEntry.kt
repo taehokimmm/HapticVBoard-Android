@@ -425,8 +425,8 @@ fun Study3(
         val wpmFormatted = String.format("%.1f", wpmAvg)
         val errorFormatted = String.format("%.1f", error)
         speak(inputText)
-        speakKor("속도 : " + wpmFormatted, speed = 1.2f)
-        speakKor("오류 : " + errorFormatted + "%", speed = 1.2f)
+        speak("Speed : " + wpmFormatted, speed = 1.2f)
+        speak("Error : " + errorFormatted + "%", speed = 1.2f)
     }
 
 

@@ -10,22 +10,22 @@ import com.taehokimmm.hapticvboard_android.manager.HapticManager
 import com.taehokimmm.hapticvboard_android.manager.SoundManager
 
 enum class VocalLocation(val vocalLocation: String){
-    FRONT_CONSONANT("자음-입술"),
-    BACK_CONSONANT("자음-목"),
-    MIDDLE("자음-중간"),
-    FRONT_VOWEL("모음-앞"),
-    BACK_VOWEL("모음-뒤"),
-    FRONT2BACK("이중모음"),
-    BACK2FRONT("이중모음"),
+    FRONT_CONSONANT("Consonant Left"),
+    BACK_CONSONANT("Consonant Right"),
+    MIDDLE("Consonant Both"),
+    FRONT_VOWEL("Vowel Left"),
+    BACK_VOWEL("Vowel Right"),
+    FRONT2BACK("Vowel Moving"),
+    BACK2FRONT("Diphthongs"),
     NONE("")
 }
 
 enum class Location(val location: String){
-    LEFT("왼쪽"),
-    RIGHT("오른쪽"),
-    BOTH("양쪽"),
-    L2R("왼쪽에서 오른쪽"),
-    R2L("오른쪽에서 왼쪽"),
+    LEFT("Left"),
+    RIGHT("Right"),
+    BOTH("Both"),
+    L2R("Left to Right"),
+    R2L("Right to Left"),
     NONE("")
 }
 
@@ -51,12 +51,12 @@ fun getVocal2Location(vocalLocation: VocalLocation, isFront2Left: Boolean = true
 }
 
 enum class PhonemeGroup(val group: String) {
-    Plosive("파열음"),
-    Fricative("마찰음"),
-    Affricate("파열음+마찰음"),
-    Nasals("비음,유음"),
-    Vowel("모음"),
-    Diphthongs("이중모음"),
+    Plosive("Plosive"),
+    Fricative("Fricative"),
+    Affricate("Plosive+Fricative"),
+    Nasals("Nasals, Approximant"),
+    Vowel("Monothongs"),
+    Diphthongs("Diphthongs"),
     None("")
 }
 
@@ -90,6 +90,7 @@ fun getLocation(letter: String, isFront2Left: Boolean = true): Location {
     }
     return Location.NONE
 }
+
 
 fun getPhonemeGroup(key: String): PhonemeGroup {
     phonemeGroups.forEach() {

@@ -262,12 +262,14 @@ fun Study1VibrationQuiz(
     fun explainResult() {
         if (isSpeakingDone == false) return
         // Explain Result
-        speakOutKor(testList.size.toString() + "개 중 " + correctAnswer.toString() + "개 정답")
-        speakOutKor("오답")
+//        speakOutKor(testList.size.toString() + "개 중 " + correctAnswer.toString() + "개 정답")
+//        speakOutKor("오답")
+        speakOutEng(testList.size.toString() + " out of " + correctAnswer.toString() + "correct")
 
         if (wrongAnswer.size == 1) {
-            speakOutKor("없음")
+            speakOutEng("No incorrect answers")
         } else {
+            speakOutEng("Incorrect answers:")
             wrongAnswer.forEach { wrong ->
                 if (wrong.size == 1) return@forEach
                 speakOutEng(wrong[0])
@@ -309,7 +311,7 @@ fun Study1VibrationQuiz(
 
     LaunchedEffect (testIter) {
         if (testIter == -1) {
-            soundManager.speakOut("시작하려면 이중탭하세요.")
+            soundManager.speakOut("Double Tap to Start")
         } else if (testIter < testList.size) {
             selectedAnswer = -1
             selectedIndex = -1
@@ -342,7 +344,7 @@ fun Study1VibrationQuiz(
                         },
                         onTap = {
                             soundManager.stop()
-                            soundManager.speakOut("시작하려면 이중탭하세요.")
+                            soundManager.speakOut("Double Tap to Start")
                         }
                     )
                 },
@@ -354,7 +356,7 @@ fun Study1VibrationQuiz(
                     , fontSize = 20.sp
                 )
                 Text(
-                    text = "시작하려면 이중탭하세요"
+                    text = "Double Tap to Start"
                     , fontSize = 20.sp
                 )
             }
@@ -383,7 +385,7 @@ fun Study1VibrationQuiz(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "정답 : " + correctAnswer +" / " + testList.size,
+                    text = "Score : " + correctAnswer +" / " + testList.size,
                     fontSize = 40.sp
                 )
 

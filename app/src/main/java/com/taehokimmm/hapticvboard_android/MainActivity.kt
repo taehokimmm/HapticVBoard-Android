@@ -95,24 +95,29 @@ fun MainScreen(soundManager: SoundManager?, hapticManager: HapticManager?) {
     var hapticMode by rememberSaveable { mutableStateOf(HapticMode.NONE) }
 
     if (hapticMode == HapticMode.NONE) {
-        AlertDialog(onDismissRequest = { },
-            title = { Text("Serial Connection Not Found", fontSize = 20.sp) },
-            text = { Text("Please connect the serial device and press Retry. If you are not using a serial device, press Ignore.") },
-            confirmButton = {
-                Button(onClick = {
-                    hapticManager?.connect()
-                    if (hapticManager?.isOpen() == true) hapticMode = HapticMode.PHONEME
-                }) {
-                    Text("Retry")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { hapticMode = HapticMode.VOICE },
-                ) {
-                    Text("Ignore")
-                }
-            })
+
+
+        hapticManager?.connect()
+        if (hapticManager?.isOpen() == true) hapticMode = HapticMode.PHONEME
+//
+//        AlertDialog(onDismissRequest = { },
+//            title = { Text("Serial Connection Not Found", fontSize = 20.sp) },
+//            text = { Text("Please connect the serial device and press Retry. If you are not using a serial device, press Ignore.") },
+//            confirmButton = {
+//                Button(onClick = {
+//                    hapticManager?.connect()
+//                    if (hapticManager?.isOpen() == true) hapticMode = HapticMode.PHONEME
+//                }) {
+//                    Text("Retry")
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(
+//                    onClick = { hapticMode = HapticMode.VOICE },
+//                ) {
+//                    Text("Ignore")
+//                }
+//            })
     }
 
     val window = LocalContext.current.findActivity()?.window!!

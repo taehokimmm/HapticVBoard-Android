@@ -81,7 +81,6 @@ class SoundManager(context: Context) {
                     val outputFile: File = File(
                         context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
                         "tts_" + letter +".wav")
-                    Log.d("TTSMANAGER", outputFile.absolutePath)
                     // Synthesizing to file
                     val params = Bundle()
                     params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "tts1")
@@ -140,15 +139,13 @@ class SoundManager(context: Context) {
     fun speakOutPhonemeInfo(key: String) {
         val loc: Location = getLocation(key)
         val group: PhonemeGroup = getPhonemeGroup(key)
-        speakOutKor(group.group)
-        speakOutKor(loc.location,TextToSpeech.QUEUE_ADD)
+        speakOut(group.group)
+        speakOut(loc.location,TextToSpeech.QUEUE_ADD)
     }
 
     fun speakOut(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH, rate:Float = 1.0f) {
 
-        writeHandler.post {
-            tts.speak(text, mode, null, null)
-        }
+        tts.speak(text, mode, null, null)
     }
 
     fun speakOutKor(text: String, mode:Int = TextToSpeech.QUEUE_FLUSH) {
@@ -173,7 +170,7 @@ class SoundManager(context: Context) {
             "h" to "hotel",
             "i" to "inside",
             "j" to "juice",
-            "k" to "korea",
+            "k" to "king",
             "l" to "lemon",
             "m" to "mouth",
             "n" to "nose",
@@ -192,23 +189,21 @@ class SoundManager(context: Context) {
         )
 
         speakOut(key, TextToSpeech.QUEUE_FLUSH)
-        speakOut("", TextToSpeech.QUEUE_ADD)
-        speakOut("", TextToSpeech.QUEUE_ADD)
 
-        var korspell: Map<String, String> = mapOf(
-            "l" to "엘",
-            "m" to "엠",
-            "n" to "엔",
-            "o" to "오",
-            "r" to "알",
-        )
-        if (korspell.containsKey(key)) {
-            korspell[key]?.let { speakOutKor(it, TextToSpeech.QUEUE_ADD) }
-        } else {
-            speakOutKor(key, TextToSpeech.QUEUE_ADD)
-        }
-        if (isAddWord)
-            avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
+//        var korspell: Map<String, String> = mapOf(
+//            "l" to "엘",
+//            "m" to "엠",
+//            "n" to "엔",
+//            "o" to "오",
+//            "r" to "알",
+//        )
+//        if (korspell.containsKey(key)) {
+//            korspell[key]?.let { speakOutKor(it, TextToSpeech.QUEUE_ADD) }
+//        } else {
+//            speakOutKor(key, TextToSpeech.QUEUE_ADD)
+//        }
+        playEarcon("silent")
+        avaiation[key]?.let { speakOut(it, TextToSpeech.QUEUE_ADD) }
     }
 
 
